@@ -1,0 +1,22 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: gestor
+      MYSQL_PASSWORD: gestor@admin
+    ports:
+      - 3306:3306
+
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" # Porta SMTP
+      - "8025:8025" # Porta da interface da web
