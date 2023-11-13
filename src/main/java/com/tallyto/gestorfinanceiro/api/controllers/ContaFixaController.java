@@ -34,6 +34,12 @@ public class ContaFixaController {
         return ResponseEntity.ok(contaFixaSalva);
     }
 
+    @GetMapping
+    public ResponseEntity<List<ContaFixa>> listarContasFixas() {
+        List<ContaFixa> contasFixas = contaFixaService.listarTodasContasFixas();
+        return ResponseEntity.ok(contasFixas);
+    }
+
     @GetMapping("/categoria/{categoriaId}")
     public ResponseEntity<List<ContaFixa>> listarContasFixasPorCategoria(
             @PathVariable Long categoriaId
