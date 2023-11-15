@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -46,6 +47,12 @@ public class ContaFixaController {
     ) {
         List<ContaFixa> contasFixas = contaFixaService.listarContaFixaPorCategoria(categoriaId);
         return ResponseEntity.ok(contasFixas);
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<BigDecimal> calcularTotalContasFixas() {
+        BigDecimal total = contaFixaService.calcularTotalContasFixasNaoPagas();
+        return ResponseEntity.ok(total);
     }
 
     @GetMapping("/vencidas")

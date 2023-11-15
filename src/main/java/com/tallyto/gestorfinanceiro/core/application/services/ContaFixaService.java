@@ -5,6 +5,7 @@ import com.tallyto.gestorfinanceiro.core.domain.repositories.ContaFixaRepository
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,6 +21,11 @@ public class ContaFixaService {
 
     public ContaFixa salvarContaFixa(ContaFixa contaFixa) {
         return contaFixaRepository.save(contaFixa);
+    }
+
+    public BigDecimal calcularTotalContasFixasNaoPagas() {
+        LocalDate hoje = LocalDate.now();
+        return contaFixaRepository.calcularTotalContasFixasNaoPagas(hoje);
     }
 
     public List<ContaFixa> listarContaFixaPorCategoria(Long categoriaId) {
