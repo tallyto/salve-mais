@@ -5,6 +5,8 @@ import com.tallyto.gestorfinanceiro.core.domain.repositories.CategoriaRepository
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CategoriaService {
 
@@ -27,5 +29,8 @@ public class CategoriaService {
         return categoriaRepository.findById(id).orElseThrow();
     }
 
-    // Outros métodos relacionados a categorias
+    public List<Categoria> listarCategorias() {
+        return categoriaRepository.findAll();
+    }
+
 }

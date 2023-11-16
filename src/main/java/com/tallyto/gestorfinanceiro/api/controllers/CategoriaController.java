@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/categorias")
 @Validated
@@ -19,6 +21,11 @@ public class CategoriaController {
     @Autowired
     public CategoriaController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
+    }
+
+    @GetMapping
+    public List<Categoria> listarCategorias() {
+        return categoriaService.listarCategorias();
     }
 
     @PostMapping
