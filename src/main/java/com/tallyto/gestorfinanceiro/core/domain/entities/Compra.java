@@ -19,5 +19,9 @@ public class Compra {
     private LocalDate data;
 
     @ManyToOne
+    private Categoria categoria;
+
+    @ManyToOne
     private CartaoCredito cartaoCredito;
+
 }

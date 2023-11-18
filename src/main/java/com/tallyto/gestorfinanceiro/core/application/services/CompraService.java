@@ -19,6 +19,7 @@ public class CompraService {
     public Compra salvarCompra(Compra compra) {
         var cartaoCredito = cartaoCreditoService.findOrFail(compra.getCartaoCredito().getId());
         compra.setCartaoCredito(cartaoCredito);
+
         return compraRepository.save(compra);
     }
 
