@@ -9,6 +9,7 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -24,9 +25,13 @@ public class CompraController {
     }
 
     @GetMapping
-
     public List<Compra> listarCompras() {
         return compraService.listarCompras();
+    }
+
+    @GetMapping("/cartao/{cartaoId}")
+    public List<Compra> listarPorCartao(@PathVariable Long cartaoId, @RequestParam LocalDate dataVencimento) {
+        return compraService.comprasPorCartaoAteData(cartaoId, dataVencimento);
     }
 
     private Compra toEntity(CompraDTO compraDTO) {

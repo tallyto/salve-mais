@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -15,7 +16,7 @@ public class Compra {
     private Long id;
 
     private String descricao;
-    private Double valor;
+    private BigDecimal valor;
     private LocalDate data;
 
     @ManyToOne

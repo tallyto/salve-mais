@@ -5,6 +5,7 @@ import com.tallyto.gestorfinanceiro.core.domain.repositories.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -25,6 +26,18 @@ public class CompraService {
 
     public List<Compra> listarCompras() {
         return compraRepository.findAll();
+    }
+
+
+    public List<Compra> comprasPorCartaoAteData(Long cartaoId, LocalDate dataVencimento) {
+        // Calcula a data de fechamento da fatura (último dia do mês anterior ao vencimento)
+        LocalDate dataFechamentoFatura = dataVencimento.minusDays(10);
+
+        // Calcula o primeiro dia do mês do fechamento da fatura
+        LocalDate primeiroDiaMesFechamento = dataFechamentoFatura.withDayOfMonth(1);
+
+        // Use o repositório para buscar as compras no intervalo desejado
+        return compraRepository.findByCartaoCreditoIdAndDataBetween(cartaoId, primeiroDiaMesFechamento, dataFechamentoFatura);
     }
 
 }
