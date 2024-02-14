@@ -17,11 +17,11 @@ alter table fatura auto_increment = 1;
 
 -- Inserir dados na tabela cartao_credito
 INSERT INTO cartao_credito (nome, vencimento)
-VALUES ('Cartão A', '2023-11-10'),
-       ('Cartão B', '2023-12-15'),
-       ('Cartão C', '2023-11-30'),
-       ('Cartão D', '2023-12-10'),
-       ('Cartão E', '2023-11-25');
+VALUES ('Visa Infinity', '2023-11-10'),
+       ('Santander Elite', '2023-12-15'),
+       ('Latam Gold', '2023-10-30'),
+       ('C6 Bank', '2023-12-10'),
+       ('Inter', '2023-11-25');
 
 -- Inserir dados na tabela categoria
 INSERT INTO categoria (nome)
@@ -35,25 +35,25 @@ VALUES ('Alimentação'),
 INSERT INTO compra (descricao, valor, data, categoria_id, cartao_credito_id)
 VALUES
     ('Eletrônicos Incríveis', RAND() * 100, '2023-10-02', 1, 1),
-    ('Livros Fantásticos', RAND() * 100, '2023-10-03', 2, 1),
-    ('Acessórios Estilosos', RAND() * 100, '2023-10-05', 3, 1),
-    ('Gadgets Incríveis', RAND() * 100, '2023-10-08', 4, 1),
-    ('Roupas da Moda', RAND() * 100, '2023-10-10', 5, 1),
+    ('Livros Fantásticos', RAND() * 100, '2023-10-03', 2, 2),
+    ('Acessórios Estilosos', RAND() * 100, '2023-10-05', 3, 3),
+    ('Gadgets Incríveis', RAND() * 100, '2023-10-08', 4, 4),
+    ('Roupas da Moda', RAND() * 100, '2023-10-10', 5, 5),
     ('Jantar Gourmet', RAND() * 100, '2023-10-12', 1, 1),
-    ('Ingressos para Show', RAND() * 100, '2023-10-15', 2, 1),
+    ('Ingressos para Show', RAND() * 100, '2023-10-15', 2, 2),
     ('Café Exclusivo', RAND() * 100, '2023-10-18', 3, 1),
-    ('Tecnologia Inovadora', RAND() * 100, '2023-10-20', 4, 1),
-    ('Experiência Gastronomica', RAND() * 100, '2023-10-22', 5, 1),
-    ('Artigos de Esporte', RAND() * 100, '2023-10-24', 1, 1),
+    ('Tecnologia Inovadora', RAND() * 100, '2023-10-20', 4, 3),
+    ('Experiência Gastronomica', RAND() * 100, '2023-10-22', 5, 4),
+    ('Artigos de Esporte', RAND() * 100, '2023-10-24', 1, 4),
     ('Viagem Aventureira', RAND() * 100, '2023-10-26', 2, 1),
-    ('Concerto Exclusivo', RAND() * 100, '2023-10-28', 3, 1),
-    ('Ferramentas de DIY', RAND() * 100, '2023-10-29', 4, 1),
-    ('Decoração Criativa', RAND() * 100, '2023-10-30', 5, 1),
-    ('Assinatura de Revista', RAND() * 100, '2023-10-17', 1, 1),
+    ('Concerto Exclusivo', RAND() * 100, '2023-10-28', 3, 2),
+    ('Ferramentas de DIY', RAND() * 100, '2023-10-29', 4, 3),
+    ('Decoração Criativa', RAND() * 100, '2023-10-30', 5, 4),
+    ('Assinatura de Revista', RAND() * 100, '2023-10-17', 1, 5),
     ('Arte Exclusiva', RAND() * 100, '2023-10-19', 2, 1),
-    ('Equipamento de Fitness', RAND() * 100, '2023-10-23', 3, 1),
-    ('Produtos de Beleza', RAND() * 100, '2023-10-25', 4, 1),
-    ('Plantas para Casa', RAND() * 100, '2023-10-27', 5, 1);
+    ('Equipamento de Fitness', RAND() * 100, '2023-10-23', 3, 2),
+    ('Produtos de Beleza', RAND() * 100, '2023-10-25', 4, 3),
+    ('Plantas para Casa', RAND() * 100, '2023-10-27', 5, 4);
 
 -- Inserir dados na tabela conta_fixa
 INSERT INTO conta_fixa (nome, categoria_id, vencimento, valor, pago)
