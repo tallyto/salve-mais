@@ -3,6 +3,8 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import com.tallyto.gestorfinanceiro.core.domain.repositories.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,8 +26,8 @@ public class CompraService {
         return compraRepository.save(compra);
     }
 
-    public List<Compra> listarCompras() {
-        return compraRepository.findAll();
+    public Page<Compra> listarCompras(Pageable pageable) {
+        return compraRepository.findAll(pageable);
     }
 
 

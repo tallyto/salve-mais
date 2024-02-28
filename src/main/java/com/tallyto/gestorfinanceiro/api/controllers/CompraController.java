@@ -7,6 +7,8 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,8 +27,8 @@ public class CompraController {
     }
 
     @GetMapping
-    public List<Compra> listarCompras() {
-        return compraService.listarCompras();
+    public Page<Compra> listarCompras(Pageable pageable) {
+        return compraService.listarCompras(pageable);
     }
 
     @GetMapping("/cartao/{cartaoId}")

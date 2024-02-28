@@ -5,11 +5,12 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Provento;
 import com.tallyto.gestorfinanceiro.core.application.services.ProventoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 
 @RestController
@@ -32,9 +33,8 @@ public class ProventoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Provento>> listarProventos() {
-        List<Provento> proventos = proventoService.listarProventos();
-        return ResponseEntity.ok(proventos);
+    public Page<Provento> listarProventos(Pageable pageable) {
+        return proventoService.listarProventos(pageable);
     }
 
     private Provento mapDTOToEntity(ProventoDTO proventoDTO) {
