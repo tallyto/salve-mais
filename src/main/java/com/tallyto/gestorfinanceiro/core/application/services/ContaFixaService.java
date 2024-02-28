@@ -3,6 +3,8 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.domain.repositories.ContaFixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -39,8 +41,8 @@ public class ContaFixaService {
 
     // Outros métodos relacionados a contas fixas
 
-    public List<ContaFixa> listarTodasContasFixas() {
-        return contaFixaRepository.findAll();
+    public Page<ContaFixa> listarTodasContasFixas(Pageable pageable) {
+        return contaFixaRepository.findAll(pageable);
     }
 
     public ContaFixa buscarContaFixaPorId(Long id) {

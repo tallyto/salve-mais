@@ -7,6 +7,8 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +38,8 @@ public class ContaFixaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ContaFixa>> listarContasFixas() {
-        List<ContaFixa> contasFixas = contaFixaService.listarTodasContasFixas();
-        return ResponseEntity.ok(contasFixas);
+    public Page<ContaFixa> listarContasFixas(Pageable pageable) {
+        return contaFixaService.listarTodasContasFixas(pageable);
     }
 
     @GetMapping("/categoria/{categoriaId}")
