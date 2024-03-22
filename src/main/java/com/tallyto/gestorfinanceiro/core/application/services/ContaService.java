@@ -3,9 +3,10 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.repositories.ContaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public class ContaService {
@@ -13,8 +14,8 @@ public class ContaService {
     @Autowired
     private ContaRepository contaRepository;
 
-    public List<Conta> findAllAccounts() {
-        return contaRepository.findAll();
+    public Page<Conta> findAllAccounts(Pageable pageable) {
+        return contaRepository.findAll(pageable);
     }
 
     public Conta create(Conta acc) {
