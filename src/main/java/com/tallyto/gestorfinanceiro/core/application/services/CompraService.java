@@ -1,7 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
-import com.tallyto.gestorfinanceiro.core.domain.repositories.CompraRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

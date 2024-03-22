@@ -3,7 +3,7 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
-import com.tallyto.gestorfinanceiro.core.domain.repositories.FaturaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
