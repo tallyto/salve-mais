@@ -1,12 +1,13 @@
 -- Limpar a base de dados
+DELETE FROM provento;
+DELETE FROM transacao;
+DELETE FROM conta;
 DELETE FROM fatura_compra;
 DELETE FROM fatura;
-DELETE FROM provento;
 DELETE FROM conta_fixa;
 DELETE FROM compra;
 DELETE FROM categoria;
 DELETE FROM cartao_credito;
-DELETE FROM conta;
 
 -- Zerar auto_increment
 ALTER TABLE provento AUTO_INCREMENT = 1;
@@ -16,6 +17,7 @@ ALTER TABLE categoria AUTO_INCREMENT = 1;
 ALTER TABLE cartao_credito AUTO_INCREMENT = 1;
 ALTER TABLE fatura AUTO_INCREMENT = 1;
 ALTER TABLE conta AUTO_INCREMENT = 1;
+ALTER TABLE transacao AUTO_INCREMENT = 1;
 
 -- Inserir dados na tabela cartao_credito
 INSERT INTO cartao_credito (nome, vencimento)
@@ -97,33 +99,29 @@ VALUES
     ('Manutenção da piscina', 11, '2023-12-18', 70.00, 1),
     ('Taxa bancária', 12, '2023-12-22', 10.00, 1);
 
--- Inserir dados na tabela provento
-INSERT INTO provento (descricao, valor, data)
+-- Inserir dados na tabela conta
+INSERT INTO conta (id, saldo, titular) VALUES (1, 1000.00, 'João Silva');
+INSERT INTO conta (id, saldo, titular) VALUES (2, 500.00, 'Maria Santos');
+INSERT INTO conta (id, saldo, titular) VALUES (3, 750.00, 'Pedro Oliveira');
+INSERT INTO conta (id, saldo, titular) VALUES (4, 2000.00, 'Ana Costa');
+INSERT INTO conta (id, saldo, titular) VALUES (5, 300.00, 'Luiza Pereira');
+
+-- Inserir dados na tabela provento associados às contas
+INSERT INTO provento (descricao, valor, data, conta_id)
 VALUES
-    ('Gratificação', 300.00, '2023-12-10'),
-    ('Incentivo de vendas', 150.00, '2023-12-05'),
-    ('Consultoria', 120.00, '2023-11-25'),
-    ('Rendimento de poupança', 20.00, '2023-12-08'),
-    ('Comissão de vendas', 80.00, '2023-11-28'),
-    ('Bônus de desempenho', 200.00, '2023-12-03'),
-    ('Aumento salarial', 400.00, '2023-11-22'),
-    ('Restituição de imposto', 50.00, '2023-12-15'),
-    ('Prêmio por metas atingidas', 120.00, '2023-12-18'),
-    ('Bônus de fidelidade', 70.00, '2023-12-01'),
-    ('Auxílio alimentação', 150.00, '2023-12-05'),
-    ('Dividendos de ações', 80.00, '2023-11-28'),
-    ('Rendimento de previdência privada', 120.00, '2023-12-01'),
-    ('Venda de produtos online', 50.00, '2023-12-10'),
-    ('Prêmio de produtividade', 180.00, '2023-12-15'),
-    ('Trabalho freelancer de design', 90.00, '2023-12-18'),
-    ('Bônus de final de ano', 300.00, '2023-11-22'),
-    ('Renda extra como motorista de aplicativo', 70.00, '2023-12-30'),
-    ('Participação nos lucros', 200.00, '2023-12-08'),
-    ('Remuneração por consultoria', 150.00, '2023-11-20');
-
-
-INSERT INTO conta (saldo, titular) VALUES (1000.00, 'João Silva');
-INSERT INTO conta (saldo, titular) VALUES (500.00, 'Maria Santos');
-INSERT INTO conta (saldo, titular) VALUES (750.00, 'Pedro Oliveira');
-INSERT INTO conta (saldo, titular) VALUES (2000.00, 'Ana Costa');
-INSERT INTO conta (saldo, titular) VALUES (300.00, 'Luiza Pereira');
+    ('Gratificação', 300.00, '2023-12-10', 1),
+    ('Incentivo de vendas', 150.00, '2023-12-05', 1),
+    ('Consultoria', 120.00, '2023-11-25', 1),
+    ('Rendimento de poupança', 20.00, '2023-12-08', 2),
+    ('Comissão de vendas', 80.00, '2023-11-28', 2),
+    ('Bônus de desempenho', 200.00, '2023-12-03', 2),
+    ('Aumento salarial', 400.00, '2023-11-22', 3),
+    ('Restituição de imposto', 50.00, '2023-12-15', 3),
+    ('Prêmio por metas atingidas', 120.00, '2023-12-18', 3),
+    ('Bônus de fidelidade', 70.00, '2023-12-01', 4),
+    ('Auxílio alimentação', 150.00, '2023-12-05', 4),
+    ('Dividendos de ações', 80.00, '2023-11-28', 4),
+    ('Rendimento de previdência privada', 120.00, '2023-12-01', 5),
+    ('Venda de produtos online', 50.00, '2023-12-10', 5),
+    ('Prêmio de produtividade', 180.00, '2023-12-15', 5),
+    ('Trabalho freelancer de design', 90.00, '2023-12-18', 5);

@@ -1,7 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
-import com.tallyto.gestorfinanceiro.core.domain.repositories.CategoriaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.CategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

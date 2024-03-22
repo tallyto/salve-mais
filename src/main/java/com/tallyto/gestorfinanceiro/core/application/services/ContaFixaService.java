@@ -1,7 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
-import com.tallyto.gestorfinanceiro.core.domain.repositories.ContaFixaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaFixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

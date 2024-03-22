@@ -1,4 +1,4 @@
-package com.tallyto.gestorfinanceiro.core.domain.repositories;
+package com.tallyto.gestorfinanceiro.core.infra.repositories;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import org.springframework.data.jpa.repository.JpaRepository;
