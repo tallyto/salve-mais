@@ -6,6 +6,7 @@ DELETE FROM conta_fixa;
 DELETE FROM compra;
 DELETE FROM categoria;
 DELETE FROM cartao_credito;
+DELETE FROM conta;
 
 -- Zerar auto_increment
 ALTER TABLE provento AUTO_INCREMENT = 1;
@@ -14,6 +15,7 @@ ALTER TABLE compra AUTO_INCREMENT = 1;
 ALTER TABLE categoria AUTO_INCREMENT = 1;
 ALTER TABLE cartao_credito AUTO_INCREMENT = 1;
 ALTER TABLE fatura AUTO_INCREMENT = 1;
+ALTER TABLE conta AUTO_INCREMENT = 1;
 
 -- Inserir dados na tabela cartao_credito
 INSERT INTO cartao_credito (nome, vencimento)
@@ -118,3 +120,10 @@ VALUES
     ('Renda extra como motorista de aplicativo', 70.00, '2023-12-30'),
     ('Participação nos lucros', 200.00, '2023-12-08'),
     ('Remuneração por consultoria', 150.00, '2023-11-20');
+
+
+INSERT INTO conta (saldo, titular) VALUES (1000.00, 'João Silva');
+INSERT INTO conta (saldo, titular) VALUES (500.00, 'Maria Santos');
+INSERT INTO conta (saldo, titular) VALUES (750.00, 'Pedro Oliveira');
+INSERT INTO conta (saldo, titular) VALUES (2000.00, 'Ana Costa');
+INSERT INTO conta (saldo, titular) VALUES (300.00, 'Luiza Pereira');
