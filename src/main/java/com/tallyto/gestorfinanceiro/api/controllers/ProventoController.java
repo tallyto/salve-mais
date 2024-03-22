@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.ProventoDTO;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Provento;
 import com.tallyto.gestorfinanceiro.core.application.services.ProventoService;
 import jakarta.validation.Valid;
@@ -42,6 +43,9 @@ public class ProventoController {
         provento.setDescricao(proventoDTO.descricao());
         provento.setValor(proventoDTO.valor());
         provento.setData(proventoDTO.data());
+        var conta = new Conta();
+        conta.setId(proventoDTO.contaId());
+        provento.setConta(conta);
         return provento;
     }
 }

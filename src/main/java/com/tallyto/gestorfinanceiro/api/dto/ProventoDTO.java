@@ -16,6 +16,10 @@ public record ProventoDTO(
         BigDecimal valor,
 
         @NotNull(message = "A data não pode ser nula")
-        LocalDate data
+        LocalDate data,
+
+        @NotNull(message = "A conta não pode ser nula")
+        Long contaId
+
 ) {
 }
