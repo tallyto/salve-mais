@@ -1,10 +1,10 @@
 -- Limpar a base de dados
+DELETE FROM conta_fixa;
 DELETE FROM provento;
 DELETE FROM transacao;
 DELETE FROM conta;
 DELETE FROM fatura_compra;
 DELETE FROM fatura;
-DELETE FROM conta_fixa;
 DELETE FROM compra;
 DELETE FROM categoria;
 DELETE FROM cartao_credito;
@@ -75,29 +75,7 @@ VALUES
     ('Produtos de Beleza', 25.00, '2023-10-25', 4, 3),
     ('Plantas para Casa', 35.00, '2023-10-27', 5, 4);
 
--- Inserir dados na tabela conta_fixa
-INSERT INTO conta_fixa (nome, categoria_id, vencimento, valor, pago)
-VALUES
-    ('Gás', 4, '2023-12-10', 70.00, 1),
-    ('Telefone', 4, '2023-12-08', 40.00, 0),
-    ('IPTU', 3, '2023-12-20', 150.00, 0),
-    ('Condomínio', 3, '2023-12-05', 200.00, 1),
-    ('TV a cabo', 4, '2023-11-30', 80.00, 1),
-    ('Água', 4, '2023-12-12', 60.00, 0),
-    ('Manutenção do carro', 2, '2023-11-28', 100.00, 1),
-    ('Escola dos filhos', 1, '2023-12-03', 300.00, 1),
-    ('Plano de saúde', 6, '2023-11-22', 250.00, 1),
-    ('Manutenção do computador', 7, '2023-12-18', 50.00, 0),
-    ('Manutenção do ar condicionado', 7, '2023-11-20', 80.00, 1),
-    ('Supermercado', 8, '2023-12-08', 200.00, 0),
-    ('Combustível', 2, '2023-12-10', 60.00, 1),
-    ('Imposto de renda', 9, '2023-12-30', 300.00, 0),
-    ('Mensalidade do clube', 5, '2023-11-25', 50.00, 1),
-    ('Material escolar', 1, '2023-12-05', 100.00, 0),
-    ('Cinema e lazer', 10, '2023-12-15', 30.00, 1),
-    ('Seguro residencial', 9, '2023-11-30', 120.00, 0),
-    ('Manutenção da piscina', 11, '2023-12-18', 70.00, 1),
-    ('Taxa bancária', 12, '2023-12-22', 10.00, 1);
+
 
 -- Inserir dados na tabela conta
 INSERT INTO conta (id, saldo, titular) VALUES (1, 1000.00, 'João Silva');
@@ -105,6 +83,30 @@ INSERT INTO conta (id, saldo, titular) VALUES (2, 500.00, 'Maria Santos');
 INSERT INTO conta (id, saldo, titular) VALUES (3, 750.00, 'Pedro Oliveira');
 INSERT INTO conta (id, saldo, titular) VALUES (4, 2000.00, 'Ana Costa');
 INSERT INTO conta (id, saldo, titular) VALUES (5, 300.00, 'Luiza Pereira');
+
+-- Inserir dados na tabela conta_fixa
+INSERT INTO conta_fixa (nome, categoria_id, vencimento, valor, pago, conta_id)
+VALUES
+    ('Gás', 4, '2023-12-10', 70.00, 1,1),
+    ('Telefone', 4, '2023-12-08', 40.00, 0,2),
+    ('IPTU', 3, '2023-12-20', 150.00, 0,3),
+    ('Condomínio', 3, '2023-12-05', 200.00, 1,4),
+    ('TV a cabo', 4, '2023-11-30', 80.00, 1,5),
+    ('Água', 4, '2023-12-12', 60.00, 0,3),
+    ('Manutenção do carro', 2, '2023-11-28', 100.00, 1,1),
+    ('Escola dos filhos', 1, '2023-12-03', 300.00, 1,2),
+    ('Plano de saúde', 6, '2023-11-22', 250.00, 1,3),
+    ('Manutenção do computador', 7, '2023-12-18', 50.00, 0,4),
+    ('Manutenção do ar condicionado', 7, '2023-11-20', 80.00, 1,5),
+    ('Supermercado', 8, '2023-12-08', 200.00, 0,1),
+    ('Combustível', 2, '2023-12-10', 60.00, 1,1),
+    ('Imposto de renda', 9, '2023-12-30', 300.00, 0,2),
+    ('Mensalidade do clube', 5, '2023-11-25', 50.00, 1,3),
+    ('Material escolar', 1, '2023-12-05', 100.00, 0,4),
+    ('Cinema e lazer', 10, '2023-12-15', 30.00, 1,5),
+    ('Seguro residencial', 9, '2023-11-30', 120.00, 0,3),
+    ('Manutenção da piscina', 11, '2023-12-18', 70.00, 1,2),
+    ('Taxa bancária', 12, '2023-12-22', 10.00, 1,3);
 
 -- Inserir dados na tabela provento associados às contas
 INSERT INTO provento (descricao, valor, data, conta_id)

@@ -21,6 +21,10 @@ public class ContaFixa {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
+    @ManyToOne
+    @JoinColumn(name = "conta_id")
+    private Conta conta;
+
     private LocalDate vencimento;
     private BigDecimal valor;
 

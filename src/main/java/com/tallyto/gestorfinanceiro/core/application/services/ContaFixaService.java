@@ -14,14 +14,22 @@ import java.util.List;
 @Service
 public class ContaFixaService {
 
-    private final ContaFixaRepository contaFixaRepository;
+    @Autowired
+    private ContaFixaRepository contaFixaRepository;
 
     @Autowired
-    public ContaFixaService(ContaFixaRepository contaFixaRepository) {
-        this.contaFixaRepository = contaFixaRepository;
-    }
+    private ContaService contaService;
 
     public ContaFixa salvarContaFixa(ContaFixa contaFixa) {
+        var conta = contaService.getOne(contaFixa.getConta().getId());
+        if (conta == null) {
+            throw new IllegalArgumentException("Conta não encontrada");
+        }
+
+        if (contaFixa.isPago()) {
+            conta.setSaldo(conta.getSaldo().subtract(contaFixa.getValor()));
+        }
+
         return contaFixaRepository.save(contaFixa);
     }
 

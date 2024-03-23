@@ -13,6 +13,8 @@ public record ContaFixaDTO(
 
         @NotNull(message = "A categoria não pode ser nula")
         Long categoriaId,
+        @NotNull(message = "A conta não pode ser nula")
+        Long contaId,
 
         @NotNull(message = "O vencimento não pode ser nulo")
         LocalDate vencimento,
