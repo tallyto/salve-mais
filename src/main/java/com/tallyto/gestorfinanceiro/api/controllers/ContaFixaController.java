@@ -4,6 +4,7 @@ import com.tallyto.gestorfinanceiro.api.dto.ContaFixaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CategoriaService;
 import com.tallyto.gestorfinanceiro.core.application.services.ContaFixaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,10 @@ public class ContaFixaController {
         // Buscar a categoria por ID no banco de dados e associá-la à conta fixa
         Categoria categoria = categoriaService.buscaCategoriaPorId(contaFixaDTO.categoriaId());
         contaFixa.setCategoria(categoria);
+
+        Conta conta = new Conta();
+        conta.setId(contaFixaDTO.contaId());
+        contaFixa.setConta(conta);
 
         return contaFixa;
     }
