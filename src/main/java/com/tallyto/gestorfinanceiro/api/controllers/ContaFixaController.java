@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/contasfixas")
+@RequestMapping("/api/contas/fixas")
 @Validated
 public class ContaFixaController {
 

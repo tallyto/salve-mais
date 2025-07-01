@@ -1,12 +1,11 @@
 CREATE TABLE fatura
 (
-    id                BIGINT AUTO_INCREMENT NOT NULL,
+    id                BIGSERIAL PRIMARY KEY,
     data_vencimento   DATE                  NOT NULL,
     data_pagamento    DATE,
     valor_total       DECIMAL(10, 2)        NOT NULL,
     pago              BOOLEAN               NOT NULL,
     cartao_credito_id BIGINT                NOT NULL,
-    CONSTRAINT pk_fatura PRIMARY KEY (id),
     CONSTRAINT fk_fatura_cartao_credito FOREIGN KEY (cartao_credito_id) REFERENCES cartao_credito (id)
 );
 

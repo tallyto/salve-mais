@@ -1,18 +1,17 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
-import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
-import com.tallyto.gestorfinanceiro.core.infra.repositories.CategoriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.CategoriaRepository;
 
 @Service
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
 
-    @Autowired
     public CategoriaService(CategoriaRepository categoriaRepository) {
         this.categoriaRepository = categoriaRepository;
     }

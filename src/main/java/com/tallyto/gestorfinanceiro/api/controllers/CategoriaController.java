@@ -18,7 +18,6 @@ public class CategoriaController {
 
     private final CategoriaService categoriaService;
 
-    @Autowired
     public CategoriaController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
