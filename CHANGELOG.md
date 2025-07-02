@@ -1,4 +1,4 @@
-# Changelog
+# Changelog - Gestor Financeiro (Backend)
 
 ## [Unreleased]
 
@@ -23,6 +23,27 @@
 - Validação de formulário avançada (mensagens específicas por campo)
 - Testes automatizados para autenticação
 
-## [1.0.0] - 2025-07-01
+## [1.2.0] - 2025-07-01
 
-- Primeira versão funcional com autenticação, cadastro e proteção de endpoints
+### Adicionado
+
+- Redefinição de senha completa (persistência, validação, expiração)
+- Migration para tabela de tokens
+
+### Corrigido
+
+- Erro de transação ao remover token
+
+## [1.1.0] - 2025-06-30
+
+### Adicionado
+
+- Recuperação de senha (envio de e-mail)
+- Integração com Mailhog
+
+## [1.0.0] - 2025-06-28
+
+### Adicionado
+
+- Cadastro, login, JWT, guard, logout, feedback visual
+- Roadmap e changelog iniciais
