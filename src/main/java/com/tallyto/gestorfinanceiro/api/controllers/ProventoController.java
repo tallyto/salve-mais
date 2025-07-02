@@ -5,7 +5,6 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Provento;
 import com.tallyto.gestorfinanceiro.core.application.services.ProventoService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,6 @@ public class ProventoController {
 
     private final ProventoService proventoService;
 
-    @Autowired
     public ProventoController(ProventoService proventoService) {
         this.proventoService = proventoService;
     }

@@ -4,7 +4,6 @@ import com.tallyto.gestorfinanceiro.api.dto.CategoriaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CategoriaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

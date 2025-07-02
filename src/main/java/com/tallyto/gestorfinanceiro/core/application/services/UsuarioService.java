@@ -26,4 +26,12 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
         return usuarioRepository.save(usuario);
     }
+
+    @Transactional
+    public void atualizarSenhaPorEmail(String email, String novaSenha) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
 }

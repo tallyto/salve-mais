@@ -25,7 +25,6 @@ public class ContaFixaController {
     private final ContaFixaService contaFixaService;
     private final CategoriaService categoriaService;
 
-    @Autowired
     public ContaFixaController(ContaFixaService contaFixaService, CategoriaService categoriaService) {
         this.contaFixaService = contaFixaService;
         this.categoriaService = categoriaService;
