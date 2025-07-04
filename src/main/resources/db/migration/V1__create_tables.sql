@@ -15,7 +15,7 @@ CREATE TABLE compra
 (
     id                BIGSERIAL PRIMARY KEY,
     descricao         VARCHAR(255),
-    valor             DOUBLE PRECISION,
+    valor             NUMERIC(10,2),
     data              DATE,
     categoria_id      BIGINT,
     cartao_credito_id BIGINT,
