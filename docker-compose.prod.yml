@@ -4,10 +4,9 @@ services:
   app:
     build: .
     image: gestor-financeiro:latest
+    env_file:
+      - .env
     environment:
-      - DB_URL
-      - DB_USERNAME
-      - DB_PASSWORD
       - SPRING_PROFILES_ACTIVE=prod
     ports:
       - "3001:3001"
