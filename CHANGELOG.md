@@ -23,6 +23,11 @@
 - Validação de formulário avançada (mensagens específicas por campo)
 - Testes automatizados para autenticação
 
+## [1.3.0] - 2025-07-03
+
+### Alterado
+- Script de deploy atualizado para utilizar Docker Compose com o arquivo `docker-compose.prod.yml` para ambiente de produção.
+
 ## [1.2.0] - 2025-07-01
 
 ### Adicionado
