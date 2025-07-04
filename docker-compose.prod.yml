@@ -5,10 +5,10 @@ services:
     build: .
     image: gestor-financeiro:latest
     environment:
-      - SPRING_DATASOURCE_URL
-      - SPRING_DATASOURCE_USERNAME
-      - SPRING_DATASOURCE_PASSWORD
+      - DB_URL
+      - DB_USERNAME
+      - DB_PASSWORD
       - SPRING_PROFILES_ACTIVE=prod
     ports:
-      - "8080:8080"
+      - "3001:3001"
     restart: always
