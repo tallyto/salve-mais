@@ -1,8 +1,8 @@
-#!/bin/zsh
+#!/bin/bash
 # Script de deploy usando Docker Compose para produção
 # Ajuste os caminhos conforme necessário
 
-APP_DIR="$HOME/gestor-financeiro"
+APP_DIR="$HOME/projetos/gestor-financeiro"
 COMPOSE_FILE="docker-compose.prod.yml"
 
 cd "$APP_DIR" || exit 1
