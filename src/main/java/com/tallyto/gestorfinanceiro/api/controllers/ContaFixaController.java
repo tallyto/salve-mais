@@ -1,21 +1,27 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.tallyto.gestorfinanceiro.api.dto.ContaFixaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CategoriaService;
 import com.tallyto.gestorfinanceiro.core.application.services.ContaFixaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/contas/fixas")
