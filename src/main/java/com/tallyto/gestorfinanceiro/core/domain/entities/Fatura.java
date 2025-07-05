@@ -18,10 +18,13 @@ public class Fatura {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "data_vencimento")
     LocalDate dataVencimento;
 
+    @Column(name = "data_pagamento")
     LocalDate dataPagamento;
 
+    @Column(name = "valor_total")
     BigDecimal valorTotal;
 
     boolean pago;

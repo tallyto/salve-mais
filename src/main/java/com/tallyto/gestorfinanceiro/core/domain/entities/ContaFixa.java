@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
+@Table(name = "conta_fixa") // Specify the table name if needed
 public class ContaFixa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

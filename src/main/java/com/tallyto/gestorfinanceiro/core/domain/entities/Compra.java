@@ -23,6 +23,7 @@ public class Compra {
     private Categoria categoria;
 
     @ManyToOne
+    @JoinColumn(name = "cartao_credito_id") 
     private CartaoCredito cartaoCredito;
 
 }

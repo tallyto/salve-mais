@@ -26,6 +26,7 @@
 ## [1.4.0] - 2025-07-05
 
 ### Adicionado
+
 - Suporte completo a multi-tenancy (multi locatários) com:
   - Entidade, DTO, Mapper e Repository para Tenant
   - Controller REST para Tenant
@@ -36,11 +37,13 @@
 - Ajuste do profile de teste para importar corretamente o application-test.properties
 
 ### Alterado
+
 - Atualização do pom.xml para definir versões de plugins e dependências
 
 ## [1.3.0] - 2025-07-03
 
 ### Alterado
+
 - Script de deploy atualizado para utilizar Docker Compose com o arquivo `docker-compose.prod.yml` para ambiente de produção.
 
 ## [1.2.0] - 2025-07-01
@@ -67,3 +70,11 @@
 
 - Cadastro, login, JWT, guard, logout, feedback visual
 - Roadmap e changelog iniciais
+
+## [Unreleased]
+
+- Correção de mapeamento JPA/Hibernate:
+  - Ajustado o nome da coluna de relacionamento CartaoCredito em Compra para `cartao_credito_id`.
+  - Garantido que todas as entidades usam nomes de tabela e coluna compatíveis com o banco (snake_case).
+- Correção de erro ao criar cartão de crédito (tabela/cartão/tabela de relacionamento).
+- Ajuste de multi-tenancy e integração front-end/back-end para envio do tenant em todas as requisições.
