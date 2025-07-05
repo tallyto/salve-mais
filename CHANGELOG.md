@@ -23,6 +23,21 @@
 - Validação de formulário avançada (mensagens específicas por campo)
 - Testes automatizados para autenticação
 
+## [1.4.0] - 2025-07-05
+
+### Adicionado
+- Suporte completo a multi-tenancy (multi locatários) com:
+  - Entidade, DTO, Mapper e Repository para Tenant
+  - Controller REST para Tenant
+  - Filtro, contexto e configuração para troca dinâmica de schema
+  - Serviço de migração Flyway por tenant
+  - Migration SQL para tabela de tenants
+- Correção das propriedades do Maven no pom.xml para build correto
+- Ajuste do profile de teste para importar corretamente o application-test.properties
+
+### Alterado
+- Atualização do pom.xml para definir versões de plugins e dependências
+
 ## [1.3.0] - 2025-07-03
 
 ### Alterado
