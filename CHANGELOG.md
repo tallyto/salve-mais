@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Adicionado endpoint DELETE /api/cartao-credito/{id} para exclusão de cartões
+- Adicionado endpoint GET /api/cartao-credito/{id} para busca individual de cartões
 - Adicionado endpoint PUT /api/conta/{id} para atualizar dados da conta (saldo e titular)
 - Implementado método update no ContaService para atualização de contas
 - Implementação de autenticação JWT (login, geração e validação de token)

@@ -25,4 +25,9 @@ public class CartaoCreditoService {
     public List<CartaoCredito> listarCartoesCredito() {
         return cartaoCreditoRepository.findAll();
     }
+    
+    public void excluirCartaoCredito(Long id) {
+        CartaoCredito cartaoCredito = findOrFail(id);
+        cartaoCreditoRepository.delete(cartaoCredito);
+    }
 }
