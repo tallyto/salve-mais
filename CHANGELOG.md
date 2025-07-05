@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Adicionado endpoint PUT /api/conta/{id} para atualizar dados da conta (saldo e titular)
+- Implementado método update no ContaService para atualização de contas
 - Implementação de autenticação JWT (login, geração e validação de token)
 - Cadastro de usuário com endpoint dedicado
 - Proteção de endpoints com Spring Security

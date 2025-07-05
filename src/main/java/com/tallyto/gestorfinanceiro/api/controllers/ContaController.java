@@ -23,4 +23,9 @@ public class ContaController {
     public Conta criar(@RequestBody Conta conta) {
         return contaService.create(conta);
     }
+
+    @PutMapping("/{id}")
+    public Conta atualizar(@PathVariable Long id, @RequestBody Conta conta) {
+        return contaService.update(id, conta);
+    }
 }

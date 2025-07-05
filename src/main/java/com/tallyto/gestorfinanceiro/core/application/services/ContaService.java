@@ -26,5 +26,13 @@ public class ContaService {
         return  contaRepository.save(acc);
     }
 
-
+    public Conta update(Long id, Conta conta) {
+        Conta existingConta = contaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
+        
+        existingConta.setSaldo(conta.getSaldo());
+        existingConta.setTitular(conta.getTitular());
+        
+        return contaRepository.save(existingConta);
+    }
 }
