@@ -36,6 +36,14 @@ public class ProventoController {
         return proventoService.listarProventos(pageable);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Provento> atualizarProvento(@PathVariable Long id, @Valid @RequestBody ProventoDTO proventoDTO) {
+        Provento provento = mapDTOToEntity(proventoDTO);
+        provento.setId(id);
+        Provento proventoAtualizado = proventoService.atualizarProvento(provento);
+        return ResponseEntity.ok(proventoAtualizado);
+    }
+
     private Provento mapDTOToEntity(ProventoDTO proventoDTO) {
         Provento provento = new Provento();
         provento.setDescricao(proventoDTO.descricao());

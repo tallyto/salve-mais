@@ -33,5 +33,16 @@ public class ProventoService {
         return proventoRepository.findAll(pageable);
     }
 
+    public Provento atualizarProvento(Provento provento) {
+        Provento existente = proventoRepository.findById(provento.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Provento não encontrado"));
+        existente.setDescricao(provento.getDescricao());
+        existente.setValor(provento.getValor());
+        existente.setData(provento.getData());
+        existente.setConta(provento.getConta());
+        // Aqui pode ser necessário ajustar saldo da conta, se a lógica exigir
+        return proventoRepository.save(existente);
+    }
+
     // Outros métodos relacionados a proventos
 }
