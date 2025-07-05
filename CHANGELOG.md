@@ -24,6 +24,7 @@
 - Tela de boas-vindas/resumo financeiro
 - Validação de formulário avançada (mensagens específicas por campo)
 - Testes automatizados para autenticação
+- Implementada funcionalidade de edição de provento (endpoint PUT, service, integração com DTO)
 
 ## [1.4.0] - 2025-07-05
 
