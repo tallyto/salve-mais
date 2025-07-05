@@ -11,6 +11,9 @@
 - Adicionado endpoint GET /api/contas/fixas/{id} para busca individual de contas fixas
 - Adicionado endpoint PUT /api/contas/fixas/{id} para atualização de contas fixas
 - Adicionado endpoint DELETE /api/contas/fixas/{id} para exclusão de contas fixas
+- Adicionado endpoint GET /api/compras/{id} para busca individual de compras
+- Adicionado endpoint PUT /api/compras/{id} para atualização de compras
+- Adicionado endpoint DELETE /api/compras/{id} para exclusão de compras
 - Implementação de autenticação JWT (login, geração e validação de token)
 - Cadastro de usuário com endpoint dedicado
 - Proteção de endpoints com Spring Security

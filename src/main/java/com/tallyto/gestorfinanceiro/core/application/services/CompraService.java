@@ -30,7 +30,6 @@ public class CompraService {
         return compraRepository.findAll(pageable);
     }
 
-
     public List<Compra> comprasPorCartaoAteData(Long cartaoId, LocalDate dataVencimento) {
         // Calcula a data de fechamento da fatura (último dia do mês anterior ao vencimento)
         LocalDate dataFechamentoFatura = dataVencimento.minusDays(10);
@@ -42,4 +41,35 @@ public class CompraService {
         return compraRepository.findByCartaoCreditoIdAndDataBetween(cartaoId, primeiroDiaMesFechamento, dataFechamentoFatura);
     }
 
+    public Compra buscarCompraPorId(Long id) {
+        return compraRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compra não encontrada com ID: " + id));
+    }
+
+    public Compra atualizarCompra(Long id, Compra compraAtualizada) {
+        Compra compraExistente = buscarCompraPorId(id);
+
+        // Atualiza os dados da compra
+        compraExistente.setDescricao(compraAtualizada.getDescricao());
+        compraExistente.setValor(compraAtualizada.getValor());
+        compraExistente.setData(compraAtualizada.getData());
+
+        // Atualiza a categoria se foi alterada
+        if (compraAtualizada.getCategoria() != null) {
+            compraExistente.setCategoria(compraAtualizada.getCategoria());
+        }
+
+        // Atualiza o cartão se foi alterado
+        if (compraAtualizada.getCartaoCredito() != null) {
+            var cartaoCredito = cartaoCreditoService.findOrFail(compraAtualizada.getCartaoCredito().getId());
+            compraExistente.setCartaoCredito(cartaoCredito);
+        }
+
+        return compraRepository.save(compraExistente);
+    }
+
+    public void excluirCompra(Long id) {
+        Compra compra = buscarCompraPorId(id);
+        compraRepository.delete(compra);
+    }
 }

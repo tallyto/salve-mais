@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CompraDTO (
+        Long id,
+        
         @NotBlank
         String descricao,
 
@@ -18,8 +20,8 @@ public record CompraDTO (
 
         @NotNull
         Long categoriaId,
+        
         @NotNull
         Long cartaoId
-
-        )
+)
 {}

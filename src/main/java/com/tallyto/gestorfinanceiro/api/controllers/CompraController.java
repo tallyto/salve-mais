@@ -9,6 +9,7 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -36,8 +37,46 @@ public class CompraController {
         return compraService.comprasPorCartaoAteData(cartaoId, dataVencimento);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Compra> buscarPorId(@PathVariable Long id) {
+        try {
+            Compra compra = compraService.buscarCompraPorId(id);
+            return ResponseEntity.ok(compra);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Compra> atualizarCompra(@PathVariable Long id, @RequestBody CompraDTO compraDTO) {
+        try {
+            Compra compra = toEntity(compraDTO);
+            compra.setId(id); // Garante que o ID está correto
+            Compra compraAtualizada = compraService.atualizarCompra(id, compra);
+            return ResponseEntity.ok(compraAtualizada);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirCompra(@PathVariable Long id) {
+        try {
+            compraService.excluirCompra(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     private Compra toEntity(CompraDTO compraDTO) {
         var compra = new Compra();
+        
+        // Se houver ID (caso de atualização), mantém o ID
+        if (compraDTO.id() != null) {
+            compra.setId(compraDTO.id());
+        }
+        
         compra.setData(compraDTO.data());
         compra.setValor(compraDTO.valor());
         compra.setDescricao(compraDTO.descricao());
