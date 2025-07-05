@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,6 +68,56 @@ public class ContaFixaController {
     public ResponseEntity<List<ContaFixa>> listarContasFixasVencidasNaoPagas() {
         List<ContaFixa> contasFixas = contaFixaService.listarContasFixasVencidasNaoPagas();
         return ResponseEntity.ok(contasFixas);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ContaFixa> buscarContaFixaPorId(@PathVariable Long id) {
+        ContaFixa contaFixa = contaFixaService.buscarContaFixaPorId(id);
+        if (contaFixa == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(contaFixa);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ContaFixa> atualizarContaFixa(
+            @PathVariable Long id,
+            @Valid @RequestBody ContaFixaDTO contaFixaDTO) {
+
+        ContaFixa contaFixaExistente = contaFixaService.buscarContaFixaPorId(id);
+        if (contaFixaExistente == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Atualiza os dados da conta fixa existente com os novos dados
+        contaFixaExistente.setNome(contaFixaDTO.nome());
+        contaFixaExistente.setVencimento(contaFixaDTO.vencimento());
+        contaFixaExistente.setValor(contaFixaDTO.valor());
+        contaFixaExistente.setPago(contaFixaDTO.pago());
+
+        // Atualiza a categoria
+        Categoria categoria = categoriaService.buscaCategoriaPorId(contaFixaDTO.categoriaId());
+        contaFixaExistente.setCategoria(categoria);
+
+        // Atualiza a conta
+        Conta conta = new Conta();
+        conta.setId(contaFixaDTO.contaId());
+        contaFixaExistente.setConta(conta);
+
+        // Salva a conta fixa atualizada
+        ContaFixa contaFixaAtualizada = contaFixaService.salvarContaFixa(contaFixaExistente);
+        return ResponseEntity.ok(contaFixaAtualizada);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirContaFixa(@PathVariable Long id) {
+        ContaFixa contaFixa = contaFixaService.buscarContaFixaPorId(id);
+        if (contaFixa == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        contaFixaService.deletarContaFixa(id);
+        return ResponseEntity.noContent().build();
     }
 
     // Outros métodos relacionados a contas fixas
