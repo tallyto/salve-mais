@@ -39,10 +39,30 @@ public class CategoriaController {
         return ResponseEntity.ok(categoria);
     }
 
+    @GetMapping("/id/{id}")
+    public ResponseEntity<Categoria> buscarCategoriaPorId(@PathVariable Long id) {
+        Categoria categoria = categoriaService.buscaCategoriaPorId(id);
+        return ResponseEntity.ok(categoria);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Categoria> atualizarCategoria(@PathVariable Long id, @Valid @RequestBody CategoriaDTO categoriaDTO) {
+        Categoria categoria = mapDTOToEntity(categoriaDTO);
+        Categoria categoriaAtualizada = categoriaService.atualizarCategoria(id, categoria);
+        return ResponseEntity.ok(categoriaAtualizada);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirCategoria(@PathVariable Long id) {
+        categoriaService.excluirCategoria(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // Outros métodos relacionados a categorias
 
     private Categoria mapDTOToEntity(CategoriaDTO categoriaDTO) {
         Categoria categoria = new Categoria();
+        categoria.setId(categoriaDTO.id());
         categoria.setNome(categoriaDTO.nome());
         return categoria;
     }

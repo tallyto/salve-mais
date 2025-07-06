@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Adicionado endpoint PUT /api/categorias/{id} para atualização de categorias
+- Adicionado endpoint DELETE /api/categorias/{id} para exclusão de categorias
+- Adicionado endpoint GET /api/categorias/id/{id} para busca de categoria por ID
+- Atualizado DTO de categoria para incluir ID
+- Implementados métodos no CategoriaService para atualização e exclusão
+- Adicionado tratamento de erro para categorias não encontradas
 - Adicionado endpoint PUT /api/proventos/{id} para atualização de proventos
 - Implementado método atualizarProvento no ProventoService
 - Adicionado endpoint DELETE /api/cartao-credito/{id} para exclusão de cartões

@@ -25,11 +25,25 @@ public class CategoriaService {
     }
 
     public Categoria buscaCategoriaPorId(Long id) {
-        return categoriaRepository.findById(id).orElseThrow();
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada com ID: " + id));
     }
 
     public List<Categoria> listarCategorias() {
         return categoriaRepository.findAll();
     }
 
+    public void excluirCategoria(Long id) {
+        // Verifica se a categoria existe antes de tentar excluir
+        if (!categoriaRepository.existsById(id)) {
+            throw new RuntimeException("Categoria não encontrada com ID: " + id);
+        }
+        categoriaRepository.deleteById(id);
+    }
+
+    public Categoria atualizarCategoria(Long id, Categoria categoria) {
+        Categoria categoriaExistente = buscaCategoriaPorId(id);
+        categoriaExistente.setNome(categoria.getNome());
+        return categoriaRepository.save(categoriaExistente);
+    }
 }
