@@ -45,7 +45,7 @@ public class HibernateConfig {
         jpaPropertiesMap.put(MultiTenancySettings.MULTI_TENANT_CONNECTION_PROVIDER, multiTenantConnectionProviderImpl);
         jpaPropertiesMap.put(MultiTenancySettings.MULTI_TENANT_IDENTIFIER_RESOLVER, currentTenantIdentifierResolverImpl);
         // enable query logs
-        jpaPropertiesMap.put("hibernate.show_sql", true);
+        // jpaPropertiesMap.put("hibernate.show_sql", true);
 
         em.setJpaPropertyMap(jpaPropertiesMap);
 

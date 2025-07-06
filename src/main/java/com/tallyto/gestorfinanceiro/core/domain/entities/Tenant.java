@@ -32,7 +32,11 @@ public class Tenant extends Auditable {
 
     @Column(name = "address")
     private String address;
-
-
+    
+    @Column(name = "active", nullable = false)
+    private Boolean active = false;
+    
+    @Column(name = "confirmation_token")
+    private String confirmationToken;
 
 }

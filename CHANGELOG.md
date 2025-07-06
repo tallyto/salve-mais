@@ -22,12 +22,20 @@
   - Contas: PUT para atualização de dados (saldo e titular)
   - Contas fixas: GET por ID, PUT, DELETE
   - Compras: GET por ID, PUT, DELETE
+- Serviço de cadastro e confirmação de tenant:
+  - Criação do TenantService com métodos para cadastro, verificação e confirmação
+  - Endpoints públicos para gerenciamento de tenant (`/api/tenants/cadastro`, `/api/tenants/verificar`, `/api/tenants/confirmar`, `/api/tenants/verificar-dominio`)
+  - Envio de e-mail de confirmação de tenant
+  - Tabelas e migrations para suporte a ativação de tenant
 
 ### Melhorado
 
 - Métodos de repositório aprimorados com `findByDataBetween` para ProventoRepository e CompraRepository
 - Tratamento de erro para categorias não encontradas
 - Implementação de métodos de serviço para todas as entidades
+- Configuração CORS para suportar o header X-Private-Tenant
+- Configuração de segurança para permitir rotas públicas de tenant e usuário
+- TenantController refatorado para usar TenantService ao invés de acessar diretamente o repository
 
 ### Corrigido
 
@@ -36,6 +44,7 @@
   - Garantido que todas as entidades usam nomes de tabela e coluna compatíveis com o banco (snake_case)
 - Correção de erro ao criar cartão de crédito (tabela/cartão/tabela de relacionamento)
 - Ajuste de multi-tenancy e integração front-end/back-end para envio do tenant em todas as requisições
+- Correção de bean validation para tenant (campos name e domain)
 
 ## [1.4.0] - 2025-07-05
 
