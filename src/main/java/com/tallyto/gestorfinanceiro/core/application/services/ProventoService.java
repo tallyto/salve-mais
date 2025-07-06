@@ -44,5 +44,14 @@ public class ProventoService {
         return proventoRepository.save(existente);
     }
 
-    // Outros métodos relacionados a proventos
+    public void excluirProvento(Long id) {
+        Provento provento = proventoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Provento não encontrado"));
+        
+        // Reduzir o saldo da conta ao excluir o provento
+        var conta = contaService.getOne(provento.getConta().getId());
+        conta.setSaldo(conta.getSaldo().subtract(provento.getValor()));
+        
+        proventoRepository.deleteById(id);
+    }
 }

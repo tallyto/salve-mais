@@ -43,6 +43,18 @@ public class ProventoController {
         Provento proventoAtualizado = proventoService.atualizarProvento(provento);
         return ResponseEntity.ok(proventoAtualizado);
     }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirProvento(@PathVariable Long id) {
+        try {
+            proventoService.excluirProvento(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     private Provento mapDTOToEntity(ProventoDTO proventoDTO) {
         Provento provento = new Provento();

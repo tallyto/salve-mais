@@ -10,6 +10,8 @@
 - Adicionado tratamento de erro para categorias não encontradas
 - Adicionado endpoint PUT /api/proventos/{id} para atualização de proventos
 - Implementado método atualizarProvento no ProventoService
+- Adicionado endpoint DELETE /api/proventos/{id} para exclusão de proventos
+- Implementado método excluirProvento no ProventoService com ajuste de saldo da conta
 - Adicionado endpoint DELETE /api/cartao-credito/{id} para exclusão de cartões
 - Adicionado endpoint GET /api/cartao-credito/{id} para busca individual de cartões
 - Adicionado endpoint PUT /api/conta/{id} para atualizar dados da conta (saldo e titular)
