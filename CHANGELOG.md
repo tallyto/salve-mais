@@ -4,6 +4,11 @@
 
 ### Adicionado
 
+- Sistema padronizado de tratamento de exceções da API:
+  - `ApiExceptionHandler` para lidar com todas as exceções da aplicação
+  - Classes de exceção personalizadas: `BadRequestException`, `ForbiddenException`, `ResourceNotFoundException`
+  - Padronização de respostas de erro com formato Problem Details
+  - Tratamento específico para violações de validação (campos inválidos)
 - Implementação completa de endpoints para dashboard:
   - GET `/api/dashboard/summary` para resumo financeiro
   - GET `/api/dashboard/expenses-by-category` para gráfico de despesas por categoria
