@@ -47,3 +47,51 @@
 - Correção de erro ao criar cartão de crédito (tabela/cartão/tabela de relacionamento)
 - Ajuste de multi-tenancy e integração front-end/back-end para envio do tenant em todas as requisições
 - Correção de bean validation para tenant (campos name e domain)
+
+## [1.4.0] - 2025-07-05
+
+### Adicionado
+
+- Suporte completo a multi-tenancy (multi locatários) com:
+  - Entidade, DTO, Mapper e Repository para Tenant
+  - Controller REST para Tenant
+  - Filtro, contexto e configuração para troca dinâmica de schema
+  - Serviço de migração Flyway por tenant
+  - Migration SQL para tabela de tenants
+
+### Melhorado
+
+- Correção das propriedades do Maven no pom.xml para build correto
+- Ajuste do profile de teste para importar corretamente o application-test.properties
+- Atualização do pom.xml para definir versões de plugins e dependências
+
+## [1.3.0] - 2025-07-03
+
+### Melhorado
+
+- Script de deploy atualizado para utilizar Docker Compose com o arquivo `docker-compose.prod.yml` para ambiente de produção
+
+## [1.2.0] - 2025-07-01
+
+### Adicionado
+
+- Redefinição de senha completa (persistência, validação, expiração)
+- Migration para tabela de tokens
+
+### Corrigido
+
+- Erro de transação ao remover token
+
+## [1.1.0] - 2025-06-30
+
+### Adicionado
+
+- Recuperação de senha (envio de e-mail)
+- Integração com Mailhog
+
+## [1.0.0] - 2025-06-28
+
+### Adicionado
+
+- Cadastro, login, JWT, guard, logout, feedback visual
+- Roadmap e changelog iniciais
