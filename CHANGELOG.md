@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- Implementação completa de endpoints para dashboard (/api/dashboard)
+- Adicionado endpoint GET /api/dashboard/summary para resumo financeiro
+- Adicionado endpoint GET /api/dashboard/expenses-by-category para gráfico de despesas por categoria
+- Adicionado endpoint GET /api/dashboard/monthly-trend para tendência de gastos por mês
+- Criação do DashboardService com métodos para calcular dados agregados
+- Criação de DTOs para respostas do dashboard (DashboardSummaryDTO, CategoryExpenseDTO, MonthlyExpenseDTO)
+- Adicionado método findByDataBetween ao ProventoRepository e CompraRepository
 - Adicionado endpoint PUT /api/categorias/{id} para atualização de categorias
 - Adicionado endpoint DELETE /api/categorias/{id} para exclusão de categorias
 - Adicionado endpoint GET /api/categorias/id/{id} para busca de categoria por ID

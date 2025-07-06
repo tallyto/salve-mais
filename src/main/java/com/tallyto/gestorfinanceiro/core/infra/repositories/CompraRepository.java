@@ -12,4 +12,12 @@ import java.util.List;
 public interface CompraRepository extends JpaRepository<Compra, Long>  {
 
     List<Compra> findByCartaoCreditoIdAndDataBetween(Long cartaoId, LocalDate inicio, LocalDate fim);
+    
+    /**
+     * Busca compras com data entre os parâmetros fornecidos
+     * @param inicio Data inicial
+     * @param fim Data final
+     * @return Lista de compras no período
+     */
+    List<Compra> findByDataBetween(LocalDate inicio, LocalDate fim);
 }
