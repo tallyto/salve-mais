@@ -49,7 +49,7 @@ public class AuthController {
     public ResponseEntity<?> recuperarSenha(@RequestBody RecuperarSenhaRequestDTO dto) {
         String token = java.util.UUID.randomUUID().toString();
         passwordResetTokenService.storeToken(token, dto.getEmail());
-        String link = "http://localhost:4200/redefinir-senha?token=" + token;
+        String link = "http://localhost:4200/#/redefinir-senha?token=" + token;
         String mensagem = "Clique no link para redefinir sua senha: " + link;
         emailService.enviarEmail(dto.getEmail(), "Recuperação de Senha", mensagem);
         return ResponseEntity.ok(java.util.Collections.singletonMap("message",
