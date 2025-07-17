@@ -52,8 +52,8 @@ public class RelatorioMensalService {
                 ))
                 .collect(Collectors.toList());
 
-        // 2. Buscar contas fixas (gastos fixos)
-        List<ContaFixa> contasFixas = contaFixaRepository.findAll();
+        // 2. Buscar contas fixas que vencem no período especificado
+        List<ContaFixa> contasFixas = contaFixaRepository.findByVencimentoBetween(inicioMes, fimMes);
         List<RelatorioMensalDTO.ItemGastoFixoDTO> gastosFixosDTO = contasFixas.stream()
                 .map(conta -> new RelatorioMensalDTO.ItemGastoFixoDTO(
                         conta.getId(),

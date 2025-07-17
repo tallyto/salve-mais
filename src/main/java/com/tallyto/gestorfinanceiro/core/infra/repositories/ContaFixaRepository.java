@@ -17,5 +17,8 @@ public interface ContaFixaRepository extends JpaRepository<ContaFixa, Long> {
 
     @Query("SELECT SUM(cf.valor) FROM ContaFixa cf WHERE cf.vencimento < :hoje AND cf.pago = false")
     BigDecimal calcularTotalContasFixasNaoPagas(@Param("hoje") LocalDate hoje);
+    
     List<ContaFixa> findByVencimentoBeforeAndPagoIsFalse(LocalDate vencimento);
+    
+    List<ContaFixa> findByVencimentoBetween(LocalDate dataInicio, LocalDate dataFim);
 }
