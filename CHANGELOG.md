@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Sistema completo de gerenciamento de faturas manuais:
+  - Endpoint POST `/api/faturas/manual` para criação de faturas sem compras
+  - Endpoint PATCH `/api/faturas/{id}/pagar` para marcar fatura como paga
+  - Endpoint DELETE `/api/faturas/{id}` para exclusão de faturas
+  - Endpoint GET `/api/faturas/{id}` para busca individual
+  - DTO `FaturaManualDTO` para criação manual de faturas
+  - DTO `FaturaResponseDTO` para respostas padronizadas
+  - Validações para criação e manipulação de faturas
+
+### Melhorado
+
+- Sistema de relatórios mensais completamente reestruturado:
+  - Relatórios agora mostram gastos de cartões através de faturas (em vez de compras individuais)
+  - Removida seção "Outras Despesas" para simplificar a visualização
+  - Filtro de contas fixas corrigido para mostrar apenas contas que vencem no mês especificado
+  - Adicionado método `findByDataVencimentoBetween` no `FaturaRepository`
+  - Adicionado método `findByVencimentoBetween` no `ContaFixaRepository`
+  - Melhorada precisão dos cálculos financeiros mensais
+
+### Corrigido
+
+- Corrigido problema onde contas fixas de meses anteriores apareciam em relatórios de meses futuros
+- Resolvido erro de injeção de dependência `UnsatisfiedDependencyException` no `FaturaController`
+- Corrigida consulta de relatório mensal para usar apenas dados do período especificado
+
 ## [1.5.0] - 2025-07-06
 
 ### Adicionado
