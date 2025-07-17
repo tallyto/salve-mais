@@ -23,6 +23,11 @@ public class CompraService {
         var cartaoCredito = cartaoCreditoService.findOrFail(compra.getCartaoCredito().getId());
         compra.setCartaoCredito(cartaoCredito);
 
+        // Verifica se a compra pode ser realizada sem exceder o limite
+        if (!cartaoCreditoService.podeRealizarCompra(cartaoCredito.getId(), compra.getValor())) {
+            throw new IllegalArgumentException("Compra excede o limite disponível do cartão de crédito");
+        }
+
         return compraRepository.save(compra);
     }
 
