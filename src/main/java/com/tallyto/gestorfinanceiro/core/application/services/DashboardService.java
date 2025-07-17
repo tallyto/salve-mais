@@ -34,6 +34,9 @@ public class DashboardService {
     @Autowired
     private CompraRepository compraRepository;
 
+    @Autowired
+    private FaturaRepository faturaRepository;
+
     /**
      * Obtém o resumo financeiro para o dashboard
      * @return DashboardSummaryDTO com os dados de resumo
@@ -59,28 +62,33 @@ public class DashboardService {
                 .map(Provento::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Obtém despesas do mês atual (contas fixas)
-        BigDecimal despesasFixasMes = contaFixaRepository.findAll().stream()
+        // Obtém despesas do mês atual (contas fixas do período)
+        BigDecimal despesasFixasMes = contaFixaRepository.findByVencimentoBetween(inicioMesAtual, fimMesAtual).stream()
                 .map(ContaFixa::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Obtém despesas do mês atual (compras)
-        BigDecimal despesasComprasMes = compraRepository.findByDataBetween(inicioMesAtual, fimMesAtual).stream()
-                .map(Compra::getValor)
+        // Obtém despesas do mês atual (faturas)
+        BigDecimal despesasFaturasMes = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Total de despesas
-        BigDecimal despesasMes = despesasFixasMes.add(despesasComprasMes);
+        // Total de despesas (contas fixas + faturas)
+        BigDecimal despesasMes = despesasFixasMes.add(despesasFaturasMes);
 
         // Calcula o saldo do mês anterior
         BigDecimal receitasMesAnterior = proventoRepository.findByDataBetween(inicioMesAnterior, fimMesAnterior).stream()
                 .map(Provento::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal despesasMesAnterior = compraRepository.findByDataBetween(inicioMesAnterior, fimMesAnterior).stream()
-                .map(Compra::getValor)
+        BigDecimal despesasFixasMesAnterior = contaFixaRepository.findByVencimentoBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(ContaFixa::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal despesasFaturasMesAnterior = faturaRepository.findByDataVencimentoBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(Fatura::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal despesasMesAnterior = despesasFixasMesAnterior.add(despesasFaturasMesAnterior);
         BigDecimal saldoMesAnterior = receitasMesAnterior.subtract(despesasMesAnterior);
 
         // Conta o número de contas e categorias
@@ -107,19 +115,47 @@ public class DashboardService {
         LocalDate inicioMesAtual = mesAtual.atDay(1);
         LocalDate fimMesAtual = mesAtual.atEndOfMonth();
 
-        // Busca todas as compras do mês atual
-        List<Compra> compras = compraRepository.findByDataBetween(inicioMesAtual, fimMesAtual);
-
-        // Agrupa as compras por categoria e soma os valores
+        // Agrupa despesas por categoria
         Map<Categoria, BigDecimal> gastosPorCategoria = new HashMap<>();
 
-        for (Compra compra : compras) {
-            Categoria categoria = compra.getCategoria();
+        // Adiciona contas fixas do período
+        List<ContaFixa> contasFixas = contaFixaRepository.findByVencimentoBetween(inicioMesAtual, fimMesAtual);
+        for (ContaFixa conta : contasFixas) {
+            Categoria categoria = conta.getCategoria();
             if (categoria != null) {
                 gastosPorCategoria.put(
                         categoria,
-                        gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(compra.getValor())
+                        gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(conta.getValor())
                 );
+            }
+        }
+
+        // Adiciona faturas do período
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
+        for (Fatura fatura : faturas) {
+            // Para faturas, vamos usar a categoria do cartão ou uma categoria padrão "Cartões"
+            // Como não temos categoria direta na fatura, vamos criar uma lógica para isso
+            String nomeCategoria = "Cartões de Crédito";
+            
+            // Busca se já existe uma categoria "Cartões de Crédito"
+            Categoria categoriaCartao = categoriaRepository.findByNome(nomeCategoria);
+            
+            if (categoriaCartao != null) {
+                gastosPorCategoria.put(
+                        categoriaCartao,
+                        gastosPorCategoria.getOrDefault(categoriaCartao, BigDecimal.ZERO).add(fatura.getValorTotal())
+                );
+            } else {
+                // Se não existe a categoria, vamos distribuir as faturas pelas categorias das compras dentro da fatura
+                for (Compra compra : fatura.getCompras()) {
+                    Categoria categoria = compra.getCategoria();
+                    if (categoria != null) {
+                        gastosPorCategoria.put(
+                                categoria,
+                                gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(compra.getValor())
+                        );
+                    }
+                }
             }
         }
 
@@ -172,17 +208,17 @@ public class DashboardService {
                     .map(Provento::getValor)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
-            // Busca despesas do mês (compras)
-            BigDecimal despesasCompras = compraRepository.findByDataBetween(inicioMes, fimMes).stream()
-                    .map(Compra::getValor)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
-            // Adiciona contas fixas às despesas
-            BigDecimal despesasFixas = contaFixaRepository.findAll().stream()
+            // Busca despesas do mês (contas fixas do período)
+            BigDecimal despesasFixas = contaFixaRepository.findByVencimentoBetween(inicioMes, fimMes).stream()
                     .map(ContaFixa::getValor)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
-            BigDecimal despesasTotal = despesasCompras.add(despesasFixas);
+            // Busca despesas do mês (faturas)
+            BigDecimal despesasFaturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes).stream()
+                    .map(Fatura::getValorTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas);
             
             // Cria DTO para o mês
             result.add(new MonthlyExpenseDTO(
