@@ -24,10 +24,7 @@ public class RelatorioMensalService {
     private ContaFixaRepository contaFixaRepository;
 
     @Autowired
-    private CompraRepository compraRepository;
-
-    @Autowired
-    private CartaoCreditoRepository cartaoCreditoRepository;
+    private FaturaRepository faturaRepository;
 
     /**
      * Gera um relatório mensal completo baseado no mês/ano fornecidos
@@ -68,19 +65,13 @@ public class RelatorioMensalService {
                 ))
                 .collect(Collectors.toList());
 
-        // 3. Buscar compras do mês
-        List<Compra> compras = compraRepository.findByDataBetween(inicioMes, fimMes);
+        // 3. Buscar faturas do mês (baseado na data de vencimento)
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
         
-        // 4. Separar compras por cartão
-        List<CartaoCredito> cartoes = cartaoCreditoRepository.findAll();
-        List<RelatorioMensalDTO.ItemCartaoDTO> cartoesDTO = cartoes.stream()
-                .map(cartao -> {
-                    List<Compra> comprasCartao = compras.stream()
-                            .filter(compra -> compra.getCartaoCredito() != null && 
-                                    compra.getCartaoCredito().getId().equals(cartao.getId()))
-                            .collect(Collectors.toList());
-                    
-                    List<RelatorioMensalDTO.CompraCartaoDTO> comprasDTO = comprasCartao.stream()
+        // 4. Criar lista de cartões com suas faturas
+        List<RelatorioMensalDTO.ItemCartaoDTO> cartoesDTO = faturas.stream()
+                .map(fatura -> {
+                    List<RelatorioMensalDTO.CompraCartaoDTO> comprasDTO = fatura.getCompras().stream()
                             .map(compra -> new RelatorioMensalDTO.CompraCartaoDTO(
                                     compra.getId(),
                                     compra.getDescricao(),
@@ -90,38 +81,17 @@ public class RelatorioMensalService {
                             ))
                             .collect(Collectors.toList());
                     
-                    BigDecimal totalCartao = comprasDTO.stream()
-                            .map(RelatorioMensalDTO.CompraCartaoDTO::valor)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    
                     return new RelatorioMensalDTO.ItemCartaoDTO(
-                            cartao.getId(),
-                            cartao.getNome(),
-                            totalCartao,
-                            cartao.getVencimento(),
+                            fatura.getCartaoCredito().getId(),
+                            fatura.getCartaoCredito().getNome(),
+                            fatura.getValorTotal(),
+                            fatura.getDataVencimento(),
                             comprasDTO
                     );
                 })
-                .filter(cartao -> cartao.valorTotal().compareTo(BigDecimal.ZERO) > 0)
                 .collect(Collectors.toList());
 
-        // 5. Buscar outras despesas (compras sem cartão específico ou outras categorias)
-        List<Compra> outrasCompras = compras.stream()
-                .filter(compra -> compra.getCartaoCredito() == null)
-                .collect(Collectors.toList());
-        
-        List<RelatorioMensalDTO.ItemOutrasDescricaoDTO> outrasDespesasDTO = outrasCompras.stream()
-                .map(compra -> new RelatorioMensalDTO.ItemOutrasDescricaoDTO(
-                        compra.getId(),
-                        compra.getDescricao(),
-                        compra.getValor(),
-                        compra.getData(),
-                        compra.getCategoria() != null ? compra.getCategoria().getNome() : "Categoria não informada",
-                        "COMPRA"
-                ))
-                .collect(Collectors.toList());
-
-        // 6. Calcular totais
+        // 5. Calcular totais
         BigDecimal totalProventos = proventosDTO.stream()
                 .map(RelatorioMensalDTO.ItemProventoDTO::valor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -134,27 +104,26 @@ public class RelatorioMensalService {
                 .map(RelatorioMensalDTO.ItemGastoFixoDTO::valor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalOutrasDespesas = outrasDespesasDTO.stream()
-                .map(RelatorioMensalDTO.ItemOutrasDescricaoDTO::valor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // 7. Calcular saldo final e dívidas
-        BigDecimal totalDespesas = totalCartoes.add(totalGastosFixos).add(totalOutrasDespesas);
+        // 6. Calcular saldo final e dívidas (sem outras despesas)
+        BigDecimal totalDespesas = totalCartoes.add(totalGastosFixos);
         BigDecimal saldoFinal = totalProventos.subtract(totalDespesas);
 
-        // 8. Criar resumo financeiro
+        // 7. Criar resumo financeiro
         RelatorioMensalDTO.ResumoFinanceiroDTO resumoFinanceiro = new RelatorioMensalDTO.ResumoFinanceiroDTO(
                 totalProventos,
                 BigDecimal.ZERO, // Receitas pendentes - pode ser implementado futuramente
                 totalCartoes,
                 totalGastosFixos,
-                totalOutrasDespesas,
+                BigDecimal.ZERO, // Outras despesas removidas
                 saldoFinal,
                 totalDespesas
         );
 
-        // 9. Criar lista vazia para receitas pendentes (funcionalidade futura)
+        // 8. Criar lista vazia para receitas pendentes (funcionalidade futura)
         List<RelatorioMensalDTO.ItemReceitasPendentesDTO> receitasPendentes = List.of();
+
+        // 9. Criar lista vazia para outras despesas (removida esta funcionalidade)
+        List<RelatorioMensalDTO.ItemOutrasDescricaoDTO> outrasDespesasDTO = List.of();
 
         return new RelatorioMensalDTO(
                 mesReferencia,
