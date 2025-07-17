@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,5 +49,34 @@ public class FaturaService {
 
     public List<Fatura> listar() {
         return faturaRepository.findAll();
+    }
+
+    public Fatura criarFaturaManual(Long cartaoCreditoId, BigDecimal valorTotal, LocalDate dataVencimento) {
+        CartaoCredito cartaoCredito = cartaoCreditoService.findOrFail(cartaoCreditoId);
+        
+        Fatura fatura = new Fatura();
+        fatura.setCartaoCredito(cartaoCredito);
+        fatura.setCompras(new ArrayList<>()); // Lista vazia para fatura manual
+        fatura.setValorTotal(valorTotal);
+        fatura.setPago(false);
+        fatura.setDataVencimento(dataVencimento);
+        
+        return faturaRepository.save(fatura);
+    }
+
+    public Fatura findOrFail(Long id) {
+        return faturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Fatura não encontrada com ID: " + id));
+    }
+
+    public void marcarComoPaga(Long faturaId) {
+        Fatura fatura = findOrFail(faturaId);
+        fatura.setPago(true);
+        faturaRepository.save(fatura);
+    }
+
+    public void excluirFatura(Long faturaId) {
+        Fatura fatura = findOrFail(faturaId);
+        faturaRepository.delete(fatura);
     }
 }
