@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tallyto.gestorfinanceiro.api.dto.ContaFixaDTO;
+import com.tallyto.gestorfinanceiro.api.dto.ContaFixaRecorrenteDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CategoriaService;
 import com.tallyto.gestorfinanceiro.core.application.services.ContaFixaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
@@ -43,6 +44,17 @@ public class ContaFixaController {
         ContaFixa contaFixa = mapDTOToEntity(contaFixaDTO);
         ContaFixa contaFixaSalva = contaFixaService.salvarContaFixa(contaFixa);
         return ResponseEntity.ok(contaFixaSalva);
+    }
+
+    @PostMapping("/recorrente")
+    public ResponseEntity<List<ContaFixa>> criarContasFixasRecorrentes(
+            @Valid @RequestBody ContaFixaRecorrenteDTO contaFixaRecorrenteDTO) {
+        try {
+            List<ContaFixa> contasFixasCriadas = contaFixaService.criarContasFixasRecorrentes(contaFixaRecorrenteDTO);
+            return ResponseEntity.ok(contasFixasCriadas);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping
