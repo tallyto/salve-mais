@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2025-07-17
+
 ### Adicionado
 
 - Sistema completo de gerenciamento de faturas manuais:
