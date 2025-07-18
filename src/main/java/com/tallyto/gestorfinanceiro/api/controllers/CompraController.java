@@ -28,7 +28,15 @@ public class CompraController {
     }
 
     @GetMapping
-    public Page<Compra> listarCompras(Pageable pageable) {
+    public Page<Compra> listarCompras(
+            Pageable pageable,
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        
+        if (mes != null && ano != null) {
+            return compraService.listarComprasPorMesEAno(pageable, mes, ano);
+        }
+        
         return compraService.listarCompras(pageable);
     }
 

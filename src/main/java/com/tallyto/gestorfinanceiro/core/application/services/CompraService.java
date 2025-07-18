@@ -35,6 +35,10 @@ public class CompraService {
         return compraRepository.findAll(pageable);
     }
 
+    public Page<Compra> listarComprasPorMesEAno(Pageable pageable, Integer mes, Integer ano) {
+        return compraRepository.findByDataMesEAno(pageable, mes, ano);
+    }
+
     public List<Compra> comprasPorCartaoAteData(Long cartaoId, LocalDate dataVencimento) {
         // Calcula a data de fechamento da fatura (último dia do mês anterior ao vencimento)
         LocalDate dataFechamentoFatura = dataVencimento.minusDays(10);
