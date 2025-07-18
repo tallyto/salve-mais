@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tallyto.gestorfinanceiro.api.dto.ContaFixaDTO;
@@ -58,7 +59,15 @@ public class ContaFixaController {
     }
 
     @GetMapping
-    public Page<ContaFixa> listarContasFixas(Pageable pageable) {
+    public Page<ContaFixa> listarContasFixas(
+            Pageable pageable,
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        
+        if (mes != null && ano != null) {
+            return contaFixaService.listarContasFixasPorMesEAno(pageable, mes, ano);
+        }
+        
         return contaFixaService.listarTodasContasFixas(pageable);
     }
 

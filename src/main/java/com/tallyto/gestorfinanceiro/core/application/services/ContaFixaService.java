@@ -58,6 +58,10 @@ public class ContaFixaService {
         return contaFixaRepository.findAll(pageable);
     }
 
+    public Page<ContaFixa> listarContasFixasPorMesEAno(Pageable pageable, Integer mes, Integer ano) {
+        return contaFixaRepository.findByVencimentoMesEAno(pageable, mes, ano);
+    }
+
     public ContaFixa buscarContaFixaPorId(Long id) {
         return contaFixaRepository.findById(id).orElse(null);
     }
