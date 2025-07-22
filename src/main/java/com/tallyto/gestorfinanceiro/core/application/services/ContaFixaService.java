@@ -52,6 +52,10 @@ public class ContaFixaService {
         return contaFixaRepository.findByVencimentoBeforeAndPagoIsFalse(hoje);
     }
 
+    public List<ContaFixa> listarContaFixaPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        return contaFixaRepository.findByVencimentoBetween(dataInicio, dataFim);
+    }
+
     // Outros métodos relacionados a contas fixas
 
     public Page<ContaFixa> listarTodasContasFixas(Pageable pageable) {
