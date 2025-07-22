@@ -1,5 +1,23 @@
 # Changelog - Gestor Financeiro (Backend)
 
+
+## [1.7.0] - 2025-07-22
+
+### Adicionado
+
+- Sistema completo de notificações de contas e faturas atrasadas/proximas do vencimento:
+  - NotificacaoDTO, enums de prioridade e tipo
+  - NotificacaoService com métodos para contas/faturas atrasadas e próximas do vencimento
+  - NotificacaoController com endpoints REST para notificações e resumo
+- Integração de datas `criadoEm` e `ultimoAcesso` na entidade Usuario
+- Endpoints e lógica para atualização automática de ultimoAcesso no login
+
+### Corrigido
+
+- Ajustes de mapeamento JPA para campos snake_case/camelCase
+- Correções de integração entre frontend e backend para dados reais do usuário
+
+---
 ## [Unreleased]
 
 ### Adicionado
