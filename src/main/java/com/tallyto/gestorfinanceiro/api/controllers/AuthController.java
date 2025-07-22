@@ -40,6 +40,8 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getSenha()));
+            // Atualiza o campo ultimoAcesso
+            usuarioService.atualizarUltimoAcesso(loginDTO.getEmail());
             String token = jwtService.gerarToken(loginDTO.getEmail());
             return ResponseEntity.ok(new TokenDTO(token));
         } catch (AuthenticationException e) {

@@ -10,6 +10,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
+
+    @Transactional
+    public void atualizarUltimoAcesso(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        usuario.setUltimoAcesso(java.time.LocalDateTime.now());
+        usuarioRepository.save(usuario);
+    }
     @Autowired
     private UsuarioRepository usuarioRepository;
 
@@ -32,6 +40,40 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public Usuario atualizarNomePorEmail(String email, String novoNome) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        usuario.setNome(novoNome);
+        return usuarioRepository.save(usuario);
+    }
+
+    @Transactional(readOnly = true)
+    public Usuario buscarPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
+    /**
+     * Atualiza a senha do usuário, validando a senha atual.
+     * 
+     * @param email      email do usuário
+     * @param senhaAtual senha atual informada
+     * @param novaSenha  nova senha desejada
+     * @throws RuntimeException se usuário não encontrado ou senha atual incorreta
+     */
+    @Transactional
+    public void atualizarSenhaComValidacao(String email, String senhaAtual, String novaSenha) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(senhaAtual, usuario.getSenha())) {
+            throw new RuntimeException("Senha atual incorreta");
+        }
+        usuario.setSenha(encoder.encode(novaSenha));
         usuarioRepository.save(usuario);
     }
 }
