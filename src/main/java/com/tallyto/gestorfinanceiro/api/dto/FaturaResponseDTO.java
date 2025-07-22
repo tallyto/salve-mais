@@ -11,7 +11,10 @@ public record FaturaResponseDTO(
         String nomeCartao,
         BigDecimal valorTotal,
         LocalDate dataVencimento,
+        LocalDate dataPagamento,
         boolean pago,
+        Long contaPagamentoId,
+        String nomeContaPagamento,
         int totalCompras
 ) {
     public static FaturaResponseDTO fromEntity(Fatura fatura) {
@@ -21,7 +24,10 @@ public record FaturaResponseDTO(
                 fatura.getCartaoCredito().getNome(),
                 fatura.getValorTotal(),
                 fatura.getDataVencimento(),
+                fatura.getDataPagamento(),
                 fatura.isPago(),
+                fatura.getContaPagamento() != null ? fatura.getContaPagamento().getId() : null,
+                fatura.getContaPagamento() != null ? fatura.getContaPagamento().getTitular() : null,
                 fatura.getCompras() != null ? fatura.getCompras().size() : 0
         );
     }

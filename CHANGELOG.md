@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Sistema aprimorado de pagamento de faturas com vinculação à conta bancária:
+  - Novo endpoint PATCH `/api/faturas/{faturaId}/pagar/{contaId}` para pagamento com conta específica
+  - Novo endpoint GET `/api/faturas/pendentes` para listar faturas não pagas
+  - Novo endpoint GET `/api/faturas/conta/{contaId}` para listar faturas por conta de pagamento
+  - Adicionado campo `conta_pagamento_id` na tabela `fatura` (Migration V6)
+  - Método `marcarComoPaga(Long faturaId, Long contaId)` no `FaturaService` com validação de saldo
+  - Métodos auxiliares no `FaturaService`: `listarNaoPagas()`, `listarPorConta()`, `calcularTotalFaturasPendentes()`
+  - Métodos no `ContaService`: `findOrFail()`, `debitar()`, `creditar()` para gerenciamento de saldos
+  - Novos métodos no `FaturaRepository`: `findByContaPagamentoId()`, `findByPagoFalse()`, `findByCartaoCreditoIdAndPagoFalse()`
+
+### Melhorado
+
+- Sistema transacional de pagamento de faturas:
+  - Validação de saldo suficiente na conta antes do pagamento
+  - Débito automático do valor da fatura na conta selecionada
+  - Registro da conta utilizada e data de pagamento
+  - Prevenção de exclusão de faturas já pagas
+- DTO `FaturaResponseDTO` atualizado com novos campos:
+  - `dataPagamento`: Data em que a fatura foi paga
+  - `contaPagamentoId`: ID da conta utilizada no pagamento
+  - `nomeContaPagamento`: Nome do titular da conta de pagamento
+
+### Corrigido
+
+- Método legado `marcarComoPaga(Long faturaId)` mantido para compatibilidade, mas marcado como deprecated
+- Validações aprimoradas para evitar pagamentos duplicados
+
 ## [1.6.0] - 2025-07-17
 
 ### Adicionado

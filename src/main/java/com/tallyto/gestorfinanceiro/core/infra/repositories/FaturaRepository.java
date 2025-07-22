@@ -9,4 +9,10 @@ import java.util.List;
 
 public interface FaturaRepository extends JpaRepository<Fatura, Long> {
     List<Fatura> findByDataVencimentoBetween(LocalDate startDate, LocalDate endDate);
+    
+    List<Fatura> findByContaPagamentoId(Long contaId);
+    
+    List<Fatura> findByPagoFalse();
+    
+    List<Fatura> findByCartaoCreditoIdAndPagoFalse(Long cartaoCreditoId);
 }

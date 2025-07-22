@@ -102,7 +102,7 @@ public class FaturaController {
 
     @Operation(
             summary = "Marcar fatura como paga",
-            description = "Marca uma fatura como paga"
+            description = "Marca uma fatura como paga (método legado)"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Fatura marcada como paga com sucesso"),
@@ -114,6 +114,26 @@ public class FaturaController {
             @PathVariable Long id
     ) {
         faturaService.marcarComoPaga(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Pagar fatura com conta específica",
+            description = "Paga uma fatura debitando o valor de uma conta específica"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fatura paga com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Saldo insuficiente ou fatura já paga"),
+            @ApiResponse(responseCode = "404", description = "Fatura ou conta não encontrada")
+    })
+    @PatchMapping("/{faturaId}/pagar/{contaId}")
+    public ResponseEntity<Void> pagarFaturaComConta(
+            @Parameter(description = "ID da fatura", example = "1")
+            @PathVariable Long faturaId,
+            @Parameter(description = "ID da conta", example = "1")
+            @PathVariable Long contaId
+    ) {
+        faturaService.marcarComoPaga(faturaId, contaId);
         return ResponseEntity.ok().build();
     }
 
@@ -132,6 +152,43 @@ public class FaturaController {
     ) {
         faturaService.excluirFatura(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Listar faturas não pagas",
+            description = "Retorna uma lista de todas as faturas pendentes"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de faturas pendentes retornada com sucesso")
+    })
+    @GetMapping("/pendentes")
+    public ResponseEntity<List<FaturaResponseDTO>> listarFaturasPendentes() {
+        List<Fatura> faturas = faturaService.listarNaoPagas();
+        List<FaturaResponseDTO> faturasDTOs = faturas.stream()
+                .map(FaturaResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(faturasDTOs);
+    }
+
+    @Operation(
+            summary = "Listar faturas por conta",
+            description = "Retorna uma lista de todas as faturas pagas com uma conta específica"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de faturas da conta retornada com sucesso")
+    })
+    @GetMapping("/conta/{contaId}")
+    public ResponseEntity<List<FaturaResponseDTO>> listarFaturasPorConta(
+            @Parameter(description = "ID da conta", example = "1")
+            @PathVariable Long contaId
+    ) {
+        List<Fatura> faturas = faturaService.listarPorConta(contaId);
+        List<FaturaResponseDTO> faturasDTOs = faturas.stream()
+                .map(FaturaResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(faturasDTOs);
     }
 
     // Método legado mantido para compatibilidade

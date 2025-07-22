@@ -33,6 +33,10 @@ public class Fatura {
     @JoinColumn(name = "cartao_credito_id")
     CartaoCredito cartaoCredito;
 
+    @ManyToOne
+    @JoinColumn(name = "conta_pagamento_id")
+    Conta contaPagamento;
+
     @ManyToMany
     @JoinTable(
             name = "fatura_compra",

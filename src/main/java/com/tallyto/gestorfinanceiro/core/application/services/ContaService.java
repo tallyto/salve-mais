@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 
 @Service
@@ -34,5 +37,29 @@ public class ContaService {
         existingConta.setTitular(conta.getTitular());
         
         return contaRepository.save(existingConta);
+    }
+
+    public Conta findOrFail(Long id) {
+        return contaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta não encontrada com ID: " + id));
+    }
+
+    @Transactional
+    public void debitar(Long contaId, BigDecimal valor) {
+        Conta conta = findOrFail(contaId);
+        
+        if (conta.getSaldo().compareTo(valor) < 0) {
+            throw new RuntimeException("Saldo insuficiente na conta");
+        }
+        
+        conta.setSaldo(conta.getSaldo().subtract(valor));
+        contaRepository.save(conta);
+    }
+
+    @Transactional
+    public void creditar(Long contaId, BigDecimal valor) {
+        Conta conta = findOrFail(contaId);
+        conta.setSaldo(conta.getSaldo().add(valor));
+        contaRepository.save(conta);
     }
 }
