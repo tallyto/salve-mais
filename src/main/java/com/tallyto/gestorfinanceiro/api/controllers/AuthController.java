@@ -1,13 +1,5 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
-import com.tallyto.gestorfinanceiro.api.dto.LoginDTO;
-import com.tallyto.gestorfinanceiro.api.dto.RecuperarSenhaRequestDTO;
-import com.tallyto.gestorfinanceiro.api.dto.RedefinirSenhaRequestDTO;
-import com.tallyto.gestorfinanceiro.api.dto.TokenDTO;
-import com.tallyto.gestorfinanceiro.core.application.services.EmailService;
-import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
-import com.tallyto.gestorfinanceiro.core.application.services.PasswordResetTokenService;
-import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,9 +9,18 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.tallyto.gestorfinanceiro.api.dto.LoginDTO;
+import com.tallyto.gestorfinanceiro.api.dto.RecuperarSenhaRequestDTO;
+import com.tallyto.gestorfinanceiro.api.dto.RedefinirSenhaRequestDTO;
+import com.tallyto.gestorfinanceiro.api.dto.TokenDTO;
+import com.tallyto.gestorfinanceiro.core.application.services.EmailService;
+import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
+import com.tallyto.gestorfinanceiro.core.application.services.PasswordResetTokenService;
+import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
 
 @RestController
 @RequestMapping("api/auth")
