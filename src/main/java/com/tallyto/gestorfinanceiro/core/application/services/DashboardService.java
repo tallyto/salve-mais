@@ -3,6 +3,7 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.api.dto.CategoryExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
+import com.tallyto.gestorfinanceiro.api.dto.VariationDataDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.*;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +102,9 @@ public class DashboardService {
                 despesasMes,
                 totalContas,
                 totalCategorias,
-                saldoMesAnterior
+                saldoMesAnterior,
+                receitasMesAnterior,
+                despesasMesAnterior
         );
     }
 
@@ -230,5 +233,180 @@ public class DashboardService {
         }
         
         return result;
+    }
+
+    /**
+     * Obtém tendência mensal por ano específico
+     * @param year Ano para buscar os dados
+     * @return Lista de MonthlyExpenseDTO com dados mensais do ano
+     */
+    public List<MonthlyExpenseDTO> getMonthlyExpenseTrendByYear(int year) {
+        List<MonthlyExpenseDTO> result = new ArrayList<>();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        
+        // Busca dados para cada mês do ano especificado
+        for (int month = 1; month <= 12; month++) {
+            YearMonth targetMonth = YearMonth.of(year, month);
+            LocalDate inicioMes = targetMonth.atDay(1);
+            LocalDate fimMes = targetMonth.atEndOfMonth();
+            
+            // Busca receitas do mês
+            BigDecimal receitas = proventoRepository.findByDataBetween(inicioMes, fimMes).stream()
+                    .map(Provento::getValor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            // Busca despesas do mês (contas fixas do período)
+            BigDecimal despesasFixas = contaFixaRepository.findByVencimentoBetween(inicioMes, fimMes).stream()
+                    .map(ContaFixa::getValor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            // Busca despesas do mês (faturas)
+            BigDecimal despesasFaturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes).stream()
+                    .map(Fatura::getValorTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas);
+            
+            // Cria DTO para o mês
+            result.add(new MonthlyExpenseDTO(
+                    inicioMes.format(monthFormatter),
+                    inicioMes,
+                    despesasTotal,
+                    receitas
+            ));
+        }
+        
+        return result;
+    }
+
+    /**
+     * Obtém dados de variação mensal comparando com o período anterior
+     * @return Lista de VariationDataDTO com as variações
+     */
+    public List<VariationDataDTO> getVariationData() {
+        List<VariationDataDTO> variations = new ArrayList<>();
+        
+        // Obtém o mês atual e anterior
+        YearMonth mesAtual = YearMonth.now();
+        YearMonth mesAnterior = mesAtual.minusMonths(1);
+        
+        LocalDate inicioMesAtual = mesAtual.atDay(1);
+        LocalDate fimMesAtual = mesAtual.atEndOfMonth();
+        LocalDate inicioMesAnterior = mesAnterior.atDay(1);
+        LocalDate fimMesAnterior = mesAnterior.atEndOfMonth();
+        
+        // Calcula dados do mês atual
+        BigDecimal saldoTotalAtual = contaRepository.findAll().stream()
+                .map(Conta::getSaldo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal receitasAtual = proventoRepository.findByDataBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(Provento::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasFixasAtual = contaFixaRepository.findByVencimentoBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(ContaFixa::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasFaturasAtual = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(Fatura::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasAtual = despesasFixasAtual.add(despesasFaturasAtual);
+        
+        // Calcula dados do mês anterior
+        BigDecimal receitasAnterior = proventoRepository.findByDataBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(Provento::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasFixasAnterior = contaFixaRepository.findByVencimentoBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(ContaFixa::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasFaturasAnterior = faturaRepository.findByDataVencimentoBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(Fatura::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        BigDecimal despesasAnterior = despesasFixasAnterior.add(despesasFaturasAnterior);
+        BigDecimal saldoAnterior = receitasAnterior.subtract(despesasAnterior);
+        
+        // Cria variações
+        
+        // 1. Saldo Total
+        variations.add(createVariation(
+                "Saldo Total",
+                saldoTotalAtual,
+                saldoAnterior,
+                "account_balance_wallet"
+        ));
+        
+        // 2. Receitas
+        variations.add(createVariation(
+                "Receitas",
+                receitasAtual,
+                receitasAnterior,
+                "trending_up"
+        ));
+        
+        // 3. Despesas
+        variations.add(createVariation(
+                "Despesas",
+                despesasAtual,
+                despesasAnterior,
+                "trending_down"
+        ));
+        
+        // 4. Resultado Mensal
+        BigDecimal resultadoAtual = receitasAtual.subtract(despesasAtual);
+        BigDecimal resultadoAnterior = receitasAnterior.subtract(despesasAnterior);
+        variations.add(createVariation(
+                "Resultado Mensal",
+                resultadoAtual,
+                resultadoAnterior,
+                "assessment"
+        ));
+        
+        return variations;
+    }
+    
+    /**
+     * Método auxiliar para criar dados de variação
+     */
+    private VariationDataDTO createVariation(String metric, BigDecimal currentValue, BigDecimal previousValue, String icon) {
+        BigDecimal variation = currentValue.subtract(previousValue);
+        BigDecimal variationPercent = BigDecimal.ZERO;
+        
+        if (previousValue.compareTo(BigDecimal.ZERO) != 0) {
+            variationPercent = variation.divide(previousValue.abs(), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
+        
+        String trend;
+        if (variation.compareTo(BigDecimal.ZERO) > 0) {
+            trend = "up";
+        } else if (variation.compareTo(BigDecimal.ZERO) < 0) {
+            trend = "down";
+        } else {
+            trend = "neutral";
+        }
+        
+        // Para despesas, a lógica de tendência é inversa (menos despesa = boa tendência)
+        if ("Despesas".equals(metric)) {
+            if (variation.compareTo(BigDecimal.ZERO) > 0) {
+                trend = "down"; // Mais despesa = tendência ruim
+            } else if (variation.compareTo(BigDecimal.ZERO) < 0) {
+                trend = "up"; // Menos despesa = tendência boa
+            }
+        }
+        
+        return new VariationDataDTO(
+                metric,
+                currentValue,
+                previousValue,
+                variation,
+                variationPercent,
+                trend,
+                icon
+        );
     }
 }

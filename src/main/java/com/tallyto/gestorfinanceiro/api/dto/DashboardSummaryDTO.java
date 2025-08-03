@@ -8,5 +8,7 @@ public record DashboardSummaryDTO(
     BigDecimal despesasMes,
     long totalContas,
     long totalCategorias,
-    BigDecimal saldoMesAnterior
+    BigDecimal saldoMesAnterior,
+    BigDecimal receitasMesAnterior,
+    BigDecimal despesasMesAnterior
 ) {}
