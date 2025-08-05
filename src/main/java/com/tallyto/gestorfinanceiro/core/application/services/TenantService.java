@@ -52,12 +52,12 @@ public class TenantService {
         // Enviar email de confirmação
         String link = "http://localhost:4200/#/register?token=" + token;
         String mensagem = "Olá " + tenant.getName() + ",\n\n" +
-                "Obrigado por se cadastrar no Gestor Financeiro. Para confirmar seu tenant, clique no link abaixo:\n\n" +
+                "Obrigado por se cadastrar no Salve Mais. Para confirmar seu tenant, clique no link abaixo:\n\n" +
                 link + "\n\n" +
                 "Atenciosamente,\n" +
-                "Equipe Gestor Financeiro";
+                "Equipe Salve Mais";
         
-        emailService.enviarEmail(tenant.getEmail(), "Confirme seu Tenant no Gestor Financeiro", mensagem);
+        emailService.enviarEmail(tenant.getEmail(), "Confirme seu Tenant no Salve Mais", mensagem);
         
         return tenant;
     }

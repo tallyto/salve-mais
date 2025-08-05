@@ -1,4 +1,4 @@
-# Changelog - Gestor Financeiro (Backend)
+# Changelog - Salve Mais (Backend)
 
 
 ## [1.7.0] - 2025-07-22

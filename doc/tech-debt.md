@@ -1,6 +1,6 @@
-# Débitos Técnicos - Gestor Financeiro
+# Débitos Técnicos - Salve Mais
 
-Este documento lista os débitos técnicos identificados no projeto Gestor Financeiro, tanto no backend quanto no frontend. Estes são itens que podem ser trabalhados quando o backlog de funcionalidades não estiver pronto ou durante períodos de menor carga de desenvolvimento.
+Este documento lista os débitos técnicos identificados no projeto Salve Mais, tanto no backend quanto no frontend. Estes são itens que podem ser trabalhados quando o backlog de funcionalidades não estiver pronto ou durante períodos de menor carga de desenvolvimento.
 
 ## Backend (Spring Boot)
 

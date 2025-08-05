@@ -1,4 +1,4 @@
-# Gestor Financeiro
+# Salve Mais
 
 Aplicação Spring Boot para gestão financeira, com suporte a Docker e PostgreSQL.
 
