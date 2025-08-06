@@ -36,6 +36,9 @@ public class NotificacaoService {
         // Adicionar notificações de faturas atrasadas
         notificacoes.addAll(obterNotificacaoFaturasAtrasadas());
         
+        // Adicionar notificações de faturas próximas do vencimento
+        notificacoes.addAll(obterNotificacaoFaturasProximasVencimento());
+        
         return notificacoes;
     }
 
@@ -122,6 +125,45 @@ public class NotificacaoService {
                             fatura.getId(),
                             "FATURA",
                             diasAtraso
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtém notificações de faturas próximas do vencimento (próximos 7 dias)
+     */
+    public List<NotificacaoDTO> obterNotificacaoFaturasProximasVencimento() {
+        List<Fatura> faturas = faturaService.listar();
+        LocalDate hoje = LocalDate.now();
+        LocalDate limiteFuturo = hoje.plusDays(7);
+        
+        List<Fatura> faturasProximas = faturas.stream()
+                .filter(fatura -> !fatura.isPago() 
+                        && !fatura.getDataVencimento().isBefore(hoje)  
+                        && fatura.getDataVencimento().isBefore(limiteFuturo) || fatura.getDataVencimento().isEqual(limiteFuturo))
+                .collect(Collectors.toList());
+        
+        return faturasProximas.stream()
+                .map(fatura -> {
+                    long diasRestantes = ChronoUnit.DAYS.between(hoje, fatura.getDataVencimento());
+                    NotificacaoDTO.Prioridade prioridade = diasRestantes <= 2 ? 
+                            NotificacaoDTO.Prioridade.ALTA : NotificacaoDTO.Prioridade.MEDIA;
+                    
+                    String titulo = diasRestantes == 0 ? "Vence Hoje" : 
+                                  diasRestantes == 1 ? "Vence Amanhã" : 
+                                  String.format("Vence em %d dias", diasRestantes);
+                    
+                    return new NotificacaoDTO(
+                            "FATURA_PROXIMA_VENCIMENTO",
+                            prioridade,
+                            titulo,
+                            String.format("Fatura do cartão %s vence em %s", 
+                                    fatura.getCartaoCredito().getNome(), 
+                                    fatura.getDataVencimento().toString()),
+                            fatura.getId(),
+                            "FATURA",
+                            diasRestantes
                     );
                 })
                 .collect(Collectors.toList());
