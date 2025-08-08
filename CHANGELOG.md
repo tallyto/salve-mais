@@ -31,6 +31,9 @@
   - Métodos auxiliares no `FaturaService`: `listarNaoPagas()`, `listarPorConta()`, `calcularTotalFaturasPendentes()`
   - Métodos no `ContaService`: `findOrFail()`, `debitar()`, `creditar()` para gerenciamento de saldos
   - Novos métodos no `FaturaRepository`: `findByContaPagamentoId()`, `findByPagoFalse()`, `findByCartaoCreditoIdAndPagoFalse()`
+- Melhoria no sistema de armazenamento de anexos de comprovantes:
+  - Estrutura no S3 alterada para usar o tenant como pasta principal ao invés do ID da conta
+  - Facilitação da organização e acesso dos anexos por tenant
 
 ### Melhorado
 
