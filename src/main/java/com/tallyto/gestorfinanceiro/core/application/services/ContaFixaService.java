@@ -1,13 +1,16 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.api.dto.ContaFixaRecorrenteDTO;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Anexo;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaFixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,6 +27,9 @@ public class ContaFixaService {
 
     @Autowired
     private CategoriaService categoriaService;
+    
+    @Autowired
+    private AnexoServiceInterface anexoService;
 
     public ContaFixa salvarContaFixa(ContaFixa contaFixa) {
         var conta = contaService.getOne(contaFixa.getConta().getId());
@@ -118,6 +124,51 @@ public class ContaFixaService {
 
         return contasFixasCriadas;
     }
-
-    // Outros métodos, se necessário
+    
+    /**
+     * Adiciona um comprovante à conta fixa
+     * @param contaFixaId ID da conta fixa
+     * @param arquivo Arquivo do comprovante
+     * @return Objeto Anexo criado
+     * @throws IOException em caso de erro ao processar o arquivo
+     */
+    public Anexo adicionarComprovante(Long contaFixaId, MultipartFile arquivo) throws IOException {
+        ContaFixa contaFixa = buscarContaFixaPorId(contaFixaId);
+        if (contaFixa == null) {
+            throw new IllegalArgumentException("Conta fixa não encontrada");
+        }
+        
+        return anexoService.uploadAnexo(arquivo, contaFixa);
+    }
+    
+    /**
+     * Lista todos os comprovantes de uma conta fixa
+     * @param contaFixaId ID da conta fixa
+     * @return Lista de anexos
+     */
+    public List<Anexo> listarComprovantes(Long contaFixaId) {
+        ContaFixa contaFixa = buscarContaFixaPorId(contaFixaId);
+        if (contaFixa == null) {
+            throw new IllegalArgumentException("Conta fixa não encontrada");
+        }
+        
+        return anexoService.listarAnexosPorContaFixa(contaFixaId);
+    }
+    
+    /**
+     * Gera URL para download do comprovante
+     * @param anexoId ID do anexo
+     * @return URL assinada para download
+     */
+    public String gerarUrlDownloadComprovante(Long anexoId) {
+        return anexoService.gerarUrlDownload(anexoId);
+    }
+    
+    /**
+     * Remove um comprovante
+     * @param anexoId ID do anexo
+     */
+    public void removerComprovante(Long anexoId) {
+        anexoService.excluirAnexo(anexoId);
+    }
 }

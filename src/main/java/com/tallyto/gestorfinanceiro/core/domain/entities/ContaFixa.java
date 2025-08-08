@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,5 +32,17 @@ public class ContaFixa {
     private BigDecimal valor;
 
     private boolean pago;
-
+    
+    @OneToMany(mappedBy = "contaFixa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Anexo> anexos = new ArrayList<>();
+    
+    public void adicionarAnexo(Anexo anexo) {
+        anexos.add(anexo);
+        anexo.setContaFixa(this);
+    }
+    
+    public void removerAnexo(Anexo anexo) {
+        anexos.remove(anexo);
+        anexo.setContaFixa(null);
+    }
 }

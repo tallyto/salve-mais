@@ -116,6 +116,13 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		
+		<!-- AWS SDK para S3 -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.24.9</version>
+		</dependency>
 	</dependencies>
 
 	<build>
