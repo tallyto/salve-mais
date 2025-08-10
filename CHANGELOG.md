@@ -1,6 +1,32 @@
 # Changelog - Salve Mais (Backend)
 
 
+## [1.8.0] - 2025-08-09
+
+### Adicionado
+
+- Sistema completo de anexos de comprovantes para contas fixas:
+  - Entidade `Anexo` para armazenamento de metadados de arquivos
+  - Migration V12 para criação da tabela `anexo` no banco de dados
+  - Integração com AWS S3 para armazenamento de arquivos
+  - Implementação específica para ambiente de desenvolvimento usando banco de dados
+  - Endpoints para upload, download e gerenciamento de anexos
+  - Interface `AnexoServiceInterface` para desacoplamento da implementação
+  - Estratégia de organização baseada em tenant para facilitar administração
+
+### Melhorado
+
+- Otimização das relações JPA para evitar loops infinitos:
+  - Adicionado `@JsonManagedReference` e `@JsonBackReference` nas relações bidirecionais
+  - Ajuste das estratégias de carregamento (fetch) para melhorar desempenho
+  - Configuração de carregamento LAZY para coleções e EAGER para entidades pai
+
+### Corrigido
+
+- Correção do problema de carregamento infinito na serialização JSON de entidades relacionadas
+- Ajuste da organização de arquivos no S3 para usar o tenant como identificador principal
+
+---
 ## [1.7.0] - 2025-07-22
 
 ### Adicionado

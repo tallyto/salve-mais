@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.core.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,11 +21,11 @@ public class ContaFixa {
 
     private String nome;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "conta_id")
     private Conta conta;
 
@@ -33,7 +34,8 @@ public class ContaFixa {
 
     private boolean pago;
     
-    @OneToMany(mappedBy = "contaFixa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "contaFixa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Anexo> anexos = new ArrayList<>();
     
     public void adicionarAnexo(Anexo anexo) {

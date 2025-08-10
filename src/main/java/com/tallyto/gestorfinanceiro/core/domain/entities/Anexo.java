@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.core.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,8 +26,9 @@ public class Anexo {
     @Column(name = "chave_s3")
     private String chaveS3;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conta_fixa_id")
+    @JsonBackReference
     private ContaFixa contaFixa;
     
     @PrePersist
