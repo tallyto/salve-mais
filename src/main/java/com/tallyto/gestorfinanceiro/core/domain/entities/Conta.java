@@ -1,10 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.domain.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,13 +10,25 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @Setter
-@Table(name = "conta") // Uncomment if you want to specify a custom table name
+@Table(name = "conta")
 public class Conta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "saldo")
     private BigDecimal saldo;
 
+    @Column(name = "titular")
     private String titular;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo")
+    private TipoConta tipo = TipoConta.CORRENTE; // Valor padrão
+    
+    @Column(name = "taxa_rendimento")
+    private BigDecimal taxaRendimento; // Taxa de rendimento anual em percentual (ex: 13.25 para 13.25%)
+    
+    @Column(name = "descricao")
+    private String descricao;
 }

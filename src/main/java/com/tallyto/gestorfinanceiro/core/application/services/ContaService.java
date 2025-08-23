@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
+import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Service
@@ -24,9 +26,17 @@ public class ContaService {
     public Page<Conta> findAllAccounts(Pageable pageable) {
         return contaRepository.findAll(pageable);
     }
+    
+    public List<Conta> findByTipo(TipoConta tipo) {
+        return contaRepository.findByTipo(tipo);
+    }
+    
+    public List<Conta> findByTipoIn(List<TipoConta> tipos) {
+        return contaRepository.findByTipoIn(tipos);
+    }
 
     public Conta create(Conta acc) {
-        return  contaRepository.save(acc);
+        return contaRepository.save(acc);
     }
 
     public Conta update(Long id, Conta conta) {
@@ -35,6 +45,9 @@ public class ContaService {
         
         existingConta.setSaldo(conta.getSaldo());
         existingConta.setTitular(conta.getTitular());
+        existingConta.setTipo(conta.getTipo());
+        existingConta.setTaxaRendimento(conta.getTaxaRendimento());
+        existingConta.setDescricao(conta.getDescricao());
         
         return contaRepository.save(existingConta);
     }
@@ -63,3 +76,5 @@ public class ContaService {
         contaRepository.save(conta);
     }
 }
+
+

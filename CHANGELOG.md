@@ -1,6 +1,30 @@
 # Changelog - Salve Mais (Backend)
 
 
+## [1.9.0] - 2025-08-23
+
+### Adicionado
+
+- Sistema completo de Reserva de Emergência:
+  - Nova entidade `ReservaEmergencia` para armazenar dados da reserva
+  - Migration V13 para criação da tabela `reserva_emergencia`
+  - Endpoints para criação, atualização e consulta de reservas
+  - Sistema de cálculo automático de objetivo baseado nas despesas mensais
+  - Funcionalidade para contribuições para a reserva de emergência
+  - Integração com contas para gerenciamento de saldo
+- Sistema de tipagem de contas:
+  - Migration V14 para adicionar campo `tipo` à tabela `conta`
+  - Enum `TipoConta` com tipos CORRENTE, POUPANCA, INVESTIMENTO e RESERVA_EMERGENCIA
+  - Adição de campos `taxa_rendimento` e `descricao` para contas
+  - Serviço `RendimentoService` para cálculo de rendimentos em contas específicas
+
+### Melhorado
+
+- Integração entre módulos para facilitar transações entre contas
+- Informações detalhadas em contas para melhor gestão financeira
+
+---
+
 ## [1.8.0] - 2025-08-09
 
 ### Adicionado

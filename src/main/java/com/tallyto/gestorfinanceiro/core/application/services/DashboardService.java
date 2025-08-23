@@ -14,6 +14,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,9 @@ public class DashboardService {
 
     @Autowired
     private FaturaRepository faturaRepository;
+    
+    @Autowired
+    private ReservaEmergenciaRepository reservaEmergenciaRepository;
 
     /**
      * Obtém o resumo financeiro para o dashboard
@@ -95,8 +99,37 @@ public class DashboardService {
         // Conta o número de contas e categorias
         long totalContas = contaRepository.count();
         long totalCategorias = categoriaRepository.count();
+        
+        // Dados da reserva de emergência
+        BigDecimal reservaEmergenciaAtual = BigDecimal.ZERO;
+        BigDecimal reservaEmergenciaObjetivo = BigDecimal.ZERO;
+        BigDecimal reservaEmergenciaPercentual = BigDecimal.ZERO;
+        Integer tempoRestante = 0;
+        Long reservaId = null;
+        
+        // Busca a primeira reserva de emergência (assumindo que há apenas uma)
+        Optional<ReservaEmergencia> reservaOpt = reservaEmergenciaRepository.findAll().stream().findFirst();
+        
+        if (reservaOpt.isPresent()) {
+            ReservaEmergencia reserva = reservaOpt.get();
+            reservaId = reserva.getId();
+            reservaEmergenciaAtual = reserva.getSaldoAtual();
+            reservaEmergenciaObjetivo = reserva.getObjetivo();
+            reservaEmergenciaPercentual = reserva.getPercentualConcluido();
+            
+            // Calcula o tempo restante em meses
+            if (reserva.getDataPrevisaoCompletar() != null) {
+                tempoRestante = (int) ChronoUnit.MONTHS.between(
+                        LocalDate.now(),
+                        reserva.getDataPrevisaoCompletar()
+                );
+                if (tempoRestante < 0) {
+                    tempoRestante = 0;
+                }
+            }
+        }
 
-        return new DashboardSummaryDTO(
+        DashboardSummaryDTO dto = new DashboardSummaryDTO(
                 saldoTotal,
                 receitasMes,
                 despesasMes,
@@ -104,8 +137,19 @@ public class DashboardService {
                 totalCategorias,
                 saldoMesAnterior,
                 receitasMesAnterior,
-                despesasMesAnterior
+                despesasMesAnterior,
+                reservaEmergenciaAtual,
+                reservaEmergenciaObjetivo,
+                reservaEmergenciaPercentual,
+                tempoRestante
         );
+        
+        // Definir o ID da reserva se existir
+        if (reservaOpt.isPresent() && dto.getReservaEmergencia() != null) {
+            dto.getReservaEmergencia().setId(reservaId);
+        }
+        
+        return dto;
     }
 
     /**
@@ -365,6 +409,33 @@ public class DashboardService {
                 resultadoAnterior,
                 "assessment"
         ));
+        
+        // 5. Reserva de Emergência
+        // Busca dados da reserva de emergência
+        Optional<ReservaEmergencia> reservaOpt = reservaEmergenciaRepository.findAll().stream().findFirst();
+        if (reservaOpt.isPresent()) {
+            ReservaEmergencia reserva = reservaOpt.get();
+            
+            // Assumimos que temos um registro do mês anterior para comparar
+            // Caso não tenhamos, usamos o valor atual como anterior também (variação zero)
+            BigDecimal valorAnterior = reserva.getSaldoAtual();
+            // Em uma implementação real, você teria que buscar o histórico da reserva
+            
+            variations.add(createVariation(
+                    "Reserva de Emergência",
+                    reserva.getSaldoAtual(),
+                    valorAnterior,
+                    "savings"
+            ));
+            
+            // Progresso da Reserva
+            variations.add(createVariation(
+                    "Progresso da Reserva",
+                    reserva.getPercentualConcluido(),
+                    BigDecimal.ZERO, // Aqui também precisaria de um histórico
+                    "trending_up"
+            ));
+        }
         
         return variations;
     }
