@@ -3,6 +3,13 @@
 
 ## [Unreleased]
 
+### Adicionado
+
+- Configuração de CI/CD para deploy automático na VPS:
+  - Workflow do GitHub Actions para deploy automatizado
+  - Documentação detalhada do processo de configuração
+  - Script de deploy para ambiente de produção
+
 ### Melhorado
 
 - Tratamento amigável para erros de violação de chave estrangeira:
