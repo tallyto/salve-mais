@@ -1,6 +1,19 @@
 # Changelog - Salve Mais (Backend)
 
 
+## [Unreleased]
+
+### Melhorado
+
+- Tratamento amigável para erros de violação de chave estrangeira:
+  - Nova exceção `EntityInUseException` para tratar tentativas de excluir registros vinculados
+  - Handler específico para `DataIntegrityViolationException` com mensagens amigáveis
+  - Extração automática do nome da tabela e constraint da mensagem de erro
+  - Mapeamento de nomes técnicos para nomes amigáveis nas mensagens de erro
+  - Implementação em serviços de `Categoria` e `Conta`
+
+---
+
 ## [1.9.0] - 2025-08-23
 
 ### Adicionado
