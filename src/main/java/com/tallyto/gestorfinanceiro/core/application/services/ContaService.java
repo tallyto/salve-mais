@@ -2,8 +2,11 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
+import com.tallyto.gestorfinanceiro.core.domain.exceptions.EntityInUseException;
+import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -54,7 +57,18 @@ public class ContaService {
 
     public Conta findOrFail(Long id) {
         return contaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada com ID: " + id));
+    }
+
+    @Transactional
+    public void excluirConta(Long id) {
+        Conta conta = findOrFail(id);
+        
+        try {
+            contaRepository.delete(conta);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityInUseException("conta", id, "transações, reservas de emergência ou outras operações");
+        }
     }
 
     @Transactional

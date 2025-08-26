@@ -92,17 +92,112 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatus.FORBIDDEN);
     }
 
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public final ResponseEntity<Problem> handleDataIntegrityViolationException(Exception ex, WebRequest request) {
-        log.error("DataIntegrityViolationException: {}", ex.getMessage(), ex);
-        return new ResponseEntity<>(
-            Problem.builder()
+    @ExceptionHandler(EntityInUseException.class)
+    public final ResponseEntity<Problem> handleEntityInUseException(EntityInUseException ex, WebRequest request) {
+        log.warn("EntityInUseException: {}", ex.getMessage(), ex);
+        
+        Problem problem = Problem.builder()
                 .timestamp(OffsetDateTime.now())
                 .message(ex.getMessage())
+                .userMessage(ex.getMessage())
                 .detail(request.getDescription(false))
-                .build(),
-            HttpStatus.BAD_REQUEST);
+                .status(HttpStatus.CONFLICT.value())
+                .type(ProblemType.ENTIDADE_EM_USO.getUri())
+                .title(ProblemType.ENTIDADE_EM_USO.getTitle())
+                .build();
+                
+        return new ResponseEntity<>(problem, HttpStatus.CONFLICT);
+    }
+
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public final ResponseEntity<Problem> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+        log.error("DataIntegrityViolationException: {}", ex.getMessage(), ex);
+        
+        String mensagemUsuario = MSG_ERRO_GENERICA_USUARIO_FINAL;
+        ProblemType problemType = ProblemType.ERRO_DE_SISTEMA;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        
+        // Verifica se é um erro de violação de constraint de chave estrangeira
+        if (ex.getMessage() != null && ex.getMessage().contains("violates foreign key constraint")) {
+            String mensagemErro = ex.getMessage().toLowerCase();
+            problemType = ProblemType.ENTIDADE_EM_USO;
+            
+            // Extrai o nome da tabela e da constraint
+            String tabelaReferenciada = extrairTabela(mensagemErro);
+            String constraint = extrairConstraint(mensagemErro);
+            
+            if (tabelaReferenciada != null) {
+                // Mapeia nomes técnicos para nomes amigáveis
+                String entidadeAmigavel = mapearEntidade(tabelaReferenciada);
+                mensagemUsuario = String.format(
+                    "Não é possível excluir este registro pois está sendo utilizado em %s.", 
+                    entidadeAmigavel
+                );
+            } else {
+                mensagemUsuario = "Não é possível excluir este registro pois está sendo utilizado em outro lugar do sistema.";
+            }
+            
+            log.info("Violação de chave estrangeira detectada: {}, constraint: {}", tabelaReferenciada, constraint);
+        }
+        
+        Problem problem = Problem.builder()
+                .timestamp(OffsetDateTime.now())
+                .message(mensagemUsuario)
+                .userMessage(mensagemUsuario)
+                .detail(request.getDescription(false))
+                .status(status.value())
+                .type(problemType.getUri())
+                .title(problemType.getTitle())
+                .build();
+                
+        return new ResponseEntity<>(problem, status);
+    }
+    
+    /**
+     * Extrai o nome da tabela a partir da mensagem de erro
+     */
+    private String extrairTabela(String mensagemErro) {
+        if (mensagemErro.contains("table \"")) {
+            int inicio = mensagemErro.indexOf("table \"") + 7;
+            int fim = mensagemErro.indexOf("\"", inicio);
+            if (fim > inicio) {
+                return mensagemErro.substring(inicio, fim);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Extrai o nome da constraint a partir da mensagem de erro
+     */
+    private String extrairConstraint(String mensagemErro) {
+        if (mensagemErro.contains("constraint [")) {
+            int inicio = mensagemErro.indexOf("constraint [") + 12;
+            int fim = mensagemErro.indexOf("]", inicio);
+            if (fim > inicio) {
+                return mensagemErro.substring(inicio, fim);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Mapeia nomes técnicos de tabelas para nomes amigáveis
+     */
+    private String mapearEntidade(String tabela) {
+        return switch (tabela.toLowerCase()) {
+            case "conta_fixa" -> "Contas Fixas";
+            case "provento" -> "Proventos";
+            case "despesa" -> "Despesas";
+            case "fatura" -> "Faturas";
+            case "cartao_credito" -> "Cartões de Crédito";
+            case "categoria" -> "Categorias";
+            case "transacao" -> "Transações";
+            case "conta" -> "Contas";
+            case "reserva_emergencia" -> "Reservas de Emergência";
+            default -> tabela;
+        };
     }
 
     @Override

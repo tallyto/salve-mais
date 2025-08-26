@@ -28,9 +28,6 @@ public class ComprovanteController {
     private ContaFixaService contaFixaService;
     
     @Autowired
-    private AnexoService anexoService;
-    
-    @Autowired
     private AnexoMapper anexoMapper;
     
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

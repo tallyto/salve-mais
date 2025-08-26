@@ -2,9 +2,12 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
+import com.tallyto.gestorfinanceiro.core.domain.exceptions.EntityInUseException;
+import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.CategoriaRepository;
 
 @Service
@@ -26,7 +29,7 @@ public class CategoriaService {
 
     public Categoria buscaCategoriaPorId(Long id) {
         return categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + id));
     }
 
     public List<Categoria> listarCategorias() {
@@ -36,9 +39,14 @@ public class CategoriaService {
     public void excluirCategoria(Long id) {
         // Verifica se a categoria existe antes de tentar excluir
         if (!categoriaRepository.existsById(id)) {
-            throw new RuntimeException("Categoria não encontrada com ID: " + id);
+            throw new ResourceNotFoundException("Categoria não encontrada com ID: " + id);
         }
-        categoriaRepository.deleteById(id);
+        
+        try {
+            categoriaRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityInUseException("categoria", id, "contas fixas ou outras transações");
+        }
     }
 
     public Categoria atualizarCategoria(Long id, Categoria categoria) {
