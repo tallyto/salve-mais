@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -24,6 +25,15 @@ public class CategoriaController {
     @GetMapping
     public List<Categoria> listarCategorias() {
         return categoriaService.listarCategorias();
+    }
+    
+    /**
+     * Endpoint para listar categorias agrupadas por tipo (50/30/20)
+     * @return Mapa com os tipos de categoria e suas respectivas listas
+     */
+    @GetMapping("/por-tipo")
+    public Map<Categoria.TipoCategoria, List<Categoria>> listarCategoriasPorTipo() {
+        return categoriaService.listarCategoriasPorTipo();
     }
 
     @PostMapping
@@ -64,6 +74,7 @@ public class CategoriaController {
         Categoria categoria = new Categoria();
         categoria.setId(categoriaDTO.id());
         categoria.setNome(categoriaDTO.nome());
+        categoria.setTipo(categoriaDTO.tipo());
         return categoria;
     }
 }

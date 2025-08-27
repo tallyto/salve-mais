@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
+import com.tallyto.gestorfinanceiro.api.dto.BudgetRuleDTO;
 import com.tallyto.gestorfinanceiro.api.dto.CategoryExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
@@ -20,6 +21,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
+
+    private static final BigDecimal PERCENTUAL_NECESSIDADES = new BigDecimal("0.5"); // 50%
+    private static final BigDecimal PERCENTUAL_DESEJOS = new BigDecimal("0.3"); // 30%
+    private static final BigDecimal PERCENTUAL_ECONOMIA = new BigDecimal("0.2"); // 20%
 
     @Autowired
     private ContaRepository contaRepository;
@@ -230,6 +235,162 @@ public class DashboardService {
                 })
                 .sorted(Comparator.comparing(CategoryExpenseDTO::valorTotal).reversed())
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Calcula a regra 50/30/20 para o orçamento mensal
+     * @return DTO com os dados da regra 50/30/20
+     */
+    public BudgetRuleDTO getBudgetRule() {
+        // Obtém o mês atual
+        YearMonth mesAtual = YearMonth.now();
+        LocalDate inicioMesAtual = mesAtual.atDay(1);
+        LocalDate fimMesAtual = mesAtual.atEndOfMonth();
+
+        // Obtém receita total do mês (proventos)
+        BigDecimal receitaTotal = proventoRepository.findByDataBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(Provento::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Calcula os valores ideais com base na receita
+        BigDecimal necessidadesIdeal = receitaTotal.multiply(PERCENTUAL_NECESSIDADES).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal desejosIdeal = receitaTotal.multiply(PERCENTUAL_DESEJOS).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal economiaIdeal = receitaTotal.multiply(PERCENTUAL_ECONOMIA).setScale(2, RoundingMode.HALF_UP);
+
+        // Agora vamos calcular os gastos reais por tipo de categoria
+        Map<Categoria.TipoCategoria, BigDecimal> gastosPorTipo = new EnumMap<>(Categoria.TipoCategoria.class);
+        gastosPorTipo.put(Categoria.TipoCategoria.NECESSIDADE, BigDecimal.ZERO);
+        gastosPorTipo.put(Categoria.TipoCategoria.DESEJO, BigDecimal.ZERO);
+        gastosPorTipo.put(Categoria.TipoCategoria.ECONOMIA, BigDecimal.ZERO);
+
+        // Adiciona contas fixas do período
+        List<ContaFixa> contasFixas = contaFixaRepository.findByVencimentoBetween(inicioMesAtual, fimMesAtual);
+        for (ContaFixa conta : contasFixas) {
+            Categoria categoria = conta.getCategoria();
+            if (categoria != null) {
+                Categoria.TipoCategoria tipo = categoria.getTipo();
+                gastosPorTipo.put(
+                        tipo,
+                        gastosPorTipo.get(tipo).add(conta.getValor())
+                );
+            }
+        }
+
+        // Adiciona faturas do período
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
+        for (Fatura fatura : faturas) {
+            // Para cada compra dentro da fatura
+            for (Compra compra : fatura.getCompras()) {
+                Categoria categoria = compra.getCategoria();
+                if (categoria != null) {
+                    Categoria.TipoCategoria tipo = categoria.getTipo();
+                    gastosPorTipo.put(
+                            tipo,
+                            gastosPorTipo.get(tipo).add(compra.getValor())
+                    );
+                }
+            }
+        }
+
+        // Valores reais gastos
+        BigDecimal necessidadesReal = gastosPorTipo.get(Categoria.TipoCategoria.NECESSIDADE);
+        BigDecimal desejosReal = gastosPorTipo.get(Categoria.TipoCategoria.DESEJO);
+        BigDecimal economiaReal = gastosPorTipo.get(Categoria.TipoCategoria.ECONOMIA);
+
+        // Total de gastos
+        BigDecimal totalGastos = necessidadesReal.add(desejosReal).add(economiaReal);
+
+        // Calcula percentuais reais (com base no total gasto)
+        double necessidadesPercentual = totalGastos.compareTo(BigDecimal.ZERO) > 0 
+                ? necessidadesReal.divide(totalGastos, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)).doubleValue()
+                : 0.0;
+        
+        double desejosPercentual = totalGastos.compareTo(BigDecimal.ZERO) > 0 
+                ? desejosReal.divide(totalGastos, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)).doubleValue()
+                : 0.0;
+        
+        double economiaPercentual = totalGastos.compareTo(BigDecimal.ZERO) > 0 
+                ? economiaReal.divide(totalGastos, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)).doubleValue()
+                : 0.0;
+
+        // Calcula diferenças entre ideal e real
+        BigDecimal necessidadesDiferenca = necessidadesIdeal.subtract(necessidadesReal);
+        BigDecimal desejosDiferenca = desejosIdeal.subtract(desejosReal);
+        BigDecimal economiaDiferenca = economiaIdeal.subtract(economiaReal);
+
+        // Define status com base nas diferenças
+        String necessidadesStatus = getStatus(necessidadesReal, necessidadesIdeal);
+        String desejosStatus = getStatus(desejosReal, desejosIdeal);
+        String economiaStatus = getStatusEconomia(economiaReal, economiaIdeal);
+
+        return new BudgetRuleDTO(
+                necessidadesIdeal,
+                desejosIdeal,
+                economiaIdeal,
+                necessidadesReal,
+                desejosReal,
+                economiaReal,
+                necessidadesPercentual,
+                desejosPercentual,
+                economiaPercentual,
+                necessidadesDiferenca,
+                desejosDiferenca,
+                economiaDiferenca,
+                necessidadesStatus,
+                desejosStatus,
+                economiaStatus
+        );
+    }
+
+    /**
+     * Determina o status de gastos com base na comparação entre real e ideal
+     * @param valorReal Valor real gasto
+     * @param valorIdeal Valor ideal a ser gasto
+     * @return Status descritivo
+     */
+    private String getStatus(BigDecimal valorReal, BigDecimal valorIdeal) {
+        if (valorReal.compareTo(valorIdeal) <= 0) {
+            return "DENTRO_DO_LIMITE";  // Gasto menor ou igual ao limite ideal
+        } else {
+            BigDecimal excesso = valorReal.subtract(valorIdeal);
+            BigDecimal percentualExcesso = excesso.divide(valorIdeal, 2, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            
+            if (percentualExcesso.compareTo(new BigDecimal("10")) <= 0) {
+                return "POUCO_ACIMA";  // Excedeu em até 10%
+            } else if (percentualExcesso.compareTo(new BigDecimal("30")) <= 0) {
+                return "ACIMA";  // Excedeu entre 10% e 30%
+            } else {
+                return "MUITO_ACIMA";  // Excedeu em mais de 30%
+            }
+        }
+    }
+    
+    /**
+     * Determina o status de economia com base na comparação entre real e ideal
+     * @param valorReal Valor real economizado
+     * @param valorIdeal Valor ideal a ser economizado
+     * @return Status descritivo
+     */
+    private String getStatusEconomia(BigDecimal valorReal, BigDecimal valorIdeal) {
+        if (valorReal.compareTo(valorIdeal) >= 0) {
+            return "ACIMA_DO_OBJETIVO";  // Economizou mais que o objetivo
+        } else {
+            BigDecimal deficit = valorIdeal.subtract(valorReal);
+            BigDecimal percentualDeficit = deficit.divide(valorIdeal, 2, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            
+            if (percentualDeficit.compareTo(new BigDecimal("10")) <= 0) {
+                return "QUASE_NO_OBJETIVO";  // Faltou até 10% para atingir
+            } else if (percentualDeficit.compareTo(new BigDecimal("30")) <= 0) {
+                return "ABAIXO";  // Faltou entre 10% e 30% para atingir
+            } else {
+                return "MUITO_ABAIXO";  // Faltou mais de 30% para atingir
+            }
+        }
     }
 
     /**
