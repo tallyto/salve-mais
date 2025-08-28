@@ -64,6 +64,7 @@ public class CategoriaService {
     public Categoria atualizarCategoria(Long id, Categoria categoria) {
         Categoria categoriaExistente = buscaCategoriaPorId(id);
         categoriaExistente.setNome(categoria.getNome());
+        categoriaExistente.setTipo(categoria.getTipo());
         return categoriaRepository.save(categoriaExistente);
     }
 }
