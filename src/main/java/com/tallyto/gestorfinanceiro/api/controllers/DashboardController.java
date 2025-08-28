@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
+import com.tallyto.gestorfinanceiro.api.dto.BudgetRuleDTO;
 import com.tallyto.gestorfinanceiro.api.dto.CategoryExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
@@ -36,6 +37,15 @@ public class DashboardController {
     @GetMapping("/expenses-by-category")
     public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory() {
         return ResponseEntity.ok(dashboardService.getExpensesByCategory());
+    }
+    
+    /**
+     * Endpoint para obter a análise da regra 50/30/20
+     * @return Dados da regra 50/30/20 com valores ideais e reais
+     */
+    @GetMapping("/budget-rule")
+    public ResponseEntity<BudgetRuleDTO> getBudgetRule() {
+        return ResponseEntity.ok(dashboardService.getBudgetRule());
     }
 
     /**
