@@ -46,7 +46,7 @@ public class ContaService {
         Conta existingConta = contaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
         
-        existingConta.setSaldo(conta.getSaldo());
+        // Não atualiza o saldo - o saldo só deve ser alterado via transações, transferências, etc.
         existingConta.setTitular(conta.getTitular());
         existingConta.setTipo(conta.getTipo());
         existingConta.setTaxaRendimento(conta.getTaxaRendimento());
@@ -88,6 +88,19 @@ public class ContaService {
         Conta conta = findOrFail(contaId);
         conta.setSaldo(conta.getSaldo().add(valor));
         contaRepository.save(conta);
+    }
+    
+    @Transactional
+    public void transferir(Long contaOrigemId, Long contaDestinoId, BigDecimal valor) {
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor da transferência deve ser maior que zero");
+        }
+        
+        // Debita da conta de origem
+        debitar(contaOrigemId, valor);
+        
+        // Credita na conta de destino
+        creditar(contaDestinoId, valor);
     }
 }
 
