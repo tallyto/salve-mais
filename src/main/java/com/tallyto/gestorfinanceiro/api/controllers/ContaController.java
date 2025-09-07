@@ -80,8 +80,22 @@ public class ContaController {
         contaService.excluirConta(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PostMapping("/transferir")
+    public ResponseEntity<Void> transferir(@RequestBody TransferenciaDTO transferencia) {
+        contaService.transferir(
+            transferencia.contaOrigemId(), 
+            transferencia.contaDestinoId(), 
+            transferencia.valor()
+        );
+        return ResponseEntity.ok().build();
+    }
 
     // Classe para representar o tipo de conta no endpoint de tipos
     record TipoContaDTO(TipoConta tipo, String descricao) {
+    }
+    
+    // Classe para representar uma transferência entre contas
+    record TransferenciaDTO(Long contaOrigemId, Long contaDestinoId, BigDecimal valor) {
     }
 }
