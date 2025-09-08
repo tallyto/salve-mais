@@ -6,7 +6,6 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.AnexoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -123,5 +122,13 @@ public class AnexoService implements AnexoServiceInterface {
      */
     public List<Anexo> listarAnexosPorContaFixa(Long contaFixaId) {
         return anexoRepository.findByContaFixaId(contaFixaId);
+    }
+    
+    /**
+     * Lista todos os anexos (comprovantes) do sistema
+     */
+    @Override
+    public List<Anexo> listarTodosAnexos() {
+        return anexoRepository.findAll();
     }
 }

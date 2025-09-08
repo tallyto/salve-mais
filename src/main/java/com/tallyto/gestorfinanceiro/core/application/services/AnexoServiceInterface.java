@@ -31,4 +31,9 @@ public interface AnexoServiceInterface {
      * Lista todos os anexos de uma conta fixa
      */
     List<Anexo> listarAnexosPorContaFixa(Long contaFixaId);
+    
+    /**
+     * Lista todos os anexos (comprovantes) do sistema
+     */
+    List<Anexo> listarTodosAnexos();
 }
