@@ -19,6 +19,15 @@
   - Mapeamento de nomes técnicos para nomes amigáveis nas mensagens de erro
   - Implementação em serviços de `Categoria` e `Conta`
 
+### Removido
+
+- Funcionalidade de estorno de transações:
+  - Removidos campos `transacao_original_id`, `estornada` e `transacao_estorno_id` da tabela de transações
+  - Removidas constraints e índices relacionados aos campos de estorno
+  - Removido o tipo `ESTORNO` do enum `TipoTransacao`
+  - Atualizado o DTO de transação para não incluir campos de estorno
+  - Migration V18 para remover os campos da tabela
+
 ---
 
 ## [1.9.0] - 2025-08-23

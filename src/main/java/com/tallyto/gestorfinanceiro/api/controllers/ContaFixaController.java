@@ -140,6 +140,23 @@ public class ContaFixaController {
         contaFixaService.deletarContaFixa(id);
         return ResponseEntity.noContent().build();
     }
+    
+    /**
+     * Marca uma conta fixa como paga e cria a transação correspondente
+     */
+    @PostMapping("/{id}/pagar")
+    public ResponseEntity<ContaFixa> pagarContaFixa(
+            @PathVariable Long id,
+            @RequestParam(required = false) String observacoes) {
+        try {
+            ContaFixa contaPaga = contaFixaService.pagarContaFixa(id, observacoes);
+            return ResponseEntity.ok(contaPaga);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     // Outros métodos relacionados a contas fixas
 

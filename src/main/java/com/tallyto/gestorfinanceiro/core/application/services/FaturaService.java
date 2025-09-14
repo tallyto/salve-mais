@@ -96,15 +96,18 @@ public class FaturaService {
             throw new RuntimeException("Saldo insuficiente na conta para pagar a fatura");
         }
 
-        // Debitar o valor da conta
-        contaService.debitar(contaId, fatura.getValorTotal());
+        // Usar o método pagarFatura ao invés de debitar
+        // Esse método cria transação do tipo PAGAMENTO_FATURA que não exige categoria ou conta fixa
+        contaService.pagarFatura(contaId, faturaId, fatura.getValorTotal(), "Pagamento de fatura via UI");
         
-        // Marcar fatura como paga
-        fatura.setPago(true);
-        fatura.setDataPagamento(LocalDate.now());
-        fatura.setContaPagamento(conta);
-        
-        faturaRepository.save(fatura);
+        // Já não é necessário marcar a fatura como paga aqui, pois o método pagarFatura já faz isso
+        // O código abaixo foi mantido apenas para garantir a consistência dos dados
+        if (!fatura.isPago()) {
+            fatura.setPago(true);
+            fatura.setDataPagamento(LocalDate.now());
+            fatura.setContaPagamento(conta);
+            faturaRepository.save(fatura);
+        }
     }
 
     public void excluirFatura(Long faturaId) {

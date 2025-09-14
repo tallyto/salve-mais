@@ -30,18 +30,68 @@ public class ContaFixaService {
     
     @Autowired
     private AnexoServiceInterface anexoService;
+    
+    @Autowired
+    private TransacaoService transacaoService;
 
+    @org.springframework.transaction.annotation.Transactional
     public ContaFixa salvarContaFixa(ContaFixa contaFixa) {
         var conta = contaService.getOne(contaFixa.getConta().getId());
         if (conta == null) {
             throw new IllegalArgumentException("Conta não encontrada");
         }
-
-        if (contaFixa.isPago()) {
-            conta.setSaldo(conta.getSaldo().subtract(contaFixa.getValor()));
+        
+        // Verifica se é uma conta nova ou atualização
+        boolean isNew = contaFixa.getId() == null;
+        ContaFixa contaFixaExistente = null;
+        boolean mudouParaPago = false;
+        
+        // Se for uma atualização, verifica se mudou de não pago para pago
+        if (!isNew) {
+            contaFixaExistente = contaFixaRepository.findById(contaFixa.getId()).orElse(null);
+            if (contaFixaExistente != null) {
+                mudouParaPago = !contaFixaExistente.isPago() && contaFixa.isPago();
+            }
+        } else {
+            // Conta nova sendo marcada como paga
+            mudouParaPago = contaFixa.isPago();
         }
 
-        return contaFixaRepository.save(contaFixa);
+        // Se a conta fixa foi marcada como paga, debita o valor da conta e cria a transação
+        if (mudouParaPago) {
+            // Verifica se a conta tem saldo suficiente
+            if (conta.getSaldo().compareTo(contaFixa.getValor()) < 0) {
+                throw new IllegalArgumentException("Saldo insuficiente na conta para pagar esta conta fixa");
+            }
+            
+            // Atualiza o saldo da conta
+            conta.setSaldo(conta.getSaldo().subtract(contaFixa.getValor()));
+            
+            // Salva a conta fixa primeiro para obter o ID (se for nova)
+            ContaFixa contaFixaSalva = contaFixaRepository.save(contaFixa);
+            
+            // Cria a transação associada ao pagamento
+            var transacaoDTO = new com.tallyto.gestorfinanceiro.api.dto.TransacaoInputDTO(
+                com.tallyto.gestorfinanceiro.core.domain.enums.TipoTransacao.DEBITO,
+                contaFixa.getValor(),
+                "Pagamento: " + contaFixa.getNome(),
+                contaFixa.getConta().getId(),
+                null, // contaDestinoId
+                null, // faturaId
+                contaFixa.getCategoria() != null ? contaFixa.getCategoria().getId() : null,
+                null, // proventoId
+                contaFixaSalva.getId(), // contaFixaId
+                "Transação gerada automaticamente para o pagamento da conta fixa #" + contaFixaSalva.getId()
+            );
+            
+            // Cria a transação sem atualizar o saldo (já atualizamos acima)
+            transacaoService.criarTransacaoSemAtualizarSaldo(transacaoDTO);
+            
+            return contaFixaSalva;
+        } else {
+            // Se não mudou para pago, apenas salva a conta fixa
+            return contaFixaRepository.save(contaFixa);
+        }
     }
 
     public BigDecimal calcularTotalContasFixasNaoPagas() {
@@ -153,6 +203,61 @@ public class ContaFixaService {
         }
         
         return anexoService.listarAnexosPorContaFixa(contaFixaId);
+    }
+    
+    /**
+     * Marca uma conta fixa como paga e cria a transação correspondente
+     * @param contaFixaId ID da conta fixa a ser paga
+     * @param observacoes Observações opcionais sobre o pagamento
+     * @return A conta fixa atualizada
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public ContaFixa pagarContaFixa(Long contaFixaId, String observacoes) {
+        ContaFixa contaFixa = buscarContaFixaPorId(contaFixaId);
+        if (contaFixa == null) {
+            throw new IllegalArgumentException("Conta fixa não encontrada");
+        }
+        
+        if (contaFixa.isPago()) {
+            throw new IllegalArgumentException("Esta conta fixa já está paga");
+        }
+        
+        // Busca a conta
+        var conta = contaService.getOne(contaFixa.getConta().getId());
+        if (conta == null) {
+            throw new IllegalArgumentException("Conta não encontrada");
+        }
+        
+        // Verifica saldo
+        if (conta.getSaldo().compareTo(contaFixa.getValor()) < 0) {
+            throw new IllegalArgumentException("Saldo insuficiente na conta para pagar esta conta fixa");
+        }
+        
+        // Atualiza o saldo da conta
+        conta.setSaldo(conta.getSaldo().subtract(contaFixa.getValor()));
+        
+        // Marca a conta fixa como paga
+        contaFixa.setPago(true);
+        ContaFixa contaFixaSalva = contaFixaRepository.save(contaFixa);
+        
+        // Cria a transação associada ao pagamento
+        var transacaoDTO = new com.tallyto.gestorfinanceiro.api.dto.TransacaoInputDTO(
+            com.tallyto.gestorfinanceiro.core.domain.enums.TipoTransacao.DEBITO,
+            contaFixa.getValor(),
+            "Pagamento: " + contaFixa.getNome(),
+            contaFixa.getConta().getId(),
+            null, // contaDestinoId
+            null, // faturaId
+            contaFixa.getCategoria() != null ? contaFixa.getCategoria().getId() : null,
+            null, // proventoId
+            contaFixaSalva.getId(), // contaFixaId
+            observacoes != null ? observacoes : "Pagamento da conta fixa #" + contaFixaSalva.getId()
+        );
+        
+        // Cria a transação sem atualizar o saldo (já atualizamos acima)
+        transacaoService.criarTransacaoSemAtualizarSaldo(transacaoDTO);
+        
+        return contaFixaSalva;
     }
     
     /**
