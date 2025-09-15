@@ -7,7 +7,7 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import com.tallyto.gestorfinanceiro.testsupport.ControllerSliceTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,14 +24,18 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(FaturaController.class)
+// Usa a anotação composta para isolar o slice MVC, excluir filtros globais e aplicar mocks de segurança.
+@ControllerSliceTest(controllers = FaturaController.class)
 public class FaturaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private FaturaService faturaService;
+        // Mock do serviço de Fatura para controlar os retornos no teste.
+        @MockBean
+        private FaturaService faturaService;
+
+                        // Mocks de segurança agora são fornecidos globalmente por TestSecurityMocks via @ControllerSliceTest.
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -164,4 +168,73 @@ public class FaturaControllerTest {
 
         verify(faturaService).gerarFatura(1L);
     }
+
+        @Test
+        public void testListarFaturasPendentes() throws Exception {
+                // Arrange
+                CartaoCredito cartao = new CartaoCredito();
+                cartao.setId(2L);
+                cartao.setNome("Cartão Pendente");
+
+                Fatura pendente = new Fatura();
+                pendente.setId(2L);
+                pendente.setCartaoCredito(cartao);
+                pendente.setValorTotal(new BigDecimal("999.99"));
+                pendente.setDataVencimento(LocalDate.of(2024, 12, 20));
+                pendente.setPago(false);
+                pendente.setCompras(new ArrayList<>());
+
+                when(faturaService.listarNaoPagas()).thenReturn(List.of(pendente));
+
+                // Act & Assert
+                mockMvc.perform(get("/api/faturas/pendentes"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(2))
+                                .andExpect(jsonPath("$[0].nomeCartao").value("Cartão Pendente"))
+                                .andExpect(jsonPath("$[0].pago").value(false));
+        }
+
+        @Test
+        public void testListarFaturasPorConta() throws Exception {
+                // Arrange
+                CartaoCredito cartao = new CartaoCredito();
+                cartao.setId(3L);
+                cartao.setNome("Cartão Conta");
+
+                Fatura f = new Fatura();
+                f.setId(3L);
+                f.setCartaoCredito(cartao);
+                f.setValorTotal(new BigDecimal("123.45"));
+                f.setDataVencimento(LocalDate.of(2024, 11, 5));
+                f.setPago(true);
+                f.setCompras(new ArrayList<>());
+
+                when(faturaService.listarPorConta(10L)).thenReturn(List.of(f));
+
+                // Act & Assert
+                mockMvc.perform(get("/api/faturas/conta/{contaId}", 10L))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(3))
+                                .andExpect(jsonPath("$[0].nomeCartao").value("Cartão Conta"))
+                                .andExpect(jsonPath("$[0].pago").value(true));
+        }
+
+        @Test
+        public void testPagarFaturaComConta() throws Exception {
+                // Act & Assert
+                mockMvc.perform(patch("/api/faturas/{faturaId}/pagar/{contaId}", 5L, 20L))
+                                .andExpect(status().isOk());
+
+                verify(faturaService).marcarComoPaga(5L, 20L);
+        }
+
+        @Test
+        public void testGerarFaturaLegacy() throws Exception {
+                // Act
+                mockMvc.perform(post("/api/faturas/{cardId}", 7L))
+                                .andExpect(status().isOk());
+
+                // Assert
+                verify(faturaService).gerarFatura(7L);
+        }
 }
