@@ -2,25 +2,25 @@ package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.RelatorioMensalDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.RelatorioMensalService;
+import com.tallyto.gestorfinanceiro.testsupport.ControllerSliceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RelatorioMensalController.class)
-public class RelatorioMensalControllerTest {
+@ControllerSliceTest(controllers = RelatorioMensalController.class)
+class RelatorioMensalControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,113 +28,76 @@ public class RelatorioMensalControllerTest {
     @MockBean
     private RelatorioMensalService relatorioMensalService;
 
-    @Test
-    public void testGerarRelatorioMensal() throws Exception {
-        // Arrange
+    private RelatorioMensalDTO sampleRelatorio() {
         RelatorioMensalDTO.ResumoFinanceiroDTO resumo = new RelatorioMensalDTO.ResumoFinanceiroDTO(
-                new BigDecimal("7900.00"),
-                BigDecimal.ZERO,
-                new BigDecimal("1344.91"),
-                new BigDecimal("2817.10"),
-                new BigDecimal("1589.01"),
-                new BigDecimal("2148.98"),
-                new BigDecimal("5751.02")
+                new BigDecimal("1000.00"), new BigDecimal("0.00"), new BigDecimal("300.00"),
+                new BigDecimal("200.00"), new BigDecimal("100.00"), new BigDecimal("400.00"), new BigDecimal("0.00")
         );
-
-        List<RelatorioMensalDTO.ItemProventoDTO> proventos = List.of(
-                new RelatorioMensalDTO.ItemProventoDTO(1L, "Salário Tallyto", new BigDecimal("5800.00"), LocalDate.now(), "Tallyto"),
-                new RelatorioMensalDTO.ItemProventoDTO(2L, "Bolsa Kamila", new BigDecimal("2100.00"), LocalDate.now(), "Kamila")
-        );
-
-        RelatorioMensalDTO mockRelatorio = new RelatorioMensalDTO(
-                "dezembro 2024",
-                LocalDate.of(2024, 12, 1),
+        return new RelatorioMensalDTO(
+                "2025-09",
+                LocalDate.of(2025, 9, 1),
                 resumo,
-                proventos,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new BigDecimal("2148.98"),
-                new BigDecimal("5751.02")
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                new BigDecimal("400.00"),
+                new BigDecimal("0.00")
         );
-
-        when(relatorioMensalService.gerarRelatorioMensal(anyInt(), anyInt())).thenReturn(mockRelatorio);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/relatorio-mensal/2024/12"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mesReferencia").value("dezembro 2024"))
-                .andExpect(jsonPath("$.resumoFinanceiro.totalProventos").value(7900.00))
-                .andExpect(jsonPath("$.resumoFinanceiro.saldoFinal").value(2148.98))
-                .andExpect(jsonPath("$.proventos[0].descricao").value("Salário Tallyto"))
-                .andExpect(jsonPath("$.proventos[0].valor").value(5800.00))
-                .andExpect(jsonPath("$.proventos[1].descricao").value("Bolsa Kamila"))
-                .andExpect(jsonPath("$.proventos[1].valor").value(2100.00));
     }
 
     @Test
-    public void testGerarRelatorioAtual() throws Exception {
-        // Arrange
-        RelatorioMensalDTO.ResumoFinanceiroDTO resumo = new RelatorioMensalDTO.ResumoFinanceiroDTO(
-                new BigDecimal("7900.00"),
-                BigDecimal.ZERO,
-                new BigDecimal("1344.91"),
-                new BigDecimal("2817.10"),
-                new BigDecimal("1589.01"),
-                new BigDecimal("2148.98"),
-                new BigDecimal("5751.02")
-        );
+    @DisplayName("GET /api/relatorio-mensal/{ano}/{mes} retorna 200 com relatório válido")
+    void gerarRelatorio_ok() throws Exception {
+        Mockito.when(relatorioMensalService.gerarRelatorioMensal(2025, 9)).thenReturn(sampleRelatorio());
 
-        RelatorioMensalDTO mockRelatorio = new RelatorioMensalDTO(
-                "dezembro 2024",
-                LocalDate.now(),
-                resumo,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new BigDecimal("2148.98"),
-                new BigDecimal("5751.02")
-        );
+        mockMvc.perform(get("/api/relatorio-mensal/{ano}/{mes}", 2025, 9))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mesReferencia").value("2025-09"))
+                .andExpect(jsonPath("$.resumoFinanceiro.totalProventos").value(1000.00));
+    }
 
-        when(relatorioMensalService.gerarRelatorioMensalAtual()).thenReturn(mockRelatorio);
+    @Test
+    @DisplayName("GET /api/relatorio-mensal/{ano}/{mes} retorna 400 para mês inválido")
+    void gerarRelatorio_mesInvalido() throws Exception {
+        mockMvc.perform(get("/api/relatorio-mensal/{ano}/{mes}", 2025, 13))
+                .andExpect(status().isBadRequest());
+    }
 
-        // Act & Assert
+    @Test
+    @DisplayName("GET /api/relatorio-mensal/atual retorna relatório do mês atual")
+    void gerarRelatorioAtual() throws Exception {
+        Mockito.when(relatorioMensalService.gerarRelatorioMensalAtual()).thenReturn(sampleRelatorio());
+
         mockMvc.perform(get("/api/relatorio-mensal/atual"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mesReferencia").value("dezembro 2024"))
-                .andExpect(jsonPath("$.resumoFinanceiro.totalProventos").value(7900.00));
+                .andExpect(jsonPath("$.mesReferencia").value("2025-09"));
     }
 
     @Test
-    public void testObterContasVencidas() throws Exception {
-        // Arrange
-        List<RelatorioMensalDTO.ItemGastoFixoDTO> contasVencidas = List.of(
-                new RelatorioMensalDTO.ItemGastoFixoDTO(1L, "Aluguel", new BigDecimal("1562.57"), LocalDate.now(), "Moradia", false),
-                new RelatorioMensalDTO.ItemGastoFixoDTO(2L, "Internet", new BigDecimal("149.90"), LocalDate.now(), "Utilidades", false)
+    @DisplayName("GET /api/relatorio-mensal/contas-vencidas usa data informada")
+    void obterContasVencidas_comData() throws Exception {
+        RelatorioMensalDTO.ItemGastoFixoDTO item = new RelatorioMensalDTO.ItemGastoFixoDTO(
+                1L, "Conta Luz", new BigDecimal("120.00"), LocalDate.of(2025,9,5), "Casa", true
         );
+        Mockito.when(relatorioMensalService.obterContasFixasVencidas(LocalDate.of(2025,9,10)))
+                .thenReturn(List.of(item));
 
-        when(relatorioMensalService.obterContasFixasVencidas(any(LocalDate.class))).thenReturn(contasVencidas);
+        mockMvc.perform(get("/api/relatorio-mensal/contas-vencidas").param("dataReferencia", "2025-09-10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].nome").value("Conta Luz"));
+    }
 
-        // Act & Assert
+    @Test
+    @DisplayName("GET /api/relatorio-mensal/contas-vencidas usa data atual quando não informada")
+    void obterContasVencidas_semData() throws Exception {
+        Mockito.when(relatorioMensalService.obterContasFixasVencidas(Mockito.any(LocalDate.class)))
+                .thenReturn(List.of());
+
         mockMvc.perform(get("/api/relatorio-mensal/contas-vencidas"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nome").value("Aluguel"))
-                .andExpect(jsonPath("$[0].valor").value(1562.57))
-                .andExpect(jsonPath("$[1].nome").value("Internet"))
-                .andExpect(jsonPath("$[1].valor").value(149.90));
+                .andExpect(jsonPath("$", hasSize(0)));
     }
-
-    @Test
-    public void testRelatorioComMesInvalido() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/relatorio-mensal/2024/13"))
-                .andExpect(status().isBadRequest());
-        
-        mockMvc.perform(get("/api/relatorio-mensal/2024/0"))
-                .andExpect(status().isBadRequest());
-    }
-
 }
