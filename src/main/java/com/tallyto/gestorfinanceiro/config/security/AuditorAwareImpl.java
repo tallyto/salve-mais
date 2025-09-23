@@ -4,7 +4,6 @@ package com.tallyto.gestorfinanceiro.config.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -14,7 +13,6 @@ import java.util.Optional;
 public class AuditorAwareImpl implements AuditorAware<String> {
 
     @Override
-    @NonNull
     public Optional<String> getCurrentAuditor() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -24,7 +22,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
     }
 
     @Bean
-    AuditorAware<String> auditorProvider() {
+    public AuditorAware<String> auditorProvider() {
         return new AuditorAwareImpl();
     }
 }

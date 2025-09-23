@@ -39,6 +39,9 @@ public class DashboardService {
     private CategoriaRepository categoriaRepository;
 
     @Autowired
+    private CompraRepository compraRepository;
+
+    @Autowired
     private FaturaRepository faturaRepository;
     
     @Autowired
