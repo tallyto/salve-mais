@@ -157,6 +157,21 @@ public class ContaFixaController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    
+    /**
+     * Recria uma despesa fixa para o próximo mês como não paga
+     */
+    @PostMapping("/{id}/recriar-proximo-mes")
+    public ResponseEntity<ContaFixa> recriarDespesaProximoMes(@PathVariable Long id) {
+        try {
+            ContaFixa novaDespesa = contaFixaService.recriarDespesaProximoMes(id);
+            return ResponseEntity.ok(novaDespesa);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
     // Outros métodos relacionados a contas fixas
 

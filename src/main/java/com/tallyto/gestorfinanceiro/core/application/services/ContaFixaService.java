@@ -276,4 +276,34 @@ public class ContaFixaService {
     public void removerComprovante(Long anexoId) {
         anexoService.excluirAnexo(anexoId);
     }
+    
+    /**
+     * Recria uma despesa fixa para o próximo mês como não paga
+     * @param contaFixaId ID da conta fixa a ser recriada
+     * @return A nova conta fixa criada para o próximo mês
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public ContaFixa recriarDespesaProximoMes(Long contaFixaId) {
+        ContaFixa contaFixaOriginal = buscarContaFixaPorId(contaFixaId);
+        if (contaFixaOriginal == null) {
+            throw new IllegalArgumentException("Conta fixa não encontrada");
+        }
+        
+        // Cria uma nova conta fixa com base na original
+        ContaFixa novaContaFixa = new ContaFixa();
+        novaContaFixa.setNome(contaFixaOriginal.getNome());
+        novaContaFixa.setConta(contaFixaOriginal.getConta());
+        novaContaFixa.setCategoria(contaFixaOriginal.getCategoria());
+        novaContaFixa.setValor(contaFixaOriginal.getValor());
+        
+        // Define o vencimento para o próximo mês (mesmo dia)
+        LocalDate novoVencimento = contaFixaOriginal.getVencimento().plusMonths(1);
+        novaContaFixa.setVencimento(novoVencimento);
+        
+        // Marca como não paga
+        novaContaFixa.setPago(false);
+        
+        // Salva a nova conta fixa
+        return contaFixaRepository.save(novaContaFixa);
+    }
 }
