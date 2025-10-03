@@ -29,6 +29,14 @@ import com.tallyto.gestorfinanceiro.core.infra.repositories.TransacaoRepository;
 
 @Service
 public class TransacaoService {
+    /**
+     * Remove uma transação pelo ID
+     */
+    @Transactional
+    public void removerTransacao(Long id) {
+        Transacao transacao = findById(id);
+        transacaoRepository.delete(transacao);
+    }
 
     @Autowired
     private TransacaoRepository transacaoRepository;

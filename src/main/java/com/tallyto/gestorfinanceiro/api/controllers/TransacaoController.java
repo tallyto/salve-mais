@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,5 +75,14 @@ public class TransacaoController {
         } catch (TransacaoException e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    /**
+     * Remove uma transação por ID
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> removerTransacao(@PathVariable Long id) {
+        transacaoService.removerTransacao(id);
+        return ResponseEntity.noContent().build();
     }
 }
