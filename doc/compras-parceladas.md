@@ -14,7 +14,8 @@ Este documento descreve a funcionalidade de compras parceladas implementada no s
 ### Exemplo 2: Compra com parcelas já pagas
 - **Cenário**: Compra de R$ 500,00 em 5x, já foram pagas 1 parcela
 - **Configuração**: `parcelaInicial=2`, `totalParcelas=5`
-- **Resultado**: Gera 4 parcelas restantes (2/5, 3/5, 4/5, 5/5) de R$ 125,00 cada
+- **Resultado**: Gera 4 parcelas restantes (2/5, 3/5, 4/5, 5/5) de R$ 100,00 cada
+- **Observação**: O valor de cada parcela é sempre `valorTotal / totalParcelas` (R$ 500 / 5 = R$ 100)
 
 ## Arquitetura
 
@@ -61,7 +62,8 @@ Este documento descreve a funcionalidade de compras parceladas implementada no s
 
 2. **Cálculo de Parcelas**:
    - Número de parcelas geradas: `totalParcelas - parcelaInicial + 1`
-   - Valor por parcela: `valorTotal / número de parcelas geradas`
+   - Valor por parcela: `valorTotal / totalParcelas` (sempre divide pelo total, não pelas restantes)
+   - Exemplo: R$ 1.800 em 5x, começando da 3ª → gera 3 parcelas de R$ 360 cada
    - Ajuste de arredondamento na primeira parcela para garantir soma exata
 
 3. **Data de Vencimento**:

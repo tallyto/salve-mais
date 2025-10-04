@@ -86,10 +86,14 @@ public class CompraParceladaService {
     private List<Parcela> gerarParcelas(CompraParcelada compraParcelada) {
         List<Parcela> parcelas = new ArrayList<>();
         
-        int parcelasRestantes = compraParcelada.getTotalParcelas() - compraParcelada.getParcelaInicial() + 1;
+        // Divide o valor total pelo TOTAL de parcelas (não pelas restantes)
+        // Exemplo: R$ 1.800 em 5x = R$ 360 por parcela
         BigDecimal valorParcela = compraParcelada.getValorTotal()
-                .divide(BigDecimal.valueOf(parcelasRestantes), 2, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(compraParcelada.getTotalParcelas()), 2, RoundingMode.HALF_UP);
 
+        // Calcula quantas parcelas serão geradas (da inicial até a última)
+        int parcelasRestantes = compraParcelada.getTotalParcelas() - compraParcelada.getParcelaInicial() + 1;
+        
         // Ajuste para garantir que a soma das parcelas seja igual ao valor total
         BigDecimal somaParcelas = valorParcela.multiply(BigDecimal.valueOf(parcelasRestantes));
         BigDecimal diferenca = compraParcelada.getValorTotal().subtract(somaParcelas);

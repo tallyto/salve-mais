@@ -87,12 +87,12 @@ class CompraParceladaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve criar compra parcelada começando da parcela 2 de 5 (3 parcelas restantes)")
+    @DisplayName("Deve criar compra parcelada começando da parcela 2 de 5 (4 parcelas restantes)")
     void deveCriarCompraParceladaComParcelaInicial() {
         // Arrange
         compraParcelada.setParcelaInicial(2);
         compraParcelada.setTotalParcelas(5);
-        compraParcelada.setValorTotal(new BigDecimal("900.00")); // 300 por parcela
+        compraParcelada.setValorTotal(new BigDecimal("900.00")); // 900/5 = 180 por parcela
 
         when(cartaoCreditoService.findOrFail(1L)).thenReturn(cartaoCredito);
         when(categoriaService.buscaCategoriaPorId(1L)).thenReturn(categoria);
