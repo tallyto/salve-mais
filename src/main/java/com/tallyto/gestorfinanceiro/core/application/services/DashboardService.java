@@ -47,6 +47,9 @@ public class DashboardService {
     @Autowired
     private ReservaEmergenciaRepository reservaEmergenciaRepository;
 
+    @Autowired
+    private ParcelaRepository parcelaRepository;
+
     /**
      * Obtém o resumo financeiro para o dashboard
      * @return DashboardSummaryDTO com os dados de resumo
@@ -154,7 +157,48 @@ public class DashboardService {
             dto.getReservaEmergencia().setId(reservaId);
         }
         
+        // Calcular informações das parcelas
+        dto.setParcelasResumo(calcularResumoParcelasMes(inicioMesAtual, fimMesAtual));
+        
         return dto;
+    }
+
+    /**
+     * Calcula o resumo das parcelas do mês
+     */
+    private DashboardSummaryDTO.ParcelasResumoDTO calcularResumoParcelasMes(LocalDate inicioMes, LocalDate fimMes) {
+        // Busca todas as parcelas do mês
+        List<Parcela> parcelasMes = parcelaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
+        
+        // Total de parcelas ativas (compras parceladas em andamento)
+        long totalParcelasAtivas = parcelaRepository.findByPaga(false).size();
+        
+        // Parcelas pagas e não pagas do mês
+        long parcelasPagasMes = parcelasMes.stream().filter(Parcela::isPaga).count();
+        long parcelasNaoPagasMes = parcelasMes.stream().filter(p -> !p.isPaga()).count();
+        
+        // Valor total das parcelas do mês
+        BigDecimal valorTotalParcelasMes = parcelasMes.stream()
+                .map(Parcela::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Valor pago no mês
+        BigDecimal valorPagoMes = parcelasMes.stream()
+                .filter(Parcela::isPaga)
+                .map(Parcela::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // Valor restante no mês
+        BigDecimal valorRestanteMes = valorTotalParcelasMes.subtract(valorPagoMes);
+        
+        return new DashboardSummaryDTO.ParcelasResumoDTO(
+                totalParcelasAtivas,
+                parcelasPagasMes,
+                parcelasNaoPagasMes,
+                valorTotalParcelasMes,
+                valorPagoMes,
+                valorRestanteMes
+        );
     }
 
     /**

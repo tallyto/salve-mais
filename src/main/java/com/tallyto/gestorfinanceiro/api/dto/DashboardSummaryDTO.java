@@ -13,6 +13,7 @@ public class DashboardSummaryDTO {
     private BigDecimal despesasMesAnterior;
     private ReservaEmergenciaDTO reservaEmergencia;
     private boolean temReservaEmergencia;
+    private ParcelasResumoDTO parcelasResumo;
 
     public static class ReservaEmergenciaDTO {
         private Long id;
@@ -70,6 +71,76 @@ public class DashboardSummaryDTO {
 
         public void setTempoRestante(Integer tempoRestante) {
             this.tempoRestante = tempoRestante;
+        }
+    }
+
+    public static class ParcelasResumoDTO {
+        private long totalParcelasAtivas;
+        private long parcelasPagasMes;
+        private long parcelasNaoPagasMes;
+        private BigDecimal valorTotalParcelasMes;
+        private BigDecimal valorPagoMes;
+        private BigDecimal valorRestanteMes;
+
+        public ParcelasResumoDTO() {}
+
+        public ParcelasResumoDTO(long totalParcelasAtivas, long parcelasPagasMes, 
+                                long parcelasNaoPagasMes, BigDecimal valorTotalParcelasMes,
+                                BigDecimal valorPagoMes, BigDecimal valorRestanteMes) {
+            this.totalParcelasAtivas = totalParcelasAtivas;
+            this.parcelasPagasMes = parcelasPagasMes;
+            this.parcelasNaoPagasMes = parcelasNaoPagasMes;
+            this.valorTotalParcelasMes = valorTotalParcelasMes;
+            this.valorPagoMes = valorPagoMes;
+            this.valorRestanteMes = valorRestanteMes;
+        }
+
+        public long getTotalParcelasAtivas() {
+            return totalParcelasAtivas;
+        }
+
+        public void setTotalParcelasAtivas(long totalParcelasAtivas) {
+            this.totalParcelasAtivas = totalParcelasAtivas;
+        }
+
+        public long getParcelasPagasMes() {
+            return parcelasPagasMes;
+        }
+
+        public void setParcelasPagasMes(long parcelasPagasMes) {
+            this.parcelasPagasMes = parcelasPagasMes;
+        }
+
+        public long getParcelasNaoPagasMes() {
+            return parcelasNaoPagasMes;
+        }
+
+        public void setParcelasNaoPagasMes(long parcelasNaoPagasMes) {
+            this.parcelasNaoPagasMes = parcelasNaoPagasMes;
+        }
+
+        public BigDecimal getValorTotalParcelasMes() {
+            return valorTotalParcelasMes;
+        }
+
+        public void setValorTotalParcelasMes(BigDecimal valorTotalParcelasMes) {
+            this.valorTotalParcelasMes = valorTotalParcelasMes;
+        }
+
+        public BigDecimal getValorPagoMes() {
+            return valorPagoMes;
+        }
+
+        public void setValorPagoMes(BigDecimal valorPagoMes) {
+            this.valorPagoMes = valorPagoMes;
+        }
+
+        public BigDecimal getValorRestanteMes() {
+            return valorRestanteMes;
+        }
+
+        public void setValorRestanteMes(BigDecimal valorRestanteMes) {
+            this.valorRestanteMes = valorRestanteMes;
         }
     }
 
@@ -184,5 +255,13 @@ public class DashboardSummaryDTO {
 
     public void setTemReservaEmergencia(boolean temReservaEmergencia) {
         this.temReservaEmergencia = temReservaEmergencia;
+    }
+
+    public ParcelasResumoDTO getParcelasResumo() {
+        return parcelasResumo;
+    }
+
+    public void setParcelasResumo(ParcelasResumoDTO parcelasResumo) {
+        this.parcelasResumo = parcelasResumo;
     }
 }

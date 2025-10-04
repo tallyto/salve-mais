@@ -35,6 +35,9 @@ public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
     // Busca parcelas por status de pagamento
     List<Parcela> findByPaga(boolean paga);
     
+    // Busca parcelas por período de vencimento
+    List<Parcela> findByDataVencimentoBetween(LocalDate inicio, LocalDate fim);
+    
     // Busca parcelas com paginação
     Page<Parcela> findByCompraParceladaCartaoCreditoId(Long cartaoId, Pageable pageable);
 }
