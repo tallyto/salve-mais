@@ -4,7 +4,9 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Parcela;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.ParcelaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,19 +32,41 @@ public class FaturaService {
     @Autowired
     private ContaService contaService;
 
+    @Autowired
+    private ParcelaRepository parcelaRepository;
+
+    /**
+     * Gera fatura incluindo compras à vista e parcelas de compras parceladas
+     */
     public void gerarFatura(Long cartaoCreditoId) {
         CartaoCredito cartaoCredito = cartaoCreditoService.findOrFail(cartaoCreditoId);
         Fatura fatura = new Fatura();
 
+        // Busca compras à vista do período
         List<Compra> compras = compraService.comprasPorCartaoAteData(cartaoCreditoId, cartaoCredito.getVencimento());
 
+        // Busca parcelas que vencem no período da fatura
+        LocalDate dataFechamentoFatura = cartaoCredito.getVencimento().minusDays(10);
+        LocalDate primeiroDiaMesFechamento = dataFechamentoFatura.withDayOfMonth(1);
+        
+        List<Parcela> parcelas = parcelaRepository.findByCartaoAndPeriodo(
+            cartaoCreditoId, 
+            primeiroDiaMesFechamento, 
+            dataFechamentoFatura
+        );
+
+        // Calcula valor total: compras à vista + parcelas
+        BigDecimal valorCompras = compras.stream()
+                .map(Compra::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal valorParcelas = parcelas.stream()
+                .map(Parcela::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         fatura.setCartaoCredito(cartaoCredito);
         fatura.setCompras(compras);
-        fatura.setValorTotal(compras.stream()
-                .map(Compra::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-
+        fatura.setValorTotal(valorCompras.add(valorParcelas));
         fatura.setPago(false);
         fatura.setDataVencimento(cartaoCredito.getVencimento());
 
