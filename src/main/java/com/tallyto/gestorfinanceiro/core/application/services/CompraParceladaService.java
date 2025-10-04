@@ -94,17 +94,19 @@ public class CompraParceladaService {
         BigDecimal valorParcela = compraParcelada.getValorTotal()
                 .divide(BigDecimal.valueOf(compraParcelada.getTotalParcelas()), 2, RoundingMode.HALF_UP);
 
-        // Ajuste para garantir que a soma das parcelas geradas seja igual ao valor total
-        BigDecimal somaParcelas = valorParcela.multiply(BigDecimal.valueOf(parcelasRestantes));
-        BigDecimal diferenca = compraParcelada.getValorTotal().subtract(somaParcelas);
+        // Ajuste para garantir que a soma de TODAS as parcelas (incluindo as não geradas) seja igual ao valor total
+        // Calcula a diferença considerando o total de parcelas
+        BigDecimal somaTotal = valorParcela.multiply(BigDecimal.valueOf(compraParcelada.getTotalParcelas()));
+        BigDecimal diferenca = compraParcelada.getValorTotal().subtract(somaTotal);
 
         for (int i = compraParcelada.getParcelaInicial(); i <= compraParcelada.getTotalParcelas(); i++) {
             Parcela parcela = new Parcela();
             parcela.setNumeroParcela(i);
             parcela.setTotalParcelas(compraParcelada.getTotalParcelas());
             
-            // Adiciona a diferença na primeira parcela para garantir que a soma seja exata
-            if (i == compraParcelada.getParcelaInicial()) {
+            // Adiciona a diferença apenas na última parcela para garantir que a soma seja exata
+            // Isso evita que a primeira parcela fique com valor diferente
+            if (i == compraParcelada.getTotalParcelas()) {
                 parcela.setValor(valorParcela.add(diferenca));
             } else {
                 parcela.setValor(valorParcela);
