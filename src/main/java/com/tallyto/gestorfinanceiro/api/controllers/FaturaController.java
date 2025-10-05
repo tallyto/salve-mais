@@ -2,6 +2,8 @@ package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.FaturaManualDTO;
 import com.tallyto.gestorfinanceiro.api.dto.FaturaResponseDTO;
+import com.tallyto.gestorfinanceiro.api.dto.FaturaPreviewDTO;
+import com.tallyto.gestorfinanceiro.api.dto.ParcelaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.FaturaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,10 +13,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -195,5 +199,52 @@ public class FaturaController {
     @PostMapping("/{cardId}")
     public void gerarFatura(@PathVariable Long cardId) {
         faturaService.gerarFatura(cardId);
+    }
+
+    @Operation(
+            summary = "Preview da fatura",
+            description = "Mostra quais compras e parcelas seriam incluídas na fatura sem criá-la"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Preview gerado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Cartão de crédito não encontrado")
+    })
+    @GetMapping("/preview/{cartaoCreditoId}")
+    public ResponseEntity<FaturaPreviewDTO> gerarPreview(
+            @Parameter(description = "ID do cartão de crédito", example = "1")
+            @PathVariable Long cartaoCreditoId,
+            @Parameter(description = "Data de vencimento da fatura (yyyy-MM-dd)", example = "2025-10-10")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataVencimento
+    ) {
+        FaturaService.PreviewResult preview = faturaService.gerarPreviewFatura(cartaoCreditoId, dataVencimento);
+
+        // Converte compras para DTO
+        List<FaturaPreviewDTO.CompraDTO> comprasDTO = preview.getCompras().stream()
+                .map(compra -> new FaturaPreviewDTO.CompraDTO(
+                        compra.getId(),
+                        compra.getDescricao(),
+                        compra.getValor(),
+                        compra.getData(),
+                        compra.getCategoria() != null ? compra.getCategoria().getNome() : "Sem categoria"
+                ))
+                .collect(Collectors.toList());
+
+        // Converte parcelas para DTO
+        List<ParcelaDTO> parcelasDTO = preview.getParcelas().stream()
+                .map(ParcelaDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        FaturaPreviewDTO previewDTO = new FaturaPreviewDTO(
+                preview.getCartaoCredito().getId(),
+                preview.getCartaoCredito().getNome(),
+                dataVencimento,
+                comprasDTO,
+                parcelasDTO,
+                preview.getValorCompras(),
+                preview.getValorParcelas(),
+                preview.getValorTotal()
+        );
+
+        return ResponseEntity.ok(previewDTO);
     }
 }

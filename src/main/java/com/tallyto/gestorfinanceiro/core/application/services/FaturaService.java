@@ -158,4 +158,66 @@ public class FaturaService {
                 .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    /**
+     * Gera preview da fatura mostrando quais compras e parcelas seriam incluídas
+     * @param cartaoCreditoId ID do cartão
+     * @param dataVencimento Data de vencimento da fatura
+     * @return Preview com compras e parcelas
+     */
+    public PreviewResult gerarPreviewFatura(Long cartaoCreditoId, LocalDate dataVencimento) {
+        CartaoCredito cartaoCredito = cartaoCreditoService.findOrFail(cartaoCreditoId);
+
+        // Calcula período de fechamento (10 dias antes do vencimento)
+        LocalDate dataFechamento = dataVencimento.minusDays(10);
+        LocalDate primeiroDiaMesFechamento = dataFechamento.withDayOfMonth(1);
+
+        // Busca compras à vista do período
+        List<Compra> compras = compraService.comprasPorCartaoAteData(cartaoCreditoId, dataVencimento);
+
+        // Busca parcelas que vencem no período
+        List<Parcela> parcelas = parcelaRepository.findByCartaoAndPeriodo(
+                cartaoCreditoId,
+                primeiroDiaMesFechamento,
+                dataFechamento
+        );
+
+        // Calcula valores
+        BigDecimal valorCompras = compras.stream()
+                .map(Compra::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal valorParcelas = parcelas.stream()
+                .map(Parcela::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new PreviewResult(cartaoCredito, compras, parcelas, valorCompras, valorParcelas);
+    }
+
+    /**
+     * Classe para retornar resultado do preview
+     */
+    public static class PreviewResult {
+        private final CartaoCredito cartaoCredito;
+        private final List<Compra> compras;
+        private final List<Parcela> parcelas;
+        private final BigDecimal valorCompras;
+        private final BigDecimal valorParcelas;
+
+        public PreviewResult(CartaoCredito cartaoCredito, List<Compra> compras, List<Parcela> parcelas,
+                           BigDecimal valorCompras, BigDecimal valorParcelas) {
+            this.cartaoCredito = cartaoCredito;
+            this.compras = compras;
+            this.parcelas = parcelas;
+            this.valorCompras = valorCompras;
+            this.valorParcelas = valorParcelas;
+        }
+
+        public CartaoCredito getCartaoCredito() { return cartaoCredito; }
+        public List<Compra> getCompras() { return compras; }
+        public List<Parcela> getParcelas() { return parcelas; }
+        public BigDecimal getValorCompras() { return valorCompras; }
+        public BigDecimal getValorParcelas() { return valorParcelas; }
+        public BigDecimal getValorTotal() { return valorCompras.add(valorParcelas); }
+    }
 }
