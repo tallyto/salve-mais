@@ -187,6 +187,115 @@ public class CompraParceladaService {
     }
 
     /**
+     * Atualiza uma compra parcelada
+     */
+    @Transactional
+    public CompraParcelada atualizarCompraParcelada(Long id, CompraParcelada compraAtualizada) {
+        // Busca a compra existente
+        CompraParcelada compraExistente = buscarPorId(id);
+
+        // Valida valor total
+        if (compraAtualizada.getValorTotal() == null || compraAtualizada.getValorTotal().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Valor total deve ser maior que zero");
+        }
+
+        // Valida cartão
+        CartaoCredito cartao = cartaoCreditoService.findOrFail(compraAtualizada.getCartaoCredito().getId());
+        
+        // Valida categoria se informada
+        if (compraAtualizada.getCategoria() != null && compraAtualizada.getCategoria().getId() != null) {
+            Categoria categoria = categoriaService.buscaCategoriaPorId(compraAtualizada.getCategoria().getId());
+            compraExistente.setCategoria(categoria);
+        }
+
+        // Valida parcelas
+        if (compraAtualizada.getParcelaInicial() == null || compraAtualizada.getParcelaInicial() < 1) {
+            throw new IllegalArgumentException("Parcela inicial deve ser no mínimo 1");
+        }
+        if (compraAtualizada.getTotalParcelas() == null || compraAtualizada.getTotalParcelas() < 1) {
+            throw new IllegalArgumentException("Total de parcelas deve ser no mínimo 1");
+        }
+        if (compraAtualizada.getParcelaInicial() > compraAtualizada.getTotalParcelas()) {
+            throw new IllegalArgumentException(
+                String.format("Parcela inicial (%d) não pode ser maior que o total de parcelas (%d)", 
+                    compraAtualizada.getParcelaInicial(), 
+                    compraAtualizada.getTotalParcelas())
+            );
+        }
+
+        // Atualiza os dados básicos
+        compraExistente.setDescricao(compraAtualizada.getDescricao());
+        compraExistente.setValorTotal(compraAtualizada.getValorTotal());
+        compraExistente.setDataCompra(compraAtualizada.getDataCompra());
+        compraExistente.setCartaoCredito(cartao);
+        
+        // Verifica se houve mudança nas parcelas
+        boolean parcelasAlteradas = !compraExistente.getParcelaInicial().equals(compraAtualizada.getParcelaInicial()) ||
+                                   !compraExistente.getTotalParcelas().equals(compraAtualizada.getTotalParcelas());
+
+        if (parcelasAlteradas) {
+            // Remove parcelas antigas
+            parcelaRepository.deleteAll(compraExistente.getParcelas());
+            
+            // Atualiza os valores de parcela
+            compraExistente.setParcelaInicial(compraAtualizada.getParcelaInicial());
+            compraExistente.setTotalParcelas(compraAtualizada.getTotalParcelas());
+            
+            // Salva a compra atualizada
+            CompraParcelada compraSalva = compraParceladaRepository.save(compraExistente);
+            
+            // Gera novas parcelas
+            List<Parcela> parcelas = gerarParcelas(compraSalva);
+            compraSalva.setParcelas(parcelas);
+            
+            return compraSalva;
+        } else {
+            // Se não houve mudança nas parcelas, apenas atualiza os valores das parcelas existentes
+            compraExistente.setParcelaInicial(compraAtualizada.getParcelaInicial());
+            compraExistente.setTotalParcelas(compraAtualizada.getTotalParcelas());
+            
+            CompraParcelada compraSalva = compraParceladaRepository.save(compraExistente);
+            
+            // Atualiza os valores das parcelas existentes
+            atualizarValoresParcelas(compraSalva);
+            
+            return compraSalva;
+        }
+    }
+
+    /**
+     * Atualiza os valores das parcelas existentes quando o valor total muda
+     */
+    private void atualizarValoresParcelas(CompraParcelada compraParcelada) {
+        List<Parcela> parcelas = parcelaRepository.findByCompraParceladaId(compraParcelada.getId());
+        
+        if (parcelas.isEmpty()) {
+            return;
+        }
+
+        // Calcula o novo valor de cada parcela
+        BigDecimal valorParcela = compraParcelada.getValorTotal()
+                .divide(BigDecimal.valueOf(compraParcelada.getTotalParcelas()), 2, RoundingMode.HALF_UP);
+
+        // Calcula a diferença para ajustar na última parcela
+        BigDecimal somaTotal = valorParcela.multiply(BigDecimal.valueOf(compraParcelada.getTotalParcelas()));
+        BigDecimal diferenca = compraParcelada.getValorTotal().subtract(somaTotal);
+
+        for (int i = 0; i < parcelas.size(); i++) {
+            Parcela parcela = parcelas.get(i);
+            
+            // Adiciona a diferença na última parcela
+            if (i == parcelas.size() - 1) {
+                parcela.setValor(valorParcela.add(diferenca));
+            } else {
+                parcela.setValor(valorParcela);
+            }
+            
+            parcelaRepository.save(parcela);
+        }
+    }
+
+    /**
      * Exclui uma compra parcelada e todas as suas parcelas
      */
     @Transactional

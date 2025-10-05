@@ -3,6 +3,27 @@
 
 ## [Unreleased]
 
+## [1.9.0] - 2025-10-05
+
+### Adicionado
+
+- Funcionalidade de edição de compras parceladas:
+  - Novo endpoint PUT `/api/compras-parceladas/{id}` para atualizar compras
+  - Método `atualizarCompraParcelada()` no CompraParceladaService
+  - Método `atualizarValoresParcelas()` para recalcular valores quando necessário
+  - Lógica inteligente que detecta mudanças na estrutura de parcelas
+  - Regeneração automática de parcelas quando há alteração no número de parcelas
+  - Atualização de valores mantendo parcelas existentes quando apenas o valor muda
+  - Validações completas para garantir integridade dos dados
+  - Tratamento específico de erros para operações de atualização
+
+### Melhorado
+
+- Tratamento de erros no controller com respostas HTTP apropriadas (400, 404, 500)
+- Documentação JavaDoc dos novos métodos
+
+## [1.8.0] - 2025-09-15
+
 ### Adicionado
 
 - Configuração de CI/CD para deploy automático na VPS:

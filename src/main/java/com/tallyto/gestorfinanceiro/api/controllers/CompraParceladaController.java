@@ -85,6 +85,31 @@ public class CompraParceladaController {
     }
 
     /**
+     * Atualiza uma compra parcelada
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarCompraParcelada(
+            @PathVariable Long id,
+            @Valid @RequestBody CompraParceladaRequestDTO request) {
+        try {
+            CompraParcelada compraParcelada = toEntity(request);
+            CompraParcelada compraAtualizada = compraParceladaService.atualizarCompraParcelada(id, compraParcelada);
+            return ResponseEntity.ok(CompraParceladaResponseDTO.fromEntity(compraAtualizada));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponseDTO.of(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ErrorResponseDTO.of(e.getMessage(), HttpStatus.NOT_FOUND.value()));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ErrorResponseDTO.of("Erro ao atualizar compra parcelada: " + e.getMessage(), 
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
      * Lista parcelas de uma compra parcelada
      */
     @GetMapping("/{id}/parcelas")
