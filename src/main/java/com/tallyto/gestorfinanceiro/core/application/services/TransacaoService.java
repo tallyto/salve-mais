@@ -75,15 +75,10 @@ public class TransacaoService {
      * Lista transações com paginação e filtros
      */
     public Page<TransacaoDTO> listarTransacoes(TransacaoFiltroDTO filtro, Pageable pageable) {
-        // Implementação básica para exemplo - em um cenário real, 
-        // seria necessário uma consulta mais complexa com Specification ou QueryDSL
-        if (filtro.contaId() != null) {
-            return transacaoRepository.findByConta_IdOrderByDataDesc(filtro.contaId(), pageable)
-                    .map(this::toDTO);
-        }
-        
-        return transacaoRepository.findAllByOrderByDataDesc(pageable)
-                    .map(this::toDTO);
+        return transacaoRepository.findAll(
+            com.tallyto.gestorfinanceiro.core.infra.repositories.specifications.TransacaoSpecification.comFiltro(filtro),
+            pageable
+        ).map(this::toDTO);
     }
 
     /**
