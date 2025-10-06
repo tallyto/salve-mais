@@ -226,12 +226,16 @@ public class CompraParceladaService {
         // Atualiza os dados básicos
         compraExistente.setDescricao(compraAtualizada.getDescricao());
         compraExistente.setValorTotal(compraAtualizada.getValorTotal());
+        
+        // Verifica se a data da compra mudou
+        boolean dataCompraMudou = !compraExistente.getDataCompra().equals(compraAtualizada.getDataCompra());
         compraExistente.setDataCompra(compraAtualizada.getDataCompra());
         compraExistente.setCartaoCredito(cartao);
         
         // Verifica se houve mudança nas parcelas
         boolean parcelasAlteradas = !compraExistente.getParcelaInicial().equals(compraAtualizada.getParcelaInicial()) ||
-                                   !compraExistente.getTotalParcelas().equals(compraAtualizada.getTotalParcelas());
+                                   !compraExistente.getTotalParcelas().equals(compraAtualizada.getTotalParcelas()) ||
+                                   dataCompraMudou;
 
         if (parcelasAlteradas) {
             // Remove parcelas antigas
