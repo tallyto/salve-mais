@@ -238,8 +238,17 @@ public class CompraParceladaService {
                                    dataCompraMudou;
 
         if (parcelasAlteradas) {
-            // Remove parcelas antigas
-            parcelaRepository.deleteAll(compraExistente.getParcelas());
+            // Primeiro, busca e remove as parcelas antigas
+            List<Parcela> parcelasAntigas = parcelaRepository.findByCompraParceladaId(compraExistente.getId());
+            
+            // Limpa a lista de parcelas da compra para evitar problemas de cascade
+            compraExistente.getParcelas().clear();
+            
+            // Deleta as parcelas antigas
+            if (!parcelasAntigas.isEmpty()) {
+                parcelaRepository.deleteAll(parcelasAntigas);
+                parcelaRepository.flush(); // Força a execução do delete
+            }
             
             // Atualiza os valores de parcela
             compraExistente.setParcelaInicial(compraAtualizada.getParcelaInicial());
