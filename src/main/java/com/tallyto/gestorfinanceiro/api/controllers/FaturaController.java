@@ -98,9 +98,11 @@ public class FaturaController {
     @PostMapping("/gerar/{cartaoCreditoId}")
     public ResponseEntity<Void> gerarFaturaAutomatica(
             @Parameter(description = "ID do cartão de crédito", example = "1")
-            @PathVariable Long cartaoCreditoId
+            @PathVariable Long cartaoCreditoId,
+            @Parameter(description = "Data de vencimento da fatura (opcional). Se não fornecida, usa a data do cartão", example = "2024-01-15")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataVencimento
     ) {
-        faturaService.gerarFatura(cartaoCreditoId);
+        faturaService.gerarFatura(cartaoCreditoId, dataVencimento);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

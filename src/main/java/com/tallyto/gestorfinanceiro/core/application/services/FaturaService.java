@@ -36,17 +36,23 @@ public class FaturaService {
     private ParcelaRepository parcelaRepository;
 
     /**
-     * Gera fatura incluindo compras à vista e parcelas de compras parceladas
+     * Gera fatura para um cartão de crédito com data de vencimento específica ou usando a data do cartão.
+     * @param cartaoCreditoId ID do cartão
+     * @param dataVencimento Data de vencimento (opcional). Se null, usa a data do cartão
      */
-    public void gerarFatura(Long cartaoCreditoId) {
+    public void gerarFatura(Long cartaoCreditoId, LocalDate dataVencimento) {
         CartaoCredito cartaoCredito = cartaoCreditoService.findOrFail(cartaoCreditoId);
+        
+        // Se não foi fornecida data de vencimento, usa a do cartão
+        LocalDate dataVencimentoFatura = dataVencimento != null ? dataVencimento : cartaoCredito.getVencimento();
+        
         Fatura fatura = new Fatura();
 
         // Busca compras à vista do período
-        List<Compra> compras = compraService.comprasPorCartaoAteData(cartaoCreditoId, cartaoCredito.getVencimento());
+        List<Compra> compras = compraService.comprasPorCartaoAteData(cartaoCreditoId, dataVencimentoFatura);
 
         // Busca parcelas que vencem no período da fatura
-        LocalDate dataFechamentoFatura = cartaoCredito.getVencimento().minusDays(10);
+        LocalDate dataFechamentoFatura = dataVencimentoFatura.minusDays(10);
         LocalDate primeiroDiaMesFechamento = dataFechamentoFatura.withDayOfMonth(1);
         
         List<Parcela> parcelas = parcelaRepository.findByCartaoAndPeriodo(
@@ -68,11 +74,16 @@ public class FaturaService {
         fatura.setCompras(compras);
         fatura.setValorTotal(valorCompras.add(valorParcelas));
         fatura.setPago(false);
-        fatura.setDataVencimento(cartaoCredito.getVencimento());
+        fatura.setDataVencimento(dataVencimentoFatura);
 
         faturaRepository.save(fatura);
-
-
+    }
+    
+    /**
+     * Gera fatura usando a data de vencimento do cartão (método de conveniência)
+     */
+    public void gerarFatura(Long cartaoCreditoId) {
+        gerarFatura(cartaoCreditoId, null);
     }
 
 
