@@ -84,11 +84,6 @@ public class CompraParceladaService {
      * Gera as parcelas da compra parcelada
      */
     private List<Parcela> gerarParcelas(CompraParcelada compraParcelada) {
-        List<Parcela> parcelas = new ArrayList<>();
-        
-        // Calcula quantas parcelas serão geradas (da inicial até a última)
-        int parcelasRestantes = compraParcelada.getTotalParcelas() - compraParcelada.getParcelaInicial() + 1;
-        
         // Divide o valor total pelo TOTAL de parcelas (não pelas restantes)
         // Exemplo: R$ 1.803,36 em 5x começando da 3ª = R$ 1.803,36 / 5 = R$ 360,67 por parcela
         BigDecimal valorParcela = compraParcelada.getValorTotal()
@@ -98,6 +93,11 @@ public class CompraParceladaService {
         // Calcula a diferença considerando o total de parcelas
         BigDecimal somaTotal = valorParcela.multiply(BigDecimal.valueOf(compraParcelada.getTotalParcelas()));
         BigDecimal diferenca = compraParcelada.getValorTotal().subtract(somaTotal);
+
+        // Garante que a lista de parcelas existe
+        if (compraParcelada.getParcelas() == null) {
+            compraParcelada.setParcelas(new ArrayList<>());
+        }
 
         for (int i = compraParcelada.getParcelaInicial(); i <= compraParcelada.getTotalParcelas(); i++) {
             Parcela parcela = new Parcela();
@@ -120,10 +120,11 @@ public class CompraParceladaService {
             parcela.setPaga(false);
             parcela.setCompraParcelada(compraParcelada);
             
-            parcelas.add(parcelaRepository.save(parcela));
+            // Adiciona à coleção da compra (mantém a referência)
+            compraParcelada.getParcelas().add(parcela);
         }
 
-        return parcelas;
+        return compraParcelada.getParcelas();
     }
 
     /**
@@ -238,30 +239,23 @@ public class CompraParceladaService {
                                    dataCompraMudou;
 
         if (parcelasAlteradas) {
-            // Primeiro, busca e remove as parcelas antigas
-            List<Parcela> parcelasAntigas = parcelaRepository.findByCompraParceladaId(compraExistente.getId());
-            
-            // Limpa a lista de parcelas da compra para evitar problemas de cascade
-            compraExistente.getParcelas().clear();
-            
-            // Deleta as parcelas antigas
-            if (!parcelasAntigas.isEmpty()) {
-                parcelaRepository.deleteAll(parcelasAntigas);
-                parcelaRepository.flush(); // Força a execução do delete
+            // Remove as parcelas antigas mantendo a referência da coleção
+            // Isso é importante para cascade="all-delete-orphan"
+            if (compraExistente.getParcelas() != null && !compraExistente.getParcelas().isEmpty()) {
+                compraExistente.getParcelas().clear();
             }
             
             // Atualiza os valores de parcela
             compraExistente.setParcelaInicial(compraAtualizada.getParcelaInicial());
             compraExistente.setTotalParcelas(compraAtualizada.getTotalParcelas());
             
-            // Salva a compra atualizada
-            CompraParcelada compraSalva = compraParceladaRepository.save(compraExistente);
+            // Salva a compra (isso vai deletar as parcelas órfãs devido ao cascade)
+            compraParceladaRepository.saveAndFlush(compraExistente);
             
-            // Gera novas parcelas
-            List<Parcela> parcelas = gerarParcelas(compraSalva);
-            compraSalva.setParcelas(parcelas);
+            // Gera e adiciona novas parcelas à coleção
+            gerarParcelas(compraExistente);
             
-            return compraSalva;
+            return compraExistente;
         } else {
             // Se não houve mudança nas parcelas, apenas atualiza os valores das parcelas existentes
             compraExistente.setParcelaInicial(compraAtualizada.getParcelaInicial());
