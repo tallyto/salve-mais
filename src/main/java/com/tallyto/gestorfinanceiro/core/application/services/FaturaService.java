@@ -8,11 +8,14 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Parcela;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ParcelaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,8 +90,19 @@ public class FaturaService {
     }
 
 
-    public List<Fatura> listar() {
-        return faturaRepository.findAll();
+    public Page<Fatura> listar(Pageable pageable) {
+        return faturaRepository.findAll(pageable);
+    }
+
+    /**
+     * Lista faturas filtradas por mês e ano
+     */
+    public Page<Fatura> listarPorMesEAno(Pageable pageable, Integer mes, Integer ano) {
+        YearMonth mesAtual = YearMonth.of(ano, mes);
+        LocalDate inicioMes = mesAtual.atDay(1);
+        LocalDate fimMes = mesAtual.atEndOfMonth();
+        
+        return faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes, pageable);
     }
 
     public Fatura criarFaturaManual(Long cartaoCreditoId, BigDecimal valorTotal, LocalDate dataVencimento) {

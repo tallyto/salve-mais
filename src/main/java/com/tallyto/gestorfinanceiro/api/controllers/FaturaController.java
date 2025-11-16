@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,19 +34,28 @@ public class FaturaController {
 
     @Operation(
             summary = "Listar todas as faturas",
-            description = "Retorna uma lista de todas as faturas cadastradas no sistema"
+            description = "Retorna uma lista paginada de todas as faturas cadastradas no sistema, com filtros opcionais de mês e ano"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de faturas retornada com sucesso")
     })
     @GetMapping
-    public ResponseEntity<List<FaturaResponseDTO>> listarFaturas() {
-        List<Fatura> faturas = faturaService.listar();
-        List<FaturaResponseDTO> faturasDTOs = faturas.stream()
-                .map(FaturaResponseDTO::fromEntity)
-                .collect(Collectors.toList());
+    public Page<FaturaResponseDTO> listarFaturas(
+            Pageable pageable,
+            @Parameter(description = "Mês para filtrar (1-12)", example = "10")
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @Parameter(description = "Ano para filtrar", example = "2025")
+            @RequestParam(value = "ano", required = false) Integer ano
+    ) {
+        Page<Fatura> faturas;
         
-        return ResponseEntity.ok(faturasDTOs);
+        if (mes != null && ano != null) {
+            faturas = faturaService.listarPorMesEAno(pageable, mes, ano);
+        } else {
+            faturas = faturaService.listar(pageable);
+        }
+        
+        return faturas.map(FaturaResponseDTO::fromEntity);
     }
 
     @Operation(
