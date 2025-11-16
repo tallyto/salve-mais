@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.tallyto.gestorfinanceiro.testsupport.ControllerSliceTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -55,16 +58,17 @@ public class FaturaControllerTest {
         fatura.setPago(false);
         fatura.setCompras(new ArrayList<>());
 
-        when(faturaService.listar()).thenReturn(List.of(fatura));
+        Page<Fatura> page = new PageImpl<>(List.of(fatura));
+        when(faturaService.listar(any(Pageable.class))).thenReturn(page);
 
         // Act & Assert
         mockMvc.perform(get("/api/faturas"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].nomeCartao").value("Cartão Teste"))
-                .andExpect(jsonPath("$[0].valorTotal").value(1500.00))
-                .andExpect(jsonPath("$[0].pago").value(false))
-                .andExpect(jsonPath("$[0].totalCompras").value(0));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].nomeCartao").value("Cartão Teste"))
+                .andExpect(jsonPath("$.content[0].valorTotal").value(1500.00))
+                .andExpect(jsonPath("$.content[0].pago").value(false))
+                .andExpect(jsonPath("$.content[0].totalCompras").value(0));
     }
 
     @Test
@@ -166,7 +170,7 @@ public class FaturaControllerTest {
         mockMvc.perform(post("/api/faturas/gerar/1"))
                 .andExpect(status().isCreated());
 
-        verify(faturaService).gerarFatura(1L);
+        verify(faturaService).gerarFatura(1L, null);
     }
 
         @Test

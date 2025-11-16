@@ -73,7 +73,6 @@ class CompraParceladaServiceTest {
         when(cartaoCreditoService.findOrFail(1L)).thenReturn(cartaoCredito);
         when(categoriaService.buscaCategoriaPorId(1L)).thenReturn(categoria);
         when(compraParceladaRepository.save(any(CompraParcelada.class))).thenReturn(compraParcelada);
-        when(parcelaRepository.save(any(Parcela.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         CompraParcelada resultado = compraParceladaService.criarCompraParcelada(compraParcelada);
@@ -83,7 +82,7 @@ class CompraParceladaServiceTest {
         assertEquals("Notebook", resultado.getDescricao());
         assertEquals(10, resultado.getParcelas().size());
         verify(compraParceladaRepository, times(1)).save(any(CompraParcelada.class));
-        verify(parcelaRepository, times(10)).save(any(Parcela.class));
+        // Parcelas são salvas via cascade, não diretamente
     }
 
     @Test
@@ -97,7 +96,6 @@ class CompraParceladaServiceTest {
         when(cartaoCreditoService.findOrFail(1L)).thenReturn(cartaoCredito);
         when(categoriaService.buscaCategoriaPorId(1L)).thenReturn(categoria);
         when(compraParceladaRepository.save(any(CompraParcelada.class))).thenReturn(compraParcelada);
-        when(parcelaRepository.save(any(Parcela.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         CompraParcelada resultado = compraParceladaService.criarCompraParcelada(compraParcelada);
@@ -112,7 +110,7 @@ class CompraParceladaServiceTest {
         assertEquals(4, resultado.getParcelas().get(2).getNumeroParcela());
         assertEquals(5, resultado.getParcelas().get(3).getNumeroParcela());
         
-        verify(parcelaRepository, times(4)).save(any(Parcela.class));
+        // Parcelas são salvas via cascade, não diretamente
     }
 
     @Test
