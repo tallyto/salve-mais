@@ -3,15 +3,22 @@ package com.tallyto.gestorfinanceiro.mappers;
 import java.util.List;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Mapping;
 
 import com.tallyto.gestorfinanceiro.api.dto.TenantDTO;
 import com.tallyto.gestorfinanceiro.api.dto.TenantResponseDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface TenantMapper {
 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "active", ignore = true)
+    @Mapping(target = "confirmationToken", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Tenant toEntity(TenantDTO tenantDTO);
 
     TenantResponseDTO toDTO(Tenant tenant);

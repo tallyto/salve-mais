@@ -50,7 +50,7 @@ class DashboardControllerTest {
                 new BigDecimal("10.0"),
                 6
         );
-        Mockito.when(dashboardService.getSummary()).thenReturn(dto);
+        Mockito.when(dashboardService.getSummary(Mockito.any(Integer.class), Mockito.any(Integer.class))).thenReturn(dto);
 
         mockMvc.perform(get("/api/dashboard/summary"))
                 .andExpect(status().isOk())
@@ -66,7 +66,7 @@ class DashboardControllerTest {
                 new CategoryExpenseDTO(1L, "Alimentação", new BigDecimal("200.00"), 40.0),
                 new CategoryExpenseDTO(2L, "Transporte", new BigDecimal("300.00"), 60.0)
         );
-        Mockito.when(dashboardService.getExpensesByCategory()).thenReturn(list);
+        Mockito.when(dashboardService.getExpensesByCategory(Mockito.any(Integer.class), Mockito.any(Integer.class))).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/expenses-by-category"))
                 .andExpect(status().isOk())
@@ -129,7 +129,7 @@ class DashboardControllerTest {
         List<VariationDataDTO> list = List.of(
                 new VariationDataDTO("despesas", new BigDecimal("300.00"), new BigDecimal("200.00"), new BigDecimal("100.00"), new BigDecimal("50.00"), "UP", "arrow_upward")
         );
-        Mockito.when(dashboardService.getVariationData()).thenReturn(list);
+        Mockito.when(dashboardService.getVariationData(Mockito.any(Integer.class), Mockito.any(Integer.class))).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/variations"))
                 .andExpect(status().isOk())
