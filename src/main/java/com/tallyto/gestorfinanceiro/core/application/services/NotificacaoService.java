@@ -4,6 +4,7 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import com.tallyto.gestorfinanceiro.api.dto.NotificacaoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -105,7 +106,7 @@ public class NotificacaoService {
      * Obtém notificações de faturas em atraso
      */
     public List<NotificacaoDTO> obterNotificacaoFaturasAtrasadas() {
-        List<Fatura> faturas = faturaService.listar();
+        List<Fatura> faturas = faturaService.listar(Pageable.unpaged()).getContent();
         LocalDate hoje = LocalDate.now();
         
         List<Fatura> faturasAtrasadas = faturas.stream()
@@ -134,7 +135,7 @@ public class NotificacaoService {
      * Obtém notificações de faturas próximas do vencimento (próximos 7 dias)
      */
     public List<NotificacaoDTO> obterNotificacaoFaturasProximasVencimento() {
-        List<Fatura> faturas = faturaService.listar();
+        List<Fatura> faturas = faturaService.listar(Pageable.unpaged()).getContent();
         LocalDate hoje = LocalDate.now();
         LocalDate limiteFuturo = hoje.plusDays(7);
         
