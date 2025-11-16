@@ -1,10 +1,14 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -168,6 +172,32 @@ public class ContaFixaController {
             return ResponseEntity.ok(novaDespesa);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Exporta as contas fixas para Excel
+     */
+    @GetMapping("/exportar")
+    public ResponseEntity<ByteArrayResource> exportarContasFixasParaExcel(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        try {
+            ByteArrayOutputStream outputStream = contaFixaService.exportarParaExcel(mes, ano);
+            
+            ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
+            
+            String filename = mes != null && ano != null 
+                ? String.format("debitos_em_conta_%02d_%d.xlsx", mes, ano)
+                : "debitos_em_conta.xlsx";
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(resource.contentLength())
+                    .body(resource);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

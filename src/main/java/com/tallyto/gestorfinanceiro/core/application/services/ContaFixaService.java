@@ -4,15 +4,20 @@ import com.tallyto.gestorfinanceiro.api.dto.ContaFixaRecorrenteDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Anexo;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaFixaRepository;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -305,5 +310,117 @@ public class ContaFixaService {
         
         // Salva a nova conta fixa
         return contaFixaRepository.save(novaContaFixa);
+    }
+    
+    /**
+     * Exporta contas fixas para Excel
+     * @param mes Mês opcional para filtrar
+     * @param ano Ano opcional para filtrar
+     * @return ByteArrayOutputStream com o arquivo Excel
+     */
+    public ByteArrayOutputStream exportarParaExcel(Integer mes, Integer ano) throws IOException {
+        // Buscar contas fixas filtradas
+        List<ContaFixa> contasFixas;
+        
+        if (mes != null && ano != null) {
+            YearMonth mesAtual = YearMonth.of(ano, mes);
+            LocalDate inicioMes = mesAtual.atDay(1);
+            LocalDate fimMes = mesAtual.atEndOfMonth();
+            contasFixas = contaFixaRepository.findByVencimentoBetween(inicioMes, fimMes);
+        } else {
+            contasFixas = contaFixaRepository.findAll();
+        }
+        
+        // Criar workbook
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Débitos em Conta");
+        
+        // Estilo para cabeçalho
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 12);
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        
+        // Estilo para células de moeda
+        CellStyle currencyStyle = workbook.createCellStyle();
+        DataFormat format = workbook.createDataFormat();
+        currencyStyle.setDataFormat(format.getFormat("R$ #,##0.00"));
+        
+        // Estilo para data
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.setDataFormat(format.getFormat("dd/MM/yyyy"));
+        
+        // Criar cabeçalho
+        Row headerRow = sheet.createRow(0);
+        String[] columns = {"Nome", "Categoria", "Conta", "Vencimento", "Valor", "Status"};
+        
+        for (int i = 0; i < columns.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(columns[i]);
+            cell.setCellStyle(headerStyle);
+        }
+        
+        // Preencher dados
+        int rowNum = 1;
+        BigDecimal totalGeral = BigDecimal.ZERO;
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        
+        for (ContaFixa contaFixa : contasFixas) {
+            Row row = sheet.createRow(rowNum++);
+            
+            row.createCell(0).setCellValue(contaFixa.getNome());
+            row.createCell(1).setCellValue(contaFixa.getCategoria() != null ? contaFixa.getCategoria().getNome() : "N/A");
+            row.createCell(2).setCellValue(contaFixa.getConta() != null ? contaFixa.getConta().getTitular() : "N/A");
+            
+            Cell dateCell = row.createCell(3);
+            dateCell.setCellValue(contaFixa.getVencimento().format(dateFormatter));
+            dateCell.setCellStyle(dateStyle);
+            
+            Cell valorCell = row.createCell(4);
+            valorCell.setCellValue(contaFixa.getValor().doubleValue());
+            valorCell.setCellStyle(currencyStyle);
+            
+            row.createCell(5).setCellValue(contaFixa.isPago() ? "Pago" : "Pendente");
+            
+            totalGeral = totalGeral.add(contaFixa.getValor());
+        }
+        
+        // Adicionar linha de total
+        Row totalRow = sheet.createRow(rowNum);
+        Cell totalLabelCell = totalRow.createCell(3);
+        totalLabelCell.setCellValue("TOTAL:");
+        CellStyle totalLabelStyle = workbook.createCellStyle();
+        Font totalFont = workbook.createFont();
+        totalFont.setBold(true);
+        totalLabelStyle.setFont(totalFont);
+        totalLabelCell.setCellStyle(totalLabelStyle);
+        
+        Cell totalValueCell = totalRow.createCell(4);
+        totalValueCell.setCellValue(totalGeral.doubleValue());
+        CellStyle totalCurrencyStyle = workbook.createCellStyle();
+        totalCurrencyStyle.cloneStyleFrom(currencyStyle);
+        Font totalValueFont = workbook.createFont();
+        totalValueFont.setBold(true);
+        totalCurrencyStyle.setFont(totalValueFont);
+        totalValueCell.setCellStyle(totalCurrencyStyle);
+        
+        // Ajustar largura das colunas
+        for (int i = 0; i < columns.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+        
+        // Escrever no ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+        
+        return outputStream;
     }
 }
