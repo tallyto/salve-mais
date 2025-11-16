@@ -2,6 +2,7 @@ package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.UsuarioAtualizacaoDTO;
 import com.tallyto.gestorfinanceiro.api.dto.UsuarioCadastroDTO;
+import com.tallyto.gestorfinanceiro.api.dto.UsuarioResponseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.UsuarioSenhaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
@@ -42,11 +43,11 @@ public class UsuarioController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Usuario> getUsuarioLogado(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<UsuarioResponseDTO> getUsuarioLogado(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(new UsuarioResponseDTO(usuario));
     }
 }
