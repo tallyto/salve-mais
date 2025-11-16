@@ -23,20 +23,28 @@ public class DashboardController {
 
     /**
      * Endpoint para obter resumo financeiro para o dashboard
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return Resumo com saldos, receitas e despesas
      */
     @GetMapping("/summary")
-    public ResponseEntity<DashboardSummaryDTO> getSummary() {
-        return ResponseEntity.ok(dashboardService.getSummary());
+    public ResponseEntity<DashboardSummaryDTO> getSummary(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardService.getSummary(mes, ano));
     }
 
     /**
      * Endpoint para obter despesas por categoria (para gráfico de pizza)
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return Lista de categorias com valores e percentuais
      */
     @GetMapping("/expenses-by-category")
-    public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory() {
-        return ResponseEntity.ok(dashboardService.getExpensesByCategory());
+    public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardService.getExpensesByCategory(mes, ano));
     }
     
     /**
@@ -71,10 +79,14 @@ public class DashboardController {
 
     /**
      * Endpoint para obter dados de variação mensal
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return Lista com variações comparando mês atual com anterior
      */
     @GetMapping("/variations")
-    public ResponseEntity<List<VariationDataDTO>> getVariationData() {
-        return ResponseEntity.ok(dashboardService.getVariationData());
+    public ResponseEntity<List<VariationDataDTO>> getVariationData(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardService.getVariationData(mes, ano));
     }
 }

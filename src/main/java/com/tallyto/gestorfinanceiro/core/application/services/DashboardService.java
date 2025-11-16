@@ -52,16 +52,23 @@ public class DashboardService {
 
     /**
      * Obtém o resumo financeiro para o dashboard
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return DashboardSummaryDTO com os dados de resumo
      */
-    public DashboardSummaryDTO getSummary() {
+    public DashboardSummaryDTO getSummary(Integer mes, Integer ano) {
         // Obtém saldo total das contas
         BigDecimal saldoTotal = contaRepository.findAll().stream()
                 .map(Conta::getSaldo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Obtém o mês atual
-        YearMonth mesAtual = YearMonth.now();
+        // Obtém o mês de referência
+        YearMonth mesAtual;
+        if (mes != null && ano != null) {
+            mesAtual = YearMonth.of(ano, mes);
+        } else {
+            mesAtual = YearMonth.now();
+        }
         LocalDate inicioMesAtual = mesAtual.atDay(1);
         LocalDate fimMesAtual = mesAtual.atEndOfMonth();
 
@@ -203,11 +210,18 @@ public class DashboardService {
 
     /**
      * Obtém os dados de despesas por categoria para o gráfico de pizza
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return Lista de CategoryExpenseDTO com os dados por categoria
      */
-    public List<CategoryExpenseDTO> getExpensesByCategory() {
-        // Obtém o mês atual
-        YearMonth mesAtual = YearMonth.now();
+    public List<CategoryExpenseDTO> getExpensesByCategory(Integer mes, Integer ano) {
+        // Obtém o mês de referência
+        YearMonth mesAtual;
+        if (mes != null && ano != null) {
+            mesAtual = YearMonth.of(ano, mes);
+        } else {
+            mesAtual = YearMonth.now();
+        }
         LocalDate inicioMesAtual = mesAtual.atDay(1);
         LocalDate fimMesAtual = mesAtual.atEndOfMonth();
 
@@ -530,13 +544,20 @@ public class DashboardService {
 
     /**
      * Obtém dados de variação mensal comparando com o período anterior
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
      * @return Lista de VariationDataDTO com as variações
      */
-    public List<VariationDataDTO> getVariationData() {
+    public List<VariationDataDTO> getVariationData(Integer mes, Integer ano) {
         List<VariationDataDTO> variations = new ArrayList<>();
         
-        // Obtém o mês atual e anterior
-        YearMonth mesAtual = YearMonth.now();
+        // Obtém o mês de referência e anterior
+        YearMonth mesAtual;
+        if (mes != null && ano != null) {
+            mesAtual = YearMonth.of(ano, mes);
+        } else {
+            mesAtual = YearMonth.now();
+        }
         YearMonth mesAnterior = mesAtual.minusMonths(1);
         
         LocalDate inicioMesAtual = mesAtual.atDay(1);
