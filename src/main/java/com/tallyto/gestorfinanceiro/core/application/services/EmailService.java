@@ -3,9 +3,15 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
+
+import jakarta.mail.internet.MimeMessage;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class EmailService {
@@ -26,6 +32,33 @@ public class EmailService {
             // Em ambiente de desenvolvimento, apenas logamos o erro e não deixamos a aplicação falhar
             logger.error("Erro ao enviar email para: {}, assunto: {}", to, subject, e);
             logger.info("Conteúdo do email que seria enviado: {}", text);
+        }
+    }
+    
+    public void enviarEmailHtml(String to, String subject, String templateName, String tenantName, String confirmationLink) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            // Ler template HTML
+            ClassPathResource resource = new ClassPathResource("templates/" + templateName);
+            String htmlTemplate = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+            
+            // Substituir placeholders
+            String htmlContent = htmlTemplate
+                .replace("{{TENANT_NAME}}", tenantName)
+                .replace("{{CONFIRMATION_LINK}}", confirmationLink);
+            
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            logger.info("Email HTML enviado para: {}, assunto: {}", to, subject);
+        } catch (Exception e) {
+            // Em ambiente de desenvolvimento, apenas logamos o erro e não deixamos a aplicação falhar
+            logger.error("Erro ao enviar email HTML para: {}, assunto: {}", to, subject, e);
+            logger.info("Link de confirmação que seria enviado: {}", confirmationLink);
         }
     }
 }

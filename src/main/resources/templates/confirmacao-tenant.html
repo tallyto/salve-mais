@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme seu Tenant - Salve Mais</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333333;
+        }
+        .message {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #555555;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .confirm-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .confirm-button:hover {
+            transform: translateY(-2px);
+        }
+        .alternative-link {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .alternative-link p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #666666;
+        }
+        .alternative-link a {
+            color: #667eea;
+            word-break: break-all;
+            font-size: 13px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666666;
+            font-size: 14px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 20px 0;
+        }
+        .warning {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            font-size: 14px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>💰 Salve Mais</h1>
+            <p>Seu Gestor Financeiro Pessoal</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Olá <strong>{{TENANT_NAME}}</strong>,
+            </div>
+            
+            <div class="message">
+                Obrigado por se cadastrar no <strong>Salve Mais</strong>! Estamos felizes em tê-lo conosco.
+            </div>
+            
+            <div class="message">
+                Para ativar sua conta e começar a usar nosso sistema de gestão financeira, 
+                você precisa confirmar seu tenant clicando no botão abaixo:
+            </div>
+            
+            <div class="button-container">
+                <a href="{{CONFIRMATION_LINK}}" class="confirm-button">
+                    Confirmar Minha Conta
+                </a>
+            </div>
+            
+            <div class="alternative-link">
+                <p><strong>Problemas com o botão?</strong></p>
+                <p>Copie e cole o link abaixo em seu navegador:</p>
+                <a href="{{CONFIRMATION_LINK}}">{{CONFIRMATION_LINK}}</a>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Atenção:</strong> Este link de confirmação é único e só pode ser usado uma vez. 
+                Se você não solicitou este cadastro, ignore este email.
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="message">
+                Após a confirmação, você poderá:
+            </div>
+            <ul style="color: #555555; margin-left: 20px;">
+                <li>Gerenciar suas despesas e receitas</li>
+                <li>Acompanhar seu orçamento mensal</li>
+                <li>Controlar seus cartões de crédito</li>
+                <li>Visualizar relatórios financeiros detalhados</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Equipe Salve Mais</strong></p>
+            <p>Este é um email automático, por favor não responda.</p>
+            <p style="margin-top: 15px; font-size: 12px; color: #999999;">
+                © 2025 Salve Mais. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

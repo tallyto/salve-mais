@@ -8,6 +8,7 @@ import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundExcep
 import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +24,9 @@ public class TenantService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Value("${app.confirmation.url}")
+    private String confirmationUrl;
 
     public Tenant cadastrarTenant(TenantCadastroDTO dto) {
         // Validar se o domínio já existe
@@ -50,14 +54,14 @@ public class TenantService {
         tenant = tenantRepository.save(tenant);
         
         // Enviar email de confirmação
-        String link = "http://localhost:4200/#/register?token=" + token;
-        String mensagem = "Olá " + tenant.getName() + ",\n\n" +
-                "Obrigado por se cadastrar no Salve Mais. Para confirmar seu tenant, clique no link abaixo:\n\n" +
-                link + "\n\n" +
-                "Atenciosamente,\n" +
-                "Equipe Salve Mais";
-        
-        emailService.enviarEmail(tenant.getEmail(), "Confirme seu Tenant no Salve Mais", mensagem);
+        String link = confirmationUrl + "?token=" + token;
+        emailService.enviarEmailHtml(
+            tenant.getEmail(), 
+            "Confirme seu Tenant no Salve Mais", 
+            "confirmacao-tenant.html",
+            tenant.getName(),
+            link
+        );
         
         return tenant;
     }
