@@ -3,6 +3,7 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,10 +20,17 @@ public class EmailService {
     
     @Autowired
     private JavaMailSender mailSender;
+    
+    @Value("${app.mail.from}")
+    private String mailFrom;
+    
+    @Value("${app.mail.from.name}")
+    private String mailFromName;
 
     public void enviarEmail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(mailFromName + " <" + mailFrom + ">");
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
@@ -49,6 +57,7 @@ public class EmailService {
                 .replace("{{TENANT_NAME}}", tenantName)
                 .replace("{{CONFIRMATION_LINK}}", confirmationLink);
             
+            helper.setFrom(mailFrom, mailFromName);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
