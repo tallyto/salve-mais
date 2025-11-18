@@ -50,7 +50,32 @@ class TenantControllerTest {
     }
 
     private TenantResponseDTO dto(UUID id) {
-        return new TenantResponseDTO(id.toString(), "empresa.com", "Empresa XYZ", "contato@empresa.com", "+5511999999999", "Rua Exemplo, 123");
+        return new TenantResponseDTO(
+                id.toString(), 
+                "empresa.com", 
+                "Empresa XYZ", 
+                "contato@empresa.com", 
+                "+5511999999999", 
+                "Rua Exemplo, 123",
+                "Empresa XYZ",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "America/Sao_Paulo",
+                "pt_BR",
+                "BRL",
+                "dd/MM/yyyy",
+                true
+        );
     }
 
     @Test
