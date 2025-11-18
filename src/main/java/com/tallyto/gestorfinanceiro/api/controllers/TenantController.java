@@ -7,21 +7,14 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.tallyto.gestorfinanceiro.api.dto.TenantCadastroDTO;
-import com.tallyto.gestorfinanceiro.api.dto.TenantResponseDTO;
+import com.tallyto.gestorfinanceiro.api.dto.*;
 import com.tallyto.gestorfinanceiro.core.application.services.TenantService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.mappers.TenantMapper;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -102,5 +95,50 @@ public class TenantController {
     public ResponseEntity<Boolean> verificarDominioDisponivel(@RequestParam String dominio) {
         boolean disponivel = tenantService.verificarDominioDisponivel(dominio);
         return ResponseEntity.ok(disponivel);
+    }
+    
+    // Endpoints de customização do tenant
+    
+    @PutMapping("/{id}/branding")
+    @Operation(summary = "Atualizar configurações de marca do tenant")
+    public ResponseEntity<TenantResponseDTO> updateBranding(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantBrandingDTO brandingDTO) {
+        Tenant tenant = tenantService.updateBranding(id, brandingDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+    
+    @PutMapping("/{id}/subscription")
+    @Operation(summary = "Atualizar plano de assinatura do tenant")
+    public ResponseEntity<TenantResponseDTO> updateSubscription(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantSubscriptionDTO subscriptionDTO) {
+        Tenant tenant = tenantService.updateSubscription(id, subscriptionDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+    
+    @PutMapping("/{id}/smtp")
+    @Operation(summary = "Atualizar configurações SMTP do tenant")
+    public ResponseEntity<TenantResponseDTO> updateSmtpConfig(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantSmtpConfigDTO smtpConfigDTO) {
+        Tenant tenant = tenantService.updateSmtpConfig(id, smtpConfigDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+    
+    @PutMapping("/{id}/regional-settings")
+    @Operation(summary = "Atualizar configurações regionais do tenant")
+    public ResponseEntity<TenantResponseDTO> updateRegionalSettings(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantRegionalSettingsDTO regionalSettingsDTO) {
+        Tenant tenant = tenantService.updateRegionalSettings(id, regionalSettingsDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+    
+    @GetMapping("/domain/{domain}")
+    @Operation(summary = "Buscar tenant por domínio")
+    public ResponseEntity<TenantResponseDTO> getTenantByDomain(@PathVariable String domain) {
+        Tenant tenant = tenantService.findByDomain(domain);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
     }
 }

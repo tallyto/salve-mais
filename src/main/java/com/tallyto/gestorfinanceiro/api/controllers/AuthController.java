@@ -42,7 +42,10 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getSenha()));
             // Atualiza o campo ultimoAcesso
             usuarioService.atualizarUltimoAcesso(loginDTO.getEmail());
-            String token = jwtService.gerarToken(loginDTO.getEmail());
+            
+            // Buscar usuário para obter o tenantId
+            var usuario = usuarioService.buscarPorEmail(loginDTO.getEmail());
+            String token = jwtService.gerarToken(loginDTO.getEmail(), usuario.getTenantId());
             return ResponseEntity.ok(new TokenDTO(token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Usuário ou senha inválidos");

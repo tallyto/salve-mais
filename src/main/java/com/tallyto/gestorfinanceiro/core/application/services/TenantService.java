@@ -1,7 +1,6 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
-import com.tallyto.gestorfinanceiro.api.dto.TenantCadastroDTO;
-import com.tallyto.gestorfinanceiro.api.dto.TenantDTO;
+import com.tallyto.gestorfinanceiro.api.dto.*;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.BadRequestException;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
@@ -108,5 +107,97 @@ public class TenantService {
     public void delete(UUID id) {
         Tenant tenant = findById(id);
         tenantRepository.delete(tenant);
+    }
+    
+    // Métodos para customização do tenant
+    
+    public Tenant updateBranding(UUID id, TenantBrandingDTO brandingDTO) {
+        Tenant tenant = findById(id);
+        
+        if (brandingDTO.getDisplayName() != null) {
+            tenant.setDisplayName(brandingDTO.getDisplayName());
+        }
+        if (brandingDTO.getLogoUrl() != null) {
+            tenant.setLogoUrl(brandingDTO.getLogoUrl());
+        }
+        if (brandingDTO.getFaviconUrl() != null) {
+            tenant.setFaviconUrl(brandingDTO.getFaviconUrl());
+        }
+        if (brandingDTO.getPrimaryColor() != null) {
+            tenant.setPrimaryColor(brandingDTO.getPrimaryColor());
+        }
+        if (brandingDTO.getSecondaryColor() != null) {
+            tenant.setSecondaryColor(brandingDTO.getSecondaryColor());
+        }
+        if (brandingDTO.getAccentColor() != null) {
+            tenant.setAccentColor(brandingDTO.getAccentColor());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateSubscription(UUID id, TenantSubscriptionDTO subscriptionDTO) {
+        Tenant tenant = findById(id);
+        
+        if (subscriptionDTO.getSubscriptionPlan() != null) {
+            tenant.setSubscriptionPlan(subscriptionDTO.getSubscriptionPlan());
+        }
+        if (subscriptionDTO.getMaxUsers() != null) {
+            tenant.setMaxUsers(subscriptionDTO.getMaxUsers());
+        }
+        if (subscriptionDTO.getMaxStorageGb() != null) {
+            tenant.setMaxStorageGb(subscriptionDTO.getMaxStorageGb());
+        }
+        if (subscriptionDTO.getTrialEndDate() != null) {
+            tenant.setTrialEndDate(subscriptionDTO.getTrialEndDate());
+        }
+        if (subscriptionDTO.getSubscriptionStartDate() != null) {
+            tenant.setSubscriptionStartDate(subscriptionDTO.getSubscriptionStartDate());
+        }
+        if (subscriptionDTO.getSubscriptionEndDate() != null) {
+            tenant.setSubscriptionEndDate(subscriptionDTO.getSubscriptionEndDate());
+        }
+        if (subscriptionDTO.getEnabledFeatures() != null) {
+            tenant.setEnabledFeatures(subscriptionDTO.getEnabledFeatures());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateSmtpConfig(UUID id, TenantSmtpConfigDTO smtpConfigDTO) {
+        Tenant tenant = findById(id);
+        
+        tenant.setCustomSmtpHost(smtpConfigDTO.getHost());
+        tenant.setCustomSmtpPort(smtpConfigDTO.getPort());
+        tenant.setCustomSmtpUser(smtpConfigDTO.getUser());
+        tenant.setCustomSmtpPassword(smtpConfigDTO.getPassword());
+        tenant.setCustomSmtpFromEmail(smtpConfigDTO.getFromEmail());
+        tenant.setCustomSmtpFromName(smtpConfigDTO.getFromName());
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateRegionalSettings(UUID id, TenantRegionalSettingsDTO regionalSettingsDTO) {
+        Tenant tenant = findById(id);
+        
+        if (regionalSettingsDTO.getTimezone() != null) {
+            tenant.setTimezone(regionalSettingsDTO.getTimezone());
+        }
+        if (regionalSettingsDTO.getLocale() != null) {
+            tenant.setLocale(regionalSettingsDTO.getLocale());
+        }
+        if (regionalSettingsDTO.getCurrencyCode() != null) {
+            tenant.setCurrencyCode(regionalSettingsDTO.getCurrencyCode());
+        }
+        if (regionalSettingsDTO.getDateFormat() != null) {
+            tenant.setDateFormat(regionalSettingsDTO.getDateFormat());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant findByDomain(String domain) {
+        return tenantRepository.findByDomain(domain)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found with domain " + domain));
     }
 }

@@ -2,6 +2,7 @@ package com.tallyto.gestorfinanceiro.core.domain.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "usuario")
@@ -25,6 +26,9 @@ public class Usuario {
     @Column(name = "ultimo_acesso")
     private LocalDateTime ultimoAcesso;
 
+    @Column(name = "tenant_id")
+    private UUID tenantId;
+
     // Getters e setters
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
@@ -38,4 +42,6 @@ public class Usuario {
     public void setNome(String nome) { this.nome = nome; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 }

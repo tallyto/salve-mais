@@ -2,6 +2,7 @@ package com.tallyto.gestorfinanceiro.api.dto;
 
 import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class UsuarioResponseDTO {
     private Long id;
@@ -9,6 +10,7 @@ public class UsuarioResponseDTO {
     private String nome;
     private LocalDateTime criadoEm;
     private LocalDateTime ultimoAcesso;
+    private UUID tenantId;
 
     public UsuarioResponseDTO() {}
 
@@ -18,6 +20,7 @@ public class UsuarioResponseDTO {
         this.nome = usuario.getNome();
         this.criadoEm = usuario.getCriadoEm();
         this.ultimoAcesso = usuario.getUltimoAcesso();
+        this.tenantId = usuario.getTenantId();
     }
 
     public Long getId() {
@@ -58,5 +61,13 @@ public class UsuarioResponseDTO {
 
     public void setUltimoAcesso(LocalDateTime ultimoAcesso) {
         this.ultimoAcesso = ultimoAcesso;
+    }
+
+    public UUID getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(UUID tenantId) {
+        this.tenantId = tenantId;
     }
 }

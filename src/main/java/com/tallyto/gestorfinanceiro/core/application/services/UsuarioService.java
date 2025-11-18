@@ -1,12 +1,16 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
-import com.tallyto.gestorfinanceiro.api.dto.UsuarioCadastroDTO;
-import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
-import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tallyto.gestorfinanceiro.api.dto.UsuarioCadastroDTO;
+import com.tallyto.gestorfinanceiro.context.TenantContext;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository;
 
 @Service
 public class UsuarioService {
@@ -21,6 +25,9 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private TenantRepository tenantRepository;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Transactional
@@ -32,6 +39,16 @@ public class UsuarioService {
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+        
+        // Obter o tenant do contexto e definir o tenantId
+        String tenantDomain = TenantContext.getCurrentTenant();
+        if (tenantDomain != null && !"public".equals(tenantDomain)) {
+            Tenant tenant = tenantRepository.getTenantByDomain(tenantDomain);
+            if (tenant != null) {
+                usuario.setTenantId(tenant.getId());
+            }
+        }
+        
         return usuarioRepository.save(usuario);
     }
 
