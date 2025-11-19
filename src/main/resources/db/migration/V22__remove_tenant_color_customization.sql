@@ -1,6 +1,6 @@
 -- Remove funcionalidade de personalização de cores do tenant
 
--- Remove as colunas de cores da tabela tenant
-ALTER TABLE tenant DROP COLUMN IF EXISTS primary_color;
-ALTER TABLE tenant DROP COLUMN IF EXISTS secondary_color; 
-ALTER TABLE tenant DROP COLUMN IF EXISTS accent_color;
+-- Remove as colunas de cores da tabela tenants
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS primary_color;
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS secondary_color; 
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS accent_color;
