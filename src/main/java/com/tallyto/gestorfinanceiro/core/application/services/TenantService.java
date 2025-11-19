@@ -111,6 +111,34 @@ public class TenantService {
     
     // Métodos para customização do tenant
     
+    public Tenant updateBasicInfo(UUID id, TenantBasicInfoDTO basicInfoDTO) {
+        Tenant tenant = findById(id);
+        
+        if (basicInfoDTO.getName() != null) {
+            tenant.setName(basicInfoDTO.getName());
+        }
+        if (basicInfoDTO.getEmail() != null) {
+            tenant.setEmail(basicInfoDTO.getEmail());
+        }
+        if (basicInfoDTO.getPhoneNumber() != null) {
+            tenant.setPhoneNumber(basicInfoDTO.getPhoneNumber());
+        }
+        if (basicInfoDTO.getAddress() != null) {
+            tenant.setAddress(basicInfoDTO.getAddress());
+        }
+        if (basicInfoDTO.getDisplayName() != null) {
+            tenant.setDisplayName(basicInfoDTO.getDisplayName());
+        }
+        if (basicInfoDTO.getLogoUrl() != null) {
+            tenant.setLogoUrl(basicInfoDTO.getLogoUrl());
+        }
+        if (basicInfoDTO.getFaviconUrl() != null) {
+            tenant.setFaviconUrl(basicInfoDTO.getFaviconUrl());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
     public Tenant updateSubscription(UUID id, TenantSubscriptionDTO subscriptionDTO) {
         Tenant tenant = findById(id);
         

@@ -99,6 +99,15 @@ public class TenantController {
     
     // Endpoints de customização do tenant
     
+    @PutMapping("/{id}/basic-info")
+    @Operation(summary = "Atualizar informações básicas do tenant")
+    public ResponseEntity<TenantResponseDTO> updateBasicInfo(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantBasicInfoDTO basicInfoDTO) {
+        Tenant tenant = tenantService.updateBasicInfo(id, basicInfoDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+    
     @PutMapping("/{id}/subscription")
     @Operation(summary = "Atualizar plano de assinatura do tenant")
     public ResponseEntity<TenantResponseDTO> updateSubscription(
