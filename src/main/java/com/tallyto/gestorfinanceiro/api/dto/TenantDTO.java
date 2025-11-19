@@ -46,15 +46,6 @@ public class TenantDTO {
         @Schema(description = "URL do favicon")
         private String faviconUrl;
 
-        @Schema(description = "Cor primária em hexadecimal", example = "#007bff")
-        private String primaryColor;
-
-        @Schema(description = "Cor secundária em hexadecimal", example = "#6c757d")
-        private String secondaryColor;
-
-        @Schema(description = "Cor de destaque em hexadecimal", example = "#28a745")
-        private String accentColor;
-
         // Configurações de Plano
         @Schema(description = "Plano de assinatura", example = "PREMIUM")
         private SubscriptionPlan subscriptionPlan;

@@ -99,15 +99,6 @@ public class TenantController {
     
     // Endpoints de customização do tenant
     
-    @PutMapping("/{id}/branding")
-    @Operation(summary = "Atualizar configurações de marca do tenant")
-    public ResponseEntity<TenantResponseDTO> updateBranding(
-            @PathVariable UUID id,
-            @Valid @RequestBody TenantBrandingDTO brandingDTO) {
-        Tenant tenant = tenantService.updateBranding(id, brandingDTO);
-        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
-    }
-    
     @PutMapping("/{id}/subscription")
     @Operation(summary = "Atualizar plano de assinatura do tenant")
     public ResponseEntity<TenantResponseDTO> updateSubscription(

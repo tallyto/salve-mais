@@ -111,31 +111,6 @@ public class TenantService {
     
     // Métodos para customização do tenant
     
-    public Tenant updateBranding(UUID id, TenantBrandingDTO brandingDTO) {
-        Tenant tenant = findById(id);
-        
-        if (brandingDTO.getDisplayName() != null) {
-            tenant.setDisplayName(brandingDTO.getDisplayName());
-        }
-        if (brandingDTO.getLogoUrl() != null) {
-            tenant.setLogoUrl(brandingDTO.getLogoUrl());
-        }
-        if (brandingDTO.getFaviconUrl() != null) {
-            tenant.setFaviconUrl(brandingDTO.getFaviconUrl());
-        }
-        if (brandingDTO.getPrimaryColor() != null) {
-            tenant.setPrimaryColor(brandingDTO.getPrimaryColor());
-        }
-        if (brandingDTO.getSecondaryColor() != null) {
-            tenant.setSecondaryColor(brandingDTO.getSecondaryColor());
-        }
-        if (brandingDTO.getAccentColor() != null) {
-            tenant.setAccentColor(brandingDTO.getAccentColor());
-        }
-        
-        return tenantRepository.save(tenant);
-    }
-    
     public Tenant updateSubscription(UUID id, TenantSubscriptionDTO subscriptionDTO) {
         Tenant tenant = findById(id);
         

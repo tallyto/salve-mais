@@ -54,15 +54,6 @@ public class Tenant extends Auditable {
     @Column(name = "favicon_url")
     private String faviconUrl;
 
-    @Column(name = "primary_color", length = 7)
-    private String primaryColor;
-
-    @Column(name = "secondary_color", length = 7)
-    private String secondaryColor;
-
-    @Column(name = "accent_color", length = 7)
-    private String accentColor;
-
     // Configurações de Plano e Recursos
     @Enumerated(EnumType.STRING)
     @Column(name = "subscription_plan", nullable = false)

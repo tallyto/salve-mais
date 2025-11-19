@@ -26,9 +26,6 @@ public record TenantResponseDTO(
         @Schema(description = "Nome de exibição customizado") String displayName,
         @Schema(description = "URL do logotipo") String logoUrl,
         @Schema(description = "URL do favicon") String faviconUrl,
-        @Schema(description = "Cor primária") String primaryColor,
-        @Schema(description = "Cor secundária") String secondaryColor,
-        @Schema(description = "Cor de destaque") String accentColor,
 
         // Configurações de Plano
         @Schema(description = "Plano de assinatura") SubscriptionPlan subscriptionPlan,
