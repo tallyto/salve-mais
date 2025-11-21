@@ -12,6 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
+      - name: Extract version from pom.xml
+        id: version
+        run: |
+          VERSION=$(grep -oP '(?<=<version>)[^<]+' pom.xml | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+        
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -23,5 +30,37 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
       
       - name: Deploy to VPS
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/projetos/gestor-financeiro && git pull origin master && bash deploy.sh"
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd ~/projetos/gestor-financeiro
+            
+            echo "=== Iniciando deploy da versão $VERSION ==="
+            
+            # Pull das últimas alterações
+            echo "Atualizando código..."
+            git pull origin master
+            
+            # Executa o script de deploy
+            echo "Executando deploy..."
+            bash deploy.sh
+            
+            # Verifica se o deploy foi bem-sucedido
+            if [ $? -eq 0 ]; then
+              echo "✅ Deploy da versão $VERSION concluído com sucesso!"
+            else
+              echo "❌ Erro no deploy! Verifique os logs."
+              exit 1
+            fi
+          EOF
+      
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deploy realizado com sucesso para a versão ${{ steps.version.outputs.version }}"
+          else
+            echo "❌ Falha no deploy da versão ${{ steps.version.outputs.version }}"
+          fi
