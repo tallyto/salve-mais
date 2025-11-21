@@ -21,7 +21,8 @@ list_backups() {
     ls -t "$BACKUP_DIR"/*.version 2>/dev/null | while read version_file; do
         backup_name=$(basename "$version_file" .version)
         version=$(cat "$version_file")
-        echo "  - $backup_name (versão: $version)"
+        timestamp=$(echo "$backup_name" | grep -oP '\d{8}_\d{6}')
+        echo "  - $backup_name (versão: $version, data: $timestamp)"
     done
 }
 
@@ -70,7 +71,7 @@ echo "Criando backup de segurança da versão atual..."
 CURRENT_IMAGE=$(docker compose -f "$COMPOSE_FILE" images -q app 2>/dev/null || echo "")
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 if [ -n "$CURRENT_IMAGE" ]; then
-    CURRENT_VERSION=$(grep -oP '(?<=<version>)[^<]+' pom.xml | head -1)
+    CURRENT_VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
     docker tag "$CURRENT_IMAGE" "gestor-financeiro:pre_rollback_${CURRENT_VERSION}_${TIMESTAMP}" || true
 fi
 

@@ -7,7 +7,7 @@ set -e  # Interrompe o script se qualquer comando falhar
 APP_DIR="$HOME/projetos/gestor-financeiro"
 COMPOSE_FILE="docker-compose.prod.yml"
 BACKUP_DIR="$APP_DIR/backups"
-VERSION=$(grep -oP '(?<=<version>)[^<]+' pom.xml | head -1)
+VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_NAME="backup_${VERSION}_${TIMESTAMP}"
 
@@ -17,6 +17,14 @@ cd "$APP_DIR" || exit 1
 mkdir -p "$BACKUP_DIR"
 
 echo "=== Deploy da versão $VERSION ==="
+
+# Verifica se já existe uma imagem com esta versão
+if docker image inspect "gestor-financeiro:${VERSION}" >/dev/null 2>&1; then
+    echo "Erro: Já existe uma imagem com a versão $VERSION!"
+    echo "Por favor, atualize a versão no pom.xml antes de fazer o deploy."
+    echo "Versão atual: $VERSION"
+    exit 1
+fi
 
 # Salva imagem atual como backup
 echo "Criando backup da imagem atual..."
