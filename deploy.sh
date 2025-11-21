@@ -9,14 +9,22 @@ COMPOSE_FILE="docker-compose.prod.yml"
 
 cd "$APP_DIR" || exit 1
 
-echo "Parando containers antigos..."
-docker compose -f "$COMPOSE_FILE" down
-
-echo "Construindo e subindo containers em modo detached..."
-docker compose -f "$COMPOSE_FILE" up -d --build
+echo "Construindo nova imagem..."
+docker compose -f "$COMPOSE_FILE" build
 
 if [ $? -ne 0 ]; then
-    echo "Erro: Build ou subida dos containers falhou!"
+    echo "Erro: Build da imagem falhou! Containers antigos não foram afetados."
+    exit 1
+fi
+
+echo "Build bem-sucedido! Parando containers antigos..."
+docker compose -f "$COMPOSE_FILE" down
+
+echo "Subindo novos containers em modo detached..."
+docker compose -f "$COMPOSE_FILE" up -d
+
+if [ $? -ne 0 ]; then
+    echo "Erro: Subida dos containers falhou!"
     exit 1
 fi
 
