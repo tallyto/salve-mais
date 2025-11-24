@@ -81,14 +81,8 @@ stop_services() {
 build_image() {
     info "Construindo nova imagem..."
     
-    # Limpar target para garantir build limpo
-    if [ -d "target" ]; then
-        rm -rf target
-        info "Diretório target limpo"
-    fi
-    
-    # Build da aplicação e imagem Docker
-    docker compose -f "$COMPOSE_FILE" build --no-cache
+    # Build da aplicação e imagem Docker (usando cache para otimização)
+    docker compose -f "$COMPOSE_FILE" build
     
     success "Imagem construída com sucesso"
 }

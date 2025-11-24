@@ -1,0 +1,37 @@
+# Ignorar arquivos desnecessários para o build
+target/
+!target/*.jar
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentação
+README.md
+CHANGELOG.md
+*.md
+
+# Scripts
+deploy.sh
+rollback.sh
+*.sh
+
+# Outros arquivos não necessários
+.env*
