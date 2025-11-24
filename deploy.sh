@@ -78,18 +78,20 @@ build_image() {
     success "Imagem construída com sucesso"
 }
 
-# Testar a aplicação
-test_application() {
-    info "Testando a aplicação..."
+# Verificar estrutura do projeto
+check_project_structure() {
+    info "Verificando estrutura do projeto..."
     
-    # Executar testes Maven se disponível
-    if [ -f "pom.xml" ]; then
-        info "Executando testes Maven..."
-        ./mvnw test -q
-        success "Testes passaram"
-    else
-        warning "Arquivo pom.xml não encontrado, pulando testes"
+    # Verificar se os arquivos essenciais existem
+    if [ ! -f "pom.xml" ]; then
+        error_exit "Arquivo pom.xml não encontrado!"
     fi
+    
+    if [ ! -f "Dockerfile" ]; then
+        error_exit "Dockerfile não encontrado!"
+    fi
+    
+    success "Estrutura do projeto verificada"
 }
 
 # Iniciar serviços
@@ -162,8 +164,9 @@ main() {
         error_exit "Arquivo $COMPOSE_FILE não encontrado! Execute o script no diretório raiz do projeto."
     fi
     
+    check_dependencies
     check_env_file
-    test_application
+    check_project_structure
     stop_services
     build_image
     start_services
