@@ -24,10 +24,6 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests --no-transfer-progress
 
 FROM eclipse-temurin:17-jre-alpine
-
-# Instalar curl para health check
-RUN apk add --no-cache curl
-
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
