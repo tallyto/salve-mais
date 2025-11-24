@@ -45,7 +45,7 @@ check_dependencies() {
         error_exit "Docker não está instalado!"
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         error_exit "Docker Compose não está instalado!"
     fi
     
