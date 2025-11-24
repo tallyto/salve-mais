@@ -37,21 +37,6 @@ warning() {
     echo -e "${YELLOW}⚠ $1${NC}"
 }
 
-# Verificar se Docker e Docker Compose estão instalados
-check_dependencies() {
-    info "Verificando dependências..."
-    
-    if ! command -v docker &> /dev/null; then
-        error_exit "Docker não está instalado!"
-    fi
-    
-    if ! command -v docker-compose &> /dev/null; then
-        error_exit "Docker Compose não está instalado!"
-    fi
-    
-    success "Dependências verificadas"
-}
-
 # Verificar se arquivo .env existe
 check_env_file() {
     info "Verificando arquivo de configuração..."
@@ -177,7 +162,6 @@ main() {
         error_exit "Arquivo $COMPOSE_FILE não encontrado! Execute o script no diretório raiz do projeto."
     fi
     
-    check_dependencies
     check_env_file
     test_application
     stop_services
