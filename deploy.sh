@@ -70,7 +70,7 @@ stop_services() {
     info "Parando serviços atuais..."
     
     if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
-        docker-compose -f "$COMPOSE_FILE" down
+        docker compose -f "$COMPOSE_FILE" down
         success "Serviços parados"
     else
         info "Nenhum serviço rodando"
@@ -88,7 +88,7 @@ build_image() {
     fi
     
     # Build da aplicação e imagem Docker
-    docker-compose -f "$COMPOSE_FILE" build --no-cache
+    docker compose -f "$COMPOSE_FILE" build --no-cache
     
     success "Imagem construída com sucesso"
 }
@@ -113,7 +113,7 @@ check_project_structure() {
 start_services() {
     info "Iniciando serviços..."
     
-    docker-compose -f "$COMPOSE_FILE" up -d
+    docker compose -f "$COMPOSE_FILE" up -d
     
     success "Serviços iniciados"
 }
@@ -126,7 +126,7 @@ health_check() {
     sleep 30
     
     # Verificar se o container está rodando
-    if ! docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+    if ! docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
         error_exit "Container não está rodando após o deploy"
     fi
     
@@ -163,11 +163,11 @@ cleanup() {
 show_status() {
     info "Status final do deploy:"
     echo
-    docker-compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" ps
     echo
     success "Deploy concluído com sucesso!"
     info "Aplicação disponível em: http://localhost:3001"
-    info "Logs podem ser visualizados com: docker-compose -f $COMPOSE_FILE logs -f"
+    info "Logs podem ser visualizados com: docker compose -f $COMPOSE_FILE logs -f"
 }
 
 # Função principal
