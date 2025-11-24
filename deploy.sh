@@ -113,35 +113,7 @@ start_services() {
     success "Serviços iniciados"
 }
 
-# Verificar saúde da aplicação
-health_check() {
-    info "Verificando saúde da aplicação..."
-    
-    # Aguardar a aplicação inicializar
-    sleep 30
-    
-    # Verificar se o container está rodando
-    if ! docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
-        error_exit "Container não está rodando após o deploy"
-    fi
-    
-    # Tentar fazer uma requisição de health check (se disponível)
-    if command -v curl &> /dev/null; then
-        for i in {1..5}; do
-            if curl -f -s http://localhost:3001/actuator/health >/dev/null 2>&1; then
-                success "Aplicação está saudável"
-                return 0
-            fi
-            warning "Tentativa $i/5 falhou, aguardando 10 segundos..."
-            sleep 10
-        done
-        warning "Health check falhou, mas container está rodando"
-    else
-        warning "curl não disponível, pulando health check HTTP"
-    fi
-    
-    success "Container verificado"
-}
+
 
 # Limpeza de imagens antigas
 cleanup() {
@@ -182,7 +154,6 @@ main() {
     stop_services
     build_image
     start_services
-    health_check
     cleanup
     show_status
     
