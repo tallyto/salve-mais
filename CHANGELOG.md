@@ -3,6 +3,32 @@
 
 ## [Unreleased]
 
+## [1.11.0] - 2025-11-24
+
+### Adicionado
+
+- **Funcionalidade de exportação Excel do Dashboard**:
+  - Novo endpoint `GET /api/dashboard/export/excel` para exportar dados em Excel
+  - ExportService completo para geração de arquivos Excel usando Apache POI
+  - Arquivo Excel com 6 abas organizadas:
+    - Resumo Financeiro (saldo, receitas, despesas, indicadores de saúde)
+    - Despesas por Categoria (valores e percentuais)
+    - Contas e Saldos (titular, tipo, saldo, descrição)
+    - Transações Recentes (data, descrição, valor, categoria, cartão)
+    - Compras Parceladas em Aberto (descrição, valor, parcelas, vencimento, status)
+    - Tendência Mensal (receitas, despesas e resultado por mês)
+  - Formatação profissional com estilos, cores e bordas
+  - Suporte a parâmetros de filtro por mês e ano
+  - Formatação brasileira para valores monetários (R$ 1.234,56)
+  - Auto-ajuste de largura de colunas
+  - Dependências Apache POI 5.2.5 para manipulação Excel
+
+## [1.10.0] - 2025-11-20
+
+### Adicionado
+
+- Melhorias no sistema de dashboard e relatórios
+
 ## [1.9.0] - 2025-10-05
 
 ### Adicionado

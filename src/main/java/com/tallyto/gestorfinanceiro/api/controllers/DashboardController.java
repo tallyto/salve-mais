@@ -6,9 +6,14 @@ import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.VariationDataDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.DashboardService;
+import com.tallyto.gestorfinanceiro.core.application.services.ExportService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -16,9 +21,11 @@ import java.util.List;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final ExportService exportService;
 
-    public DashboardController(DashboardService dashboardService) {
+    public DashboardController(DashboardService dashboardService, ExportService exportService) {
         this.dashboardService = dashboardService;
+        this.exportService = exportService;
     }
 
     /**
@@ -88,5 +95,53 @@ public class DashboardController {
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
         return ResponseEntity.ok(dashboardService.getVariationData(mes, ano));
+    }
+
+    /**
+     * Endpoint para exportar dados do dashboard em formato Excel
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
+     * @return Arquivo Excel com dados do dashboard
+     */
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exportDashboardToExcel(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) throws IOException {
+        
+        byte[] excelData = exportService.generateDashboardExcel(mes, ano);
+        
+        // Definir nome do arquivo baseado no período
+        String fileName = "dashboard-financeiro";
+        if (mes != null && ano != null) {
+            String monthName = getMonthName(mes);
+            fileName += "-" + monthName.toLowerCase() + "-" + ano;
+        } else if (ano != null) {
+            fileName += "-" + ano;
+        } else {
+            LocalDate now = LocalDate.now();
+            String monthName = getMonthName(now.getMonthValue());
+            fileName += "-" + monthName.toLowerCase() + "-" + now.getYear();
+        }
+        fileName += ".xlsx";
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", fileName);
+        headers.setContentLength(excelData.length);
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelData);
+    }
+
+    /**
+     * Método auxiliar para obter nome do mês
+     */
+    private String getMonthName(int month) {
+        String[] months = {
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        };
+        return months[month - 1];
     }
 }
