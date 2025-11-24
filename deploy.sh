@@ -4,7 +4,7 @@
 
 set -e  # Interrompe o script se qualquer comando falhar
 
-APP_DIR="$HOME/projetos/gestor-financeiro"
+APP_DIR="$HOME/projetos/salve-mais"
 COMPOSE_FILE="docker-compose.prod.yml"
 BACKUP_DIR="$APP_DIR/backups"
 VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
