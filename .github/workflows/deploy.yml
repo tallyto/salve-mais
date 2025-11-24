@@ -72,10 +72,10 @@ jobs:
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/projetos/salve-mais
             echo "📊 Status dos containers:"
-            docker-compose -f docker-compose.prod.yml ps
+            docker compose -f docker compose.prod.yml ps
             echo
             echo "📋 Logs recentes da aplicação:"
-            docker-compose -f docker-compose.prod.yml logs --tail=10 app
+            docker compose -f docker compose.prod.yml logs --tail=10 app
           EOF
       
       - name: Notify deployment status
