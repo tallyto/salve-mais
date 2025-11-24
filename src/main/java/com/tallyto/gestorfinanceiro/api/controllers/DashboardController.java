@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -98,6 +97,15 @@ public class DashboardController {
     }
 
     /**
+     * Endpoint de teste para verificar se o ExportService está funcionando
+     * @return Resposta simples para teste
+     */
+    @GetMapping("/export/test")
+    public ResponseEntity<String> testExport() {
+        return ResponseEntity.ok("ExportService está funcionando! Endpoint disponível.");
+    }
+
+    /**
      * Endpoint para exportar dados do dashboard em formato Excel
      * @param mes Mês para filtrar os dados (opcional)
      * @param ano Ano para filtrar os dados (opcional)
@@ -106,32 +114,43 @@ public class DashboardController {
     @GetMapping("/export/excel")
     public ResponseEntity<byte[]> exportDashboardToExcel(
             @RequestParam(value = "mes", required = false) Integer mes,
-            @RequestParam(value = "ano", required = false) Integer ano) throws IOException {
+            @RequestParam(value = "ano", required = false) Integer ano) {
         
-        byte[] excelData = exportService.generateDashboardExcel(mes, ano);
-        
-        // Definir nome do arquivo baseado no período
-        String fileName = "dashboard-financeiro";
-        if (mes != null && ano != null) {
-            String monthName = getMonthName(mes);
-            fileName += "-" + monthName.toLowerCase() + "-" + ano;
-        } else if (ano != null) {
-            fileName += "-" + ano;
-        } else {
-            LocalDate now = LocalDate.now();
-            String monthName = getMonthName(now.getMonthValue());
-            fileName += "-" + monthName.toLowerCase() + "-" + now.getYear();
+        try {
+            byte[] excelData = exportService.generateDashboardExcel(mes, ano);
+            
+            // Definir nome do arquivo baseado no período
+            String fileName = "dashboard-financeiro";
+            if (mes != null && ano != null) {
+                String monthName = getMonthName(mes);
+                fileName += "-" + monthName.toLowerCase() + "-" + ano;
+            } else if (ano != null) {
+                fileName += "-" + ano;
+            } else {
+                LocalDate now = LocalDate.now();
+                String monthName = getMonthName(now.getMonthValue());
+                fileName += "-" + monthName.toLowerCase() + "-" + now.getYear();
+            }
+            fileName += ".xlsx";
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", fileName);
+            headers.setContentLength(excelData.length);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+                    
+        } catch (Exception e) {
+            // Log do erro para debug
+            System.err.println("Erro ao gerar Excel: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Retorna erro HTTP 500
+            return ResponseEntity.internalServerError()
+                    .body(("Erro ao gerar arquivo Excel: " + e.getMessage()).getBytes());
         }
-        fileName += ".xlsx";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", fileName);
-        headers.setContentLength(excelData.length);
-        
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(excelData);
     }
 
     /**
