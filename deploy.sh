@@ -45,8 +45,9 @@ check_dependencies() {
         error_exit "Docker não está instalado!"
     fi
     
-    if ! command -v docker compose &> /dev/null; then
-        error_exit "Docker Compose não está instalado!"
+    # Verificar se docker compose plugin está disponível
+    if ! docker compose version &> /dev/null; then
+        error_exit "Docker Compose plugin não está instalado!"
     fi
     
     success "Dependências verificadas"
@@ -69,7 +70,7 @@ check_env_file() {
 stop_services() {
     info "Parando serviços atuais..."
     
-    if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+    if docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
         docker compose -f "$COMPOSE_FILE" down
         success "Serviços parados"
     else
@@ -172,6 +173,8 @@ main() {
     if [ ! -f "$COMPOSE_FILE" ]; then
         error_exit "Arquivo $COMPOSE_FILE não encontrado! Execute o script no diretório raiz do projeto."
     fi
+    
+    info "Usando arquivo de compose: $COMPOSE_FILE"
     
     check_dependencies
     check_env_file
