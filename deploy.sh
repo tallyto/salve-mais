@@ -1,78 +1,197 @@
 #!/bin/bash
-# Script de deploy usando Docker Compose para produção
-# Ajuste os caminhos conforme necessário
+# Script de deploy para produção usando docker-compose.prod.yml
+# Uso: ./deploy.sh
 
-set -e  # Interrompe o script se qualquer comando falhar
+set -e
 
-APP_DIR="$HOME/projetos/salve-mais"
+# Configurações
+APP_NAME="gestor-financeiro"
 COMPOSE_FILE="docker-compose.prod.yml"
-BACKUP_DIR="$APP_DIR/backups"
-VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_NAME="backup_${VERSION}_${TIMESTAMP}"
+IMAGE_NAME="gestor-financeiro:latest"
 
-cd "$APP_DIR" || exit 1
+# Cores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Cria diretório de backups se não existir
-mkdir -p "$BACKUP_DIR"
-
-echo "=== Deploy da versão $VERSION ==="
-
-# Verifica se já existe uma imagem com esta versão
-if docker image inspect "gestor-financeiro:${VERSION}" >/dev/null 2>&1; then
-    echo "Erro: Já existe uma imagem com a versão $VERSION!"
-    echo "Por favor, atualize a versão no pom.xml antes de fazer o deploy."
-    echo "Versão atual: $VERSION"
+# Função para erro e saída
+error_exit() {
+    echo -e "${RED}ERRO: $1${NC}"
     exit 1
-fi
+}
 
-# Salva imagem atual como backup
-echo "Criando backup da imagem atual..."
-CURRENT_IMAGE=$(docker compose -f "$COMPOSE_FILE" images -q app 2>/dev/null || echo "")
-if [ -n "$CURRENT_IMAGE" ]; then
-    docker tag "$CURRENT_IMAGE" "gestor-financeiro:${BACKUP_NAME}" || true
-    echo "$VERSION" > "$BACKUP_DIR/${BACKUP_NAME}.version"
-    echo "Backup criado: gestor-financeiro:${BACKUP_NAME}"
-fi
+# Função para sucesso
+success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
 
-echo "Construindo nova imagem versão $VERSION..."
-docker compose -f "$COMPOSE_FILE" build --build-arg VERSION="$VERSION"
+# Função para informação
+info() {
+    echo -e "${BLUE}ℹ $1${NC}"
+}
 
-if [ $? -ne 0 ]; then
-    echo "Erro: Build da imagem falhou! Containers antigos não foram afetados."
-    exit 1
-fi
+# Função para aviso
+warning() {
+    echo -e "${YELLOW}⚠ $1${NC}"
+}
 
-# Tag da nova imagem com a versão
-echo "Criando tag da versão $VERSION..."
-NEW_IMAGE=$(docker compose -f "$COMPOSE_FILE" images -q app)
-docker tag "$NEW_IMAGE" "gestor-financeiro:${VERSION}"
-docker tag "$NEW_IMAGE" "gestor-financeiro:latest"
+# Verificar se Docker e Docker Compose estão instalados
+check_dependencies() {
+    info "Verificando dependências..."
+    
+    if ! command -v docker &> /dev/null; then
+        error_exit "Docker não está instalado!"
+    fi
+    
+    if ! command -v docker-compose &> /dev/null; then
+        error_exit "Docker Compose não está instalado!"
+    fi
+    
+    success "Dependências verificadas"
+}
 
-echo "Build bem-sucedido! Parando containers antigos..."
-docker compose -f "$COMPOSE_FILE" down
+# Verificar se arquivo .env existe
+check_env_file() {
+    info "Verificando arquivo de configuração..."
+    
+    if [ ! -f ".env" ]; then
+        error_exit "Arquivo .env não encontrado! Certifique-se de que o arquivo .env com as configurações da VPS está presente."
+    fi
+    
+    success "Arquivo .env encontrado"
+}
 
-echo "Subindo novos containers em modo detached..."
-docker compose -f "$COMPOSE_FILE" up -d
 
-if [ $? -ne 0 ]; then
-    echo "Erro: Subida dos containers falhou!"
-    exit 1
-fi
 
-# Mantém apenas os últimos 5 backups
-echo "Limpando backups antigos (mantendo os 5 mais recentes)..."
-cd "$BACKUP_DIR"
-ls -t *.version 2>/dev/null | tail -n +6 | while read version_file; do
-    backup_tag=$(basename "$version_file" .version)
-    docker rmi "gestor-financeiro:${backup_tag}" 2>/dev/null || true
-    rm -f "$version_file"
-done
-cd "$APP_DIR"
+# Parar serviços atuais
+stop_services() {
+    info "Parando serviços atuais..."
+    
+    if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+        docker-compose -f "$COMPOSE_FILE" down
+        success "Serviços parados"
+    else
+        info "Nenhum serviço rodando"
+    fi
+}
 
-echo "Removendo imagens antigas não utilizadas..."
-docker image prune -f
+# Construir nova imagem
+build_image() {
+    info "Construindo nova imagem..."
+    
+    # Limpar target para garantir build limpo
+    if [ -d "target" ]; then
+        rm -rf target
+        info "Diretório target limpo"
+    fi
+    
+    # Build da aplicação e imagem Docker
+    docker-compose -f "$COMPOSE_FILE" build --no-cache
+    
+    success "Imagem construída com sucesso"
+}
 
-echo "=== Deploy finalizado com sucesso! ==="
-echo "Versão deployada: $VERSION"
-echo "Backup disponível: gestor-financeiro:${BACKUP_NAME}"
+# Testar a aplicação
+test_application() {
+    info "Testando a aplicação..."
+    
+    # Executar testes Maven se disponível
+    if [ -f "pom.xml" ]; then
+        info "Executando testes Maven..."
+        ./mvnw test -q
+        success "Testes passaram"
+    else
+        warning "Arquivo pom.xml não encontrado, pulando testes"
+    fi
+}
+
+# Iniciar serviços
+start_services() {
+    info "Iniciando serviços..."
+    
+    docker-compose -f "$COMPOSE_FILE" up -d
+    
+    success "Serviços iniciados"
+}
+
+# Verificar saúde da aplicação
+health_check() {
+    info "Verificando saúde da aplicação..."
+    
+    # Aguardar a aplicação inicializar
+    sleep 30
+    
+    # Verificar se o container está rodando
+    if ! docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+        error_exit "Container não está rodando após o deploy"
+    fi
+    
+    # Tentar fazer uma requisição de health check (se disponível)
+    if command -v curl &> /dev/null; then
+        for i in {1..5}; do
+            if curl -f -s http://localhost:3001/actuator/health >/dev/null 2>&1; then
+                success "Aplicação está saudável"
+                return 0
+            fi
+            warning "Tentativa $i/5 falhou, aguardando 10 segundos..."
+            sleep 10
+        done
+        warning "Health check falhou, mas container está rodando"
+    else
+        warning "curl não disponível, pulando health check HTTP"
+    fi
+    
+    success "Container verificado"
+}
+
+# Limpeza de imagens antigas
+cleanup() {
+    info "Limpando imagens antigas..."
+    
+    # Remover imagens dangling
+    if docker images -f "dangling=true" -q | head -1 | grep -q .; then
+        docker rmi $(docker images -f "dangling=true" -q) 2>/dev/null || true
+        success "Imagens órfãs removidas"
+    fi
+}
+
+# Mostrar status final
+show_status() {
+    info "Status final do deploy:"
+    echo
+    docker-compose -f "$COMPOSE_FILE" ps
+    echo
+    success "Deploy concluído com sucesso!"
+    info "Aplicação disponível em: http://localhost:3001"
+    info "Logs podem ser visualizados com: docker-compose -f $COMPOSE_FILE logs -f"
+}
+
+# Função principal
+main() {
+    echo -e "${BLUE}=== Iniciando deploy em $(date) ===${NC}"
+    
+    # Verificar se estamos no diretório correto
+    if [ ! -f "$COMPOSE_FILE" ]; then
+        error_exit "Arquivo $COMPOSE_FILE não encontrado! Execute o script no diretório raiz do projeto."
+    fi
+    
+    check_dependencies
+    check_env_file
+    test_application
+    stop_services
+    build_image
+    start_services
+    health_check
+    cleanup
+    show_status
+    
+    echo -e "${GREEN}=== Deploy finalizado em $(date) ===${NC}"
+}
+
+# Tratamento de sinais para limpeza em caso de interrupção
+trap 'error_exit "Deploy interrompido pelo usuário"' INT TERM
+
+# Executar função principal
+main "$@"

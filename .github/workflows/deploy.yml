@@ -35,25 +35,47 @@ jobs:
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-            cd ~/projetos/gestor-financeiro
+            cd ~/projetos/salve-mais
             
             echo "=== Iniciando deploy da versão $VERSION ==="
             
             # Pull das últimas alterações
-            echo "Atualizando código..."
+            echo "🔄 Atualizando código..."
             git pull origin master
             
-            # Executa o script de deploy
-            echo "Executando deploy..."
-            bash deploy.sh
+            # Verificar se o arquivo .env existe
+            if [ ! -f ".env" ]; then
+              echo "❌ ERRO: Arquivo .env não encontrado na VPS!"
+              exit 1
+            fi
             
-            # Verifica se o deploy foi bem-sucedido
+            # Tornar o script executável (caso não esteja)
+            chmod +x deploy.sh
+            
+            # Executar o script de deploy
+            echo "🚀 Executando deploy..."
+            ./deploy.sh
+            
+            # Verificar se o deploy foi bem-sucedido
             if [ $? -eq 0 ]; then
               echo "✅ Deploy da versão $VERSION concluído com sucesso!"
+              echo "🌐 Aplicação disponível em: http://$(hostname -I | cut -d' ' -f1):3001"
             else
               echo "❌ Erro no deploy! Verifique os logs."
               exit 1
             fi
+          EOF
+      
+      - name: Verify deployment
+        if: success()
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd ~/projetos/salve-mais
+            echo "📊 Status dos containers:"
+            docker-compose -f docker-compose.prod.yml ps
+            echo
+            echo "📋 Logs recentes da aplicação:"
+            docker-compose -f docker-compose.prod.yml logs --tail=10 app
           EOF
       
       - name: Notify deployment status
