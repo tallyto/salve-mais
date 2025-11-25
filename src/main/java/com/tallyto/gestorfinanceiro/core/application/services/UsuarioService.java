@@ -94,4 +94,23 @@ public class UsuarioService {
         usuario.setSenha(encoder.encode(novaSenha));
         usuarioRepository.save(usuario);
     }
+
+    // Métodos de Administração
+    @Transactional(readOnly = true)
+    public java.util.List<Usuario> listarTodosUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    @Transactional
+    public void deletarUsuario(Long id, String emailUsuarioLogado) {
+        Usuario usuarioParaDeletar = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        // Impedir que o usuário delete a si mesmo
+        if (usuarioParaDeletar.getEmail().equals(emailUsuarioLogado)) {
+            throw new RuntimeException("Você não pode deletar sua própria conta");
+        }
+        
+        usuarioRepository.deleteById(id);
+    }
 }

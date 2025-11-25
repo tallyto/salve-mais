@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("api/usuarios")
 public class UsuarioController {
@@ -49,5 +52,34 @@ public class UsuarioController {
         }
         Usuario usuario = usuarioService.buscarPorEmail(userDetails.getUsername());
         return ResponseEntity.ok(new UsuarioResponseDTO(usuario));
+    }
+
+    // Endpoints de Administração
+    @GetMapping("/admin/listar")
+    public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios() {
+        List<Usuario> usuarios = usuarioService.listarTodosUsuarios();
+        List<UsuarioResponseDTO> usuariosDTO = usuarios.stream()
+                .map(UsuarioResponseDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(usuariosDTO);
+    }
+
+    @PostMapping("/admin/criar")
+    public ResponseEntity<UsuarioResponseDTO> criarUsuario(@RequestBody UsuarioCadastroDTO dto) {
+        Usuario usuario = usuarioService.cadastrar(dto);
+        return new ResponseEntity<>(new UsuarioResponseDTO(usuario), HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<?> deletarUsuario(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            usuarioService.deletarUsuario(id, userDetails.getUsername());
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
