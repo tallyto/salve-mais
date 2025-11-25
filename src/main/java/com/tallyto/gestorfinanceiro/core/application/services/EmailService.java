@@ -70,4 +70,32 @@ public class EmailService {
             logger.info("Link de confirmação que seria enviado: {}", confirmationLink);
         }
     }
+    
+    public void enviarEmailRecuperacaoSenha(String to, String userName, String resetLink) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            // Ler template HTML
+            ClassPathResource resource = new ClassPathResource("templates/recuperacao-senha.html");
+            String htmlTemplate = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+            
+            // Substituir placeholders
+            String htmlContent = htmlTemplate
+                .replace("{{USER_NAME}}", userName)
+                .replace("{{RESET_LINK}}", resetLink);
+            
+            helper.setFrom(mailFrom, mailFromName);
+            helper.setTo(to);
+            helper.setSubject("Recuperação de Senha - Salve Mais");
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            logger.info("Email de recuperação de senha enviado para: {}", to);
+        } catch (Exception e) {
+            // Em ambiente de desenvolvimento, apenas logamos o erro e não deixamos a aplicação falhar
+            logger.error("Erro ao enviar email de recuperação de senha para: {}", to, e);
+            logger.info("Link de recuperação que seria enviado: {}", resetLink);
+        }
+    }
 }

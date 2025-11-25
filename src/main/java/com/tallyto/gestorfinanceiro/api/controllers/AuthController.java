@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,6 +35,9 @@ public class AuthController {
     private PasswordResetTokenService passwordResetTokenService;
     @Autowired
     private UsuarioService usuarioService;
+    
+    @Value("${app.password.reset.url}")
+    private String passwordResetUrl;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
@@ -54,13 +58,25 @@ public class AuthController {
 
     @PostMapping("/recuperar-senha")
     public ResponseEntity<?> recuperarSenha(@RequestBody RecuperarSenhaRequestDTO dto) {
-        String token = java.util.UUID.randomUUID().toString();
-        passwordResetTokenService.storeToken(token, dto.getEmail());
-        String link = "http://localhost:4200/#/redefinir-senha?token=" + token;
-        String mensagem = "Clique no link para redefinir sua senha: " + link;
-        emailService.enviarEmail(dto.getEmail(), "Recuperação de Senha", mensagem);
-        return ResponseEntity.ok(java.util.Collections.singletonMap("message",
-                "Instruções de recuperação enviadas para o e-mail, se existir na base."));
+        try {
+            // Buscar usuário para obter o nome
+            var usuario = usuarioService.buscarPorEmail(dto.getEmail());
+            
+            String token = java.util.UUID.randomUUID().toString();
+            passwordResetTokenService.storeToken(token, dto.getEmail());
+            String link = passwordResetUrl + "?token=" + token;
+            
+            // Enviar email com template HTML
+            emailService.enviarEmailRecuperacaoSenha(dto.getEmail(), usuario.getNome(), link);
+            
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message",
+                    "Instruções de recuperação enviadas para o e-mail, se existir na base."));
+        } catch (RuntimeException e) {
+            // Mesmo que o usuário não exista, retornamos sucesso por segurança
+            // Isso evita que alguém descubra quais emails estão cadastrados
+            return ResponseEntity.ok(java.util.Collections.singletonMap("message",
+                    "Instruções de recuperação enviadas para o e-mail, se existir na base."));
+        }
     }
 
     @PostMapping("/redefinir-senha")

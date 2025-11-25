@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.tallyto</groupId>
 	<artifactId>gestor-financeiro</artifactId>
-	<version>1.11.2</version>
+	<version>1.12.0</version>
 	<name>gestor-financeiro</name>
 	<description>Serviço para gerenciar contas pessoais</description>
 	<properties>
