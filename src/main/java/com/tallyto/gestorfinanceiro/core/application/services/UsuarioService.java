@@ -39,6 +39,7 @@ public class UsuarioService {
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+        usuario.setCriadoEm(java.time.LocalDateTime.now());
         
         // Obter o tenant do contexto e definir o tenantId
         String tenantDomain = TenantContext.getCurrentTenant();
