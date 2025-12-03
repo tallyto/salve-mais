@@ -369,7 +369,7 @@ public class TenantService {
         } catch (java.sql.SQLException e) {
             throw new RuntimeException(
                 String.format("Erro ao buscar usuários do tenant '%s' (schema: %s): %s", 
-                    tenant.getNome(), schema, e.getMessage()), 
+                    tenant.getName(), schema, e.getMessage()),
                 e
             );
         }
