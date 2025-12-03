@@ -141,4 +141,27 @@ public class TenantController {
         Tenant tenant = tenantService.findByDomain(domain);
         return ResponseEntity.ok(tenantMapper.toDTO(tenant));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar tenant (ativar/desativar)")
+    public ResponseEntity<TenantResponseDTO> updateTenant(
+            @PathVariable UUID id,
+            @Valid @RequestBody TenantUpdateDTO updateDTO) {
+        Tenant tenant = tenantService.updateTenant(id, updateDTO);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Obter estatísticas dos tenants")
+    public ResponseEntity<TenantStatsDTO> getStats() {
+        TenantStatsDTO stats = tenantService.getStats();
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/{id}/usuarios")
+    @Operation(summary = "Listar usuários do tenant")
+    public ResponseEntity<List<UsuarioTenantDTO>> getUsuariosByTenant(@PathVariable UUID id) {
+        List<UsuarioTenantDTO> usuarios = tenantService.getUsuariosByTenant(id);
+        return ResponseEntity.ok(usuarios);
+    }
 }

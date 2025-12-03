@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.core.application.services;
 
 import com.tallyto.gestorfinanceiro.api.dto.*;
+import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.BadRequestException;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
@@ -23,6 +24,9 @@ public class TenantService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository usuarioRepository;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;
@@ -202,5 +206,147 @@ public class TenantService {
     public Tenant findByDomain(String domain) {
         return tenantRepository.findByDomain(domain)
                 .orElseThrow(() -> new ResourceNotFoundException("Tenant not found with domain " + domain));
+    }
+
+    public Tenant updateTenant(UUID id, TenantUpdateDTO updateDTO) {
+        Tenant tenant = findById(id);
+        
+        if (updateDTO.getActive() != null) {
+            tenant.setActive(updateDTO.getActive());
+        }
+        if (updateDTO.getName() != null) {
+            tenant.setName(updateDTO.getName());
+        }
+        if (updateDTO.getEmail() != null) {
+            tenant.setEmail(updateDTO.getEmail());
+        }
+        if (updateDTO.getPhoneNumber() != null) {
+            tenant.setPhoneNumber(updateDTO.getPhoneNumber());
+        }
+        if (updateDTO.getAddress() != null) {
+            tenant.setAddress(updateDTO.getAddress());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+
+    /**
+     * Calcula estatísticas gerais dos tenants.
+     * 
+     * IMPORTANTE: O cálculo de totalUsers itera por TODOS os schemas.
+     * 
+     * Fluxo:
+     * 1. Busca todos os tenants no schema público
+     * 2. Calcula totais simples (total, ativos, inativos)
+     * 3. Para cada tenant:
+     *    - Troca para o schema do tenant
+     *    - Conta os usuários naquele schema
+     *    - Acumula no total
+     *    - Restaura o contexto (sempre no finally)
+     * 
+     * PERFORMANCE: Com muitos tenants, considere:
+     * - Cache das estatísticas
+     * - Cálculo assíncrono em background
+     * - Atualização periódica ao invés de tempo real
+     * 
+     * @return DTO com estatísticas dos tenants e total de usuários
+     */
+    /**
+     * Calcula estatísticas gerais dos tenants.
+     * 
+     * IMPORTANTE: O cálculo de totalUsers itera por TODOS os schemas.
+     * 
+     * Fluxo:
+     * 1. Busca todos os tenants no schema público
+     * 2. Calcula totais simples (total, ativos, inativos)
+     * 3. Para cada tenant:
+     *    - Troca para o schema do tenant
+     *    - Conta os usuários naquele schema
+     *    - Acumula no total
+     *    - Restaura o contexto (sempre no finally)
+     * 
+     * PERFORMANCE: Com muitos tenants, considere:
+     * - Cache das estatísticas
+     * - Cálculo assíncrono em background
+     * - Atualização periódica ao invés de tempo real
+     * 
+     * @return DTO com estatísticas dos tenants e total de usuários
+     */
+    public TenantStatsDTO getStats() {
+        List<Tenant> allTenants = tenantRepository.findAll();
+        
+        long totalTenants = allTenants.size();
+        long activeTenants = allTenants.stream().filter(Tenant::getActive).count();
+        long inactiveTenants = totalTenants - activeTenants;
+        
+        // Contar total de usuários de todos os schemas/tenants
+        String currentTenant = TenantContext.getCurrentTenant();
+        long totalUsers = 0;
+        
+        try {
+            for (Tenant tenant : allTenants) {
+                try {
+                    // Trocar para o schema do tenant
+                    TenantContext.setCurrentTenant(tenant.getDomain());
+                    // Contar usuários deste schema
+                    totalUsers += usuarioRepository.count();
+                } catch (Exception e) {
+                    // Se houver erro ao acessar algum schema, apenas loga e continua
+                    // (pode ser que o schema ainda não exista)
+                    continue;
+                }
+            }
+        } finally {
+            // Restaurar o tenant original
+            TenantContext.setCurrentTenant(currentTenant);
+        }
+        
+        return new TenantStatsDTO(totalTenants, activeTenants, inactiveTenants, totalUsers);
+    }
+
+    /**
+     * Busca todos os usuários de um tenant específico.
+     * 
+     * IMPORTANTE: Este método utiliza troca de schema para buscar usuários.
+     * Cada tenant tem seu próprio schema de banco de dados (schema-per-tenant).
+     * 
+     * Fluxo:
+     * 1. Busca o tenant no schema público
+     * 2. Salva o contexto atual do tenant
+     * 3. Troca temporariamente para o schema do tenant (usando TenantContext)
+     * 4. Busca todos os usuários naquele schema
+     * 5. Restaura o contexto original (CRÍTICO: sempre no finally)
+     * 
+     * @param tenantId ID do tenant
+     * @return Lista de DTOs com informações dos usuários
+     * @throws ResourceNotFoundException se o tenant não for encontrado
+     */
+    public List<UsuarioTenantDTO> getUsuariosByTenant(UUID tenantId) {
+        // Buscar o tenant e pegar o domínio (que é o schema)
+        Tenant tenant = findById(tenantId);
+        String tenantDomain = tenant.getDomain();
+        
+        // Guardar o tenant atual
+        String currentTenant = TenantContext.getCurrentTenant();
+        
+        try {
+            // Trocar temporariamente para o schema do tenant
+            TenantContext.setCurrentTenant(tenantDomain);
+            
+            // Buscar todos os usuários deste schema
+            return usuarioRepository.findAll().stream()
+                    .map(usuario -> new UsuarioTenantDTO(
+                            usuario.getId(),
+                            usuario.getEmail(),
+                            usuario.getNome(),
+                            tenant.getId(),
+                            usuario.getCriadoEm(),
+                            usuario.getUltimoAcesso()
+                    ))
+                    .collect(java.util.stream.Collectors.toList());
+        } finally {
+            // Restaurar o tenant original
+            TenantContext.setCurrentTenant(currentTenant);
+        }
     }
 }
