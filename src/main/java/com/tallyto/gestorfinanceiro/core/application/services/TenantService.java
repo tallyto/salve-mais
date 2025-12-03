@@ -3,6 +3,7 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.api.dto.*;
 import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.BadRequestException;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +30,9 @@ public class TenantService {
     
     @Autowired
     private com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private DataSource dataSource;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;
@@ -322,31 +328,50 @@ public class TenantService {
      * @throws ResourceNotFoundException se o tenant não for encontrado
      */
     public List<UsuarioTenantDTO> getUsuariosByTenant(UUID tenantId) {
-        // Buscar o tenant e pegar o domínio (que é o schema)
         Tenant tenant = findById(tenantId);
-        String tenantDomain = tenant.getDomain();
+        String schema = tenant.getDomain();
         
-        // Guardar o tenant atual
-        String currentTenant = TenantContext.getCurrentTenant();
+        List<UsuarioTenantDTO> usuarios = new java.util.ArrayList<>();
         
-        try {
-            // Trocar temporariamente para o schema do tenant
-            TenantContext.setCurrentTenant(tenantDomain);
+        try (Connection connection = dataSource.getConnection();
+             var statement = connection.createStatement()) {
             
-            // Buscar todos os usuários deste schema
-            return usuarioRepository.findAll().stream()
-                    .map(usuario -> new UsuarioTenantDTO(
-                            usuario.getId(),
-                            usuario.getEmail(),
-                            usuario.getNome(),
-                            tenant.getId(),
-                            usuario.getCriadoEm(),
-                            usuario.getUltimoAcesso()
-                    ))
-                    .collect(java.util.stream.Collectors.toList());
-        } finally {
-            // Restaurar o tenant original
-            TenantContext.setCurrentTenant(currentTenant);
+            String query = String.format(
+                "SELECT id, email, nome, criado_em, ultimo_acesso FROM \"%s\".usuario ORDER BY criado_em DESC", 
+                schema
+            );
+            
+            try (var resultSet = statement.executeQuery(query)) {
+                while (resultSet.next()) {
+                    Long usuarioId = resultSet.getLong("id");
+                    String email = resultSet.getString("email");
+                    String nome = resultSet.getString("nome");
+                    java.time.LocalDateTime criadoEm = resultSet.getTimestamp("criado_em") != null 
+                        ? resultSet.getTimestamp("criado_em").toLocalDateTime() 
+                        : null;
+                    java.time.LocalDateTime ultimoAcesso = resultSet.getTimestamp("ultimo_acesso") != null 
+                        ? resultSet.getTimestamp("ultimo_acesso").toLocalDateTime() 
+                        : null;
+                    
+                    usuarios.add(new UsuarioTenantDTO(
+                        usuarioId,
+                        email,
+                        nome,
+                        tenant.getId(),
+                        criadoEm,
+                        ultimoAcesso
+                    ));
+                }
+            }
+            
+            return usuarios;
+            
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(
+                String.format("Erro ao buscar usuários do tenant '%s' (schema: %s): %s", 
+                    tenant.getNome(), schema, e.getMessage()), 
+                e
+            );
         }
     }
 }
