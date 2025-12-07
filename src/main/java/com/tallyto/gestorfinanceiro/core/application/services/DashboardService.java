@@ -50,6 +50,12 @@ public class DashboardService {
     @Autowired
     private ParcelaRepository parcelaRepository;
 
+    @Autowired
+    private CompraDebitoRepository compraDebitoRepository;
+
+    @Autowired
+    private CompraDebitoRepository compraDebitoRepository;
+
     /**
      * Obtém o resumo financeiro para o dashboard
      * @param mes Mês para filtrar os dados (opcional)
@@ -92,8 +98,13 @@ public class DashboardService {
                 .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Total de despesas (contas fixas + faturas)
-        BigDecimal despesasMes = despesasFixasMes.add(despesasFaturasMes);
+        // Obtém despesas do mês atual (compras em débito)
+        BigDecimal despesasComprasDebitoMes = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(CompraDebito::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Total de despesas (contas fixas + faturas + compras débito)
+        BigDecimal despesasMes = despesasFixasMes.add(despesasFaturasMes).add(despesasComprasDebitoMes);
 
         // Calcula o saldo do mês anterior
         BigDecimal receitasMesAnterior = proventoRepository.findByDataBetween(inicioMesAnterior, fimMesAnterior).stream()
@@ -108,7 +119,11 @@ public class DashboardService {
                 .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal despesasMesAnterior = despesasFixasMesAnterior.add(despesasFaturasMesAnterior);
+        BigDecimal despesasComprasDebitoMesAnterior = compraDebitoRepository.findByDataCompraBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(CompraDebito::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal despesasMesAnterior = despesasFixasMesAnterior.add(despesasFaturasMesAnterior).add(despesasComprasDebitoMesAnterior);
         BigDecimal saldoMesAnterior = receitasMesAnterior.subtract(despesasMesAnterior);
 
         // Conta o número de contas e categorias
@@ -240,6 +255,30 @@ public class DashboardService {
             }
         }
 
+        // Adiciona compras em débito do período
+        List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual);
+        for (CompraDebito compra : comprasDebito) {
+            Categoria categoria = compra.getCategoria();
+            if (categoria != null) {
+                gastosPorCategoria.put(
+                        categoria,
+                        gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(compra.getValor())
+                );
+            }
+        }
+
+        // Adiciona faturas do período
+        List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual);
+        for (CompraDebito compra : comprasDebito) {
+            Categoria categoria = compra.getCategoria();
+            if (categoria != null) {
+                gastosPorCategoria.put(
+                        categoria,
+                        gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(compra.getValor())
+                );
+            }
+        }
+
         // Adiciona faturas do período
         List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
         for (Fatura fatura : faturas) {
@@ -330,6 +369,32 @@ public class DashboardService {
                 gastosPorTipo.put(
                         tipo,
                         gastosPorTipo.get(tipo).add(conta.getValor())
+                );
+            }
+        }
+
+        // Adiciona compras em débito do período
+        List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual);
+        for (CompraDebito compra : comprasDebito) {
+            Categoria categoria = compra.getCategoria();
+            if (categoria != null) {
+                Categoria.TipoCategoria tipo = categoria.getTipo();
+                gastosPorTipo.put(
+                        tipo,
+                        gastosPorTipo.get(tipo).add(compra.getValor())
+                );
+            }
+        }
+
+        // Adiciona faturas do período
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
+        for (CompraDebito compra : comprasDebito) {
+            Categoria categoria = compra.getCategoria();
+            if (categoria != null) {
+                Categoria.TipoCategoria tipo = categoria.getTipo();
+                gastosPorTipo.put(
+                        tipo,
+                        gastosPorTipo.get(tipo).add(compra.getValor())
                 );
             }
         }
@@ -484,7 +549,12 @@ public class DashboardService {
                     .map(Fatura::getValorTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
-            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas);
+            // Busca despesas do mês (compras em débito)
+            BigDecimal despesasComprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMes, fimMes).stream()
+                    .map(CompraDebito::getValor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas).add(despesasComprasDebito);
             
             // Cria DTO para o mês
             result.add(new MonthlyExpenseDTO(
@@ -528,7 +598,12 @@ public class DashboardService {
                     .map(Fatura::getValorTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
-            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas);
+            // Busca despesas do mês (compras em débito)
+            BigDecimal despesasComprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMes, fimMes).stream()
+                    .map(CompraDebito::getValor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal despesasTotal = despesasFixas.add(despesasFaturas).add(despesasComprasDebito);
             
             // Cria DTO para o mês
             result.add(new MonthlyExpenseDTO(
@@ -581,8 +656,12 @@ public class DashboardService {
         BigDecimal despesasFaturasAtual = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual).stream()
                 .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal despesasComprasDebitoAtual = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual).stream()
+                .map(CompraDebito::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
-        BigDecimal despesasAtual = despesasFixasAtual.add(despesasFaturasAtual);
+        BigDecimal despesasAtual = despesasFixasAtual.add(despesasFaturasAtual).add(despesasComprasDebitoAtual);
         
         // Calcula dados do mês anterior
         BigDecimal receitasAnterior = proventoRepository.findByDataBetween(inicioMesAnterior, fimMesAnterior).stream()
@@ -596,8 +675,12 @@ public class DashboardService {
         BigDecimal despesasFaturasAnterior = faturaRepository.findByDataVencimentoBetween(inicioMesAnterior, fimMesAnterior).stream()
                 .map(Fatura::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal despesasComprasDebitoAnterior = compraDebitoRepository.findByDataCompraBetween(inicioMesAnterior, fimMesAnterior).stream()
+                .map(CompraDebito::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
-        BigDecimal despesasAnterior = despesasFixasAnterior.add(despesasFaturasAnterior);
+        BigDecimal despesasAnterior = despesasFixasAnterior.add(despesasFaturasAnterior).add(despesasComprasDebitoAnterior);
         BigDecimal saldoAnterior = receitasAnterior.subtract(despesasAnterior);
         
         // Cria variações
