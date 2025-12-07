@@ -3,6 +3,42 @@
 
 ## [Unreleased]
 
+## [1.15.0] - 2025-12-07
+
+### Adicionado
+
+- **Funcionalidade de Compras em Débito**:
+  - Nova entidade `CompraDebito` para gerenciar compras que debitam imediatamente da conta
+  - Controller REST `CompraDebitoController` com endpoints completos:
+    - `POST /api/compras/debito` - Criar compra e debitar automaticamente
+    - `GET /api/compras/debito` - Listar compras com paginação e filtros por mês/ano
+    - `GET /api/compras/debito/{id}` - Buscar compra por ID
+    - `PUT /api/compras/debito/{id}` - Atualizar compra (restrições aplicadas)
+    - `DELETE /api/compras/debito/{id}` - Excluir compra
+    - `GET /api/compras/debito/categoria/{categoriaId}` - Listar por categoria
+    - `GET /api/compras/debito/total` - Calcular total por período
+  - Service `CompraDebitoService` com lógica de negócio:
+    - Validação de saldo antes de debitar
+    - Débito automático da conta vinculada
+    - Criação automática de transação ao registrar compra
+    - Restrição de edição (não permite alterar valor, conta ou data após criação)
+  - Repository `CompraDebitoRepository` com queries customizadas:
+    - Busca por categoria
+    - Busca por período de datas
+    - Busca por mês e ano com paginação
+    - Cálculo de total por período
+  - DTO `CompraDebitoDTO` com validações Bean Validation
+  - Migration `V24__create_table_compra_debito.sql` para PostgreSQL:
+    - Tabela `compra_debito` com chaves estrangeiras para categoria e conta
+    - Coluna `compra_debito_id` em `anexo` para suporte a comprovantes
+
+### Melhorado
+
+- Entity `Anexo` atualizada com relacionamento para `CompraDebito`
+- Suporte a anexos/comprovantes para compras em débito
+- Nomenclatura consistente usando snake_case no banco de dados
+- Validação de saldo insuficiente antes de realizar compras
+
 ## [1.14.0] - 2025-12-07
 
 ### Adicionado

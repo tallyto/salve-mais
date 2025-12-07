@@ -31,6 +31,11 @@ public class Anexo {
     @JsonBackReference
     private ContaFixa contaFixa;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "compra_debito_id")
+    @JsonBackReference
+    private CompraDebito compraDebito;
+    
     @PrePersist
     public void prePersist() {
         this.dataUpload = LocalDateTime.now();
