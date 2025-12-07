@@ -34,6 +34,15 @@
 
 ### Melhorado
 
+- **Dashboard e Relatórios integrados com Compras em Débito**:
+  - `DashboardService` atualizado para incluir compras em débito em todos os cálculos:
+    - `getSummary()` - Inclui compras débito nas despesas do mês atual e anterior
+    - `getExpensesByCategory()` - Agrupa compras débito por categoria no gráfico de pizza
+    - `getBudgetRule()` - Inclui compras débito na análise da regra 50/30/20
+    - `getMonthlyExpenseTrend()` - Adiciona compras débito na tendência mensal
+    - `getMonthlyExpenseTrendByYear()` - Inclui compras débito por mês do ano
+    - `getVariationData()` - Compara compras débito entre mês atual e anterior
+  - Gráficos e relatórios refletem automaticamente as compras em débito
 - Entity `Anexo` atualizada com relacionamento para `CompraDebito`
 - Suporte a anexos/comprovantes para compras em débito
 - Nomenclatura consistente usando snake_case no banco de dados
