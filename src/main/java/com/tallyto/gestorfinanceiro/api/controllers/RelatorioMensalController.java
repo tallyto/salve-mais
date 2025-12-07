@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
+import com.tallyto.gestorfinanceiro.api.dto.ComparativoMensalDTO;
 import com.tallyto.gestorfinanceiro.api.dto.RelatorioMensalDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.RelatorioMensalService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -80,6 +82,59 @@ public class RelatorioMensalController {
                 relatorioMensalService.obterContasFixasVencidas(dataReferencia);
         
         return ResponseEntity.ok(contasVencidas);
+    }
+
+    @Operation(
+            summary = "Comparar dois meses",
+            description = "Gera um comparativo detalhado entre dois meses, mostrando variações por categoria e destaques"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comparativo gerado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
+    })
+    @GetMapping("/comparativo/{anoAnterior}/{mesAnterior}/{anoAtual}/{mesAtual}")
+    public ResponseEntity<ComparativoMensalDTO> gerarComparativo(
+            @Parameter(description = "Ano do mês anterior (ex: 2024)", example = "2024")
+            @PathVariable int anoAnterior,
+            
+            @Parameter(description = "Mês anterior (1-12)", example = "11")
+            @PathVariable int mesAnterior,
+            
+            @Parameter(description = "Ano do mês atual (ex: 2024)", example = "2024")
+            @PathVariable int anoAtual,
+            
+            @Parameter(description = "Mês atual (1-12)", example = "12")
+            @PathVariable int mesAtual
+    ) {
+        if (mesAnterior < 1 || mesAnterior > 12 || mesAtual < 1 || mesAtual > 12) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        ComparativoMensalDTO comparativo = relatorioMensalService.gerarComparativoMensal(
+            anoAnterior, mesAnterior, anoAtual, mesAtual
+        );
+        
+        return ResponseEntity.ok(comparativo);
+    }
+
+    @Operation(
+            summary = "Comparar mês atual com anterior",
+            description = "Gera um comparativo entre o mês atual e o mês anterior automaticamente"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comparativo gerado com sucesso")
+    })
+    @GetMapping("/comparativo/atual")
+    public ResponseEntity<ComparativoMensalDTO> gerarComparativoAtual() {
+        YearMonth mesAtual = YearMonth.now();
+        YearMonth mesAnterior = mesAtual.minusMonths(1);
+        
+        ComparativoMensalDTO comparativo = relatorioMensalService.gerarComparativoMensal(
+            mesAnterior.getYear(), mesAnterior.getMonthValue(),
+            mesAtual.getYear(), mesAtual.getMonthValue()
+        );
+        
+        return ResponseEntity.ok(comparativo);
     }
 
    
