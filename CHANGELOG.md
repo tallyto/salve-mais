@@ -3,6 +3,75 @@
 
 ## [Unreleased]
 
+## [1.16.0] - 2025-12-07
+
+### Adicionado
+
+- **Módulo de Planejamento Financeiro**:
+  - Entidade `Meta` para gerenciamento de metas financeiras:
+    - Campos: nome, descrição, valorAlvo, valorAtual, dataAlvo, categoria
+    - Ícone e cor personalizáveis
+    - Cálculo automático de percentual concluído e dias restantes
+    - Status: EM_ANDAMENTO, CONCLUIDA, PAUSADA, CANCELADA
+  
+  - Entidade `PlanoCompra` para planejamento de compras:
+    - Tipos de compra: A_VISTA, PARCELADO_SEM_JUROS, PARCELADO_COM_JUROS, FINANCIAMENTO
+    - Campo `valorEconomizado` para controle de progresso
+    - Cálculo automático de parcelas usando fórmula Price
+    - Cálculo de valor final, juros total e percentual economizado
+    - Sistema de prioridades e status
+  
+  - Entidade `PlanoAposentadoria` para planejamento de aposentadoria:
+    - Dados pessoais: idade atual, idade de aposentadoria, expectativa de vida
+    - Dados financeiros: patrimônio atual, contribuição mensal, renda desejada
+    - Parâmetros: taxa de retorno anual, inflação estimada
+    - Cálculos de projeções e viabilidade
+  
+  - Controllers REST completos:
+    - `MetaController` - CRUD + atualização de progresso
+    - `PlanoCompraController` - CRUD com filtros por status
+    - `PlanoAposentadoriaController` - CRUD (singleton por usuário)
+  
+  - Services com lógica de negócio:
+    - `MetaService` - Gerenciamento e cálculos de metas
+    - `PlanoCompraService` - Cálculos financeiros de compras
+    - `PlanoAposentadoriaService` - Gestão de plano de aposentadoria
+  
+  - Repositories com queries otimizadas:
+    - `MetaRepository` - Ordenação por data alvo e status
+    - `PlanoCompraRepository` - Ordenação por prioridade e data
+    - `PlanoAposentadoriaRepository` - Busca por usuário
+
+- **Migrations de Banco de Dados**:
+  - V25: Criação de tabelas `metas`, `planos_compra`, `plano_aposentadoria`
+  - V26: Adição de coluna `valor_economizado` em `planos_compra`
+
+- **DTOs com Validações**:
+  - `MetaDTO` - Validações de campos obrigatórios e limites
+  - `MetaAtualizarProgressoDTO` - Para atualizações incrementais
+  - `PlanoCompraDTO` - Validações de valores e percentuais
+  - `PlanoAposentadoriaDTO` - Validações de idades e valores
+
+### Removido
+
+- **Multi-tenancy Simplificado**:
+  - Removida entidade `FundoEmergencia` (funcionalidade descontinuada)
+  - Removido campo `tenantId` das entidades de planejamento financeiro
+  - Simplificação da arquitetura para melhor manutenção
+
+### Melhorado
+
+- **Cálculos Financeiros**:
+  - Método `calcularParcela()` em PlanoCompra usando fórmula Price
+  - Método `calcularPercentualEconomizado()` para acompanhamento de progresso
+  - Método `calcularValorFinal()` considerando entrada e parcelas
+  - Método `calcularJurosTotal()` para transparência financeira
+
+### Corrigido
+
+- Alinhamento de nomenclatura de campos entre frontend e backend
+- Validações de dados em todos os DTOs de planejamento
+
 ## [1.15.0] - 2025-12-07
 
 ### Adicionado
