@@ -12,6 +12,7 @@ public record RelatorioMensalDTO(
         List<ItemReceitasPendentesDTO> receitasPendentes,
         List<ItemCartaoDTO> cartoes,
         List<ItemGastoFixoDTO> gastosFixos,
+        List<ItemCompraDebitoDTO> comprasDebito,
         List<ItemOutrasDescricaoDTO> outrasDespesas,
         BigDecimal saldoFinal,
         BigDecimal totalDividas
@@ -22,6 +23,7 @@ public record RelatorioMensalDTO(
             BigDecimal totalReceitasPendentes,
             BigDecimal totalCartoes,
             BigDecimal totalGastosFixos,
+            BigDecimal totalComprasDebito,
             BigDecimal totalOutrasDespesas,
             BigDecimal saldoFinal,
             BigDecimal totalDividas
@@ -67,6 +69,15 @@ public record RelatorioMensalDTO(
             LocalDate vencimento,
             String categoria,
             boolean pago
+    ) {}
+    
+    public record ItemCompraDebitoDTO(
+            Long id,
+            String descricao,
+            BigDecimal valor,
+            LocalDate dataCompra,
+            String categoria,
+            String conta
     ) {}
     
     public record ItemOutrasDescricaoDTO(

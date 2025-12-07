@@ -26,6 +26,9 @@ public class RelatorioMensalService {
     @Autowired
     private FaturaRepository faturaRepository;
 
+    @Autowired
+    private CompraDebitoRepository compraDebitoRepository;
+
     /**
      * Gera um relatório mensal completo baseado no mês/ano fornecidos
      * @param ano Ano do relatório
@@ -91,7 +94,20 @@ public class RelatorioMensalService {
                 })
                 .collect(Collectors.toList());
 
-        // 5. Calcular totais
+        // 5. Buscar compras em débito do mês
+        List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMes, fimMes);
+        List<RelatorioMensalDTO.ItemCompraDebitoDTO> comprasDebitoDTO = comprasDebito.stream()
+                .map(compra -> new RelatorioMensalDTO.ItemCompraDebitoDTO(
+                        compra.getId(),
+                        compra.getNome(),
+                        compra.getValor(),
+                        compra.getDataCompra(),
+                        compra.getCategoria() != null ? compra.getCategoria().getNome() : "Categoria não informada",
+                        compra.getConta() != null ? compra.getConta().getTitular() : "Conta não informada"
+                ))
+                .collect(Collectors.toList());
+
+        // 6. Calcular totais
         BigDecimal totalProventos = proventosDTO.stream()
                 .map(RelatorioMensalDTO.ItemProventoDTO::valor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -104,25 +120,30 @@ public class RelatorioMensalService {
                 .map(RelatorioMensalDTO.ItemGastoFixoDTO::valor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 6. Calcular saldo final e dívidas (sem outras despesas)
-        BigDecimal totalDespesas = totalCartoes.add(totalGastosFixos);
+        BigDecimal totalComprasDebito = comprasDebitoDTO.stream()
+                .map(RelatorioMensalDTO.ItemCompraDebitoDTO::valor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 7. Calcular saldo final e dívidas (sem outras despesas)
+        BigDecimal totalDespesas = totalCartoes.add(totalGastosFixos).add(totalComprasDebito);
         BigDecimal saldoFinal = totalProventos.subtract(totalDespesas);
 
-        // 7. Criar resumo financeiro
+        // 8. Criar resumo financeiro
         RelatorioMensalDTO.ResumoFinanceiroDTO resumoFinanceiro = new RelatorioMensalDTO.ResumoFinanceiroDTO(
                 totalProventos,
                 BigDecimal.ZERO, // Receitas pendentes - pode ser implementado futuramente
                 totalCartoes,
                 totalGastosFixos,
+                totalComprasDebito,
                 BigDecimal.ZERO, // Outras despesas removidas
                 saldoFinal,
                 totalDespesas
         );
 
-        // 8. Criar lista vazia para receitas pendentes (funcionalidade futura)
+        // 9. Criar lista vazia para receitas pendentes (funcionalidade futura)
         List<RelatorioMensalDTO.ItemReceitasPendentesDTO> receitasPendentes = List.of();
 
-        // 9. Criar lista vazia para outras despesas (removida esta funcionalidade)
+        // 10. Criar lista vazia para outras despesas (removida esta funcionalidade)
         List<RelatorioMensalDTO.ItemOutrasDescricaoDTO> outrasDespesasDTO = List.of();
 
         return new RelatorioMensalDTO(
@@ -133,6 +154,7 @@ public class RelatorioMensalService {
                 receitasPendentes,
                 cartoesDTO,
                 gastosFixosDTO,
+                comprasDebitoDTO,
                 outrasDespesasDTO,
                 saldoFinal,
                 totalDespesas
