@@ -1,5 +1,5 @@
 # Dockerfile para aplicação Spring Boot
-FROM eclipse-temurin:17-jdk-alpine as build
+FROM eclipse-temurin:21-jdk-alpine as build
 
 # Instalar dependências necessárias
 RUN apk add --no-cache curl
@@ -23,7 +23,7 @@ COPY src ./src
 # Compilar aplicação
 RUN ./mvnw clean package -DskipTests --no-transfer-progress
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Configurar timezone para America/Sao_Paulo (horário de Brasília)
 RUN apk add --no-cache tzdata && \
