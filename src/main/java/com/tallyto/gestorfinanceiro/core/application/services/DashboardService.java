@@ -53,9 +53,6 @@ public class DashboardService {
     @Autowired
     private CompraDebitoRepository compraDebitoRepository;
 
-    @Autowired
-    private CompraDebitoRepository compraDebitoRepository;
-
     /**
      * Obtém o resumo financeiro para o dashboard
      * @param mes Mês para filtrar os dados (opcional)
@@ -268,18 +265,6 @@ public class DashboardService {
         }
 
         // Adiciona faturas do período
-        List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual);
-        for (CompraDebito compra : comprasDebito) {
-            Categoria categoria = compra.getCategoria();
-            if (categoria != null) {
-                gastosPorCategoria.put(
-                        categoria,
-                        gastosPorCategoria.getOrDefault(categoria, BigDecimal.ZERO).add(compra.getValor())
-                );
-            }
-        }
-
-        // Adiciona faturas do período
         List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
         for (Fatura fatura : faturas) {
             // Para faturas, vamos usar a categoria do cartão ou uma categoria padrão "Cartões"
@@ -375,19 +360,6 @@ public class DashboardService {
 
         // Adiciona compras em débito do período
         List<CompraDebito> comprasDebito = compraDebitoRepository.findByDataCompraBetween(inicioMesAtual, fimMesAtual);
-        for (CompraDebito compra : comprasDebito) {
-            Categoria categoria = compra.getCategoria();
-            if (categoria != null) {
-                Categoria.TipoCategoria tipo = categoria.getTipo();
-                gastosPorTipo.put(
-                        tipo,
-                        gastosPorTipo.get(tipo).add(compra.getValor())
-                );
-            }
-        }
-
-        // Adiciona faturas do período
-        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMesAtual, fimMesAtual);
         for (CompraDebito compra : comprasDebito) {
             Categoria categoria = compra.getCategoria();
             if (categoria != null) {

@@ -19,9 +19,6 @@ public class CompraDebitoService {
 
     @Autowired
     private ContaService contaService;
-
-    @Autowired
-    private CategoriaService categoriaService;
     
     @Autowired
     private TransacaoService transacaoService;

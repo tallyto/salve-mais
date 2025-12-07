@@ -34,9 +34,6 @@ class ComprovanteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @MockBean
     private ContaFixaService contaFixaService;
 
