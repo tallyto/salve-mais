@@ -3,6 +3,46 @@
 
 ## [Unreleased]
 
+## [1.14.0] - 2025-12-07
+
+### Adicionado
+
+- **Sistema de Notificações por Email**:
+  - Novo controller `NotificacaoEmailController` com endpoints REST:
+    - `POST /api/notificacoes-email` - Habilitar/atualizar configuração
+    - `GET /api/notificacoes-email` - Obter configuração do tenant
+    - `DELETE /api/notificacoes-email` - Desabilitar notificações
+    - `POST /api/notificacoes-email/testar` - Enviar email de teste
+  - Service `NotificacaoEmailSchedulerService` com scheduler automático:
+    - Execução a cada hora (cron: `0 0 * * * *`)
+    - Timezone configurado para America/Sao_Paulo
+    - Tolerância de 30 minutos para envio
+    - Suporte a emails de teste com notificações de exemplo
+  - Template HTML profissional para emails (`notificacao-diaria.html`):
+    - Design moderno com gradientes e badges
+    - Informações detalhadas por prioridade (Crítica, Alta, Média)
+    - Alerta destacado para notificações críticas
+    - Data atual e informação temporal (dias de atraso/vencimento)
+    - Footer com dicas e instruções
+  - Entity `NotificacaoEmail` para configuração por tenant
+  - Migration `V23__create_table_notificacao_email.sql`
+  - DTOs: `NotificacaoEmailRequestDTO` e `NotificacaoEmailResponseDTO`
+
+### Melhorado
+
+- Configuração de timezone global do Spring:
+  - `spring.jpa.properties.hibernate.jdbc.time_zone=America/Sao_Paulo`
+  - `spring.jackson.time-zone=America/Sao_Paulo`
+  - `spring.jackson.locale=pt-BR`
+- Sistema de multi-tenancy com busca de usuários otimizada
+- Tratamento de dependência circular com `@Lazy`
+- Logs informativos para debug de envio de emails
+
+### Documentação
+
+- Criado `AI_CODE_REVIEW_GUIDE.md` com guia completo para IA e code review
+- Removidos arquivos MD explicativos obsoletos
+
 ## [1.11.0] - 2025-11-24
 
 ### Adicionado

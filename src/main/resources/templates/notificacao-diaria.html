@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo Diário de Notificações</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #4CAF50;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: #4CAF50;
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            color: #666;
+            margin: 8px 0 0 0;
+            font-size: 14px;
+        }
+        .data-envio {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .resumo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .resumo h2 {
+            color: white;
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .resumo-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .resumo-item strong {
+            min-width: 180px;
+        }
+        .badge {
+            background-color: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .prioridade-section {
+            margin: 25px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .prioridade-section h3 {
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+        }
+        .critica {
+            background-color: #ffebee;
+            border-left: 4px solid #d32f2f;
+        }
+        .critica h3 {
+            color: #d32f2f;
+        }
+        .alta {
+            background-color: #fff3e0;
+            border-left: 4px solid #f57c00;
+        }
+        .alta h3 {
+            color: #f57c00;
+        }
+        .media {
+            background-color: #fffde7;
+            border-left: 4px solid #fbc02d;
+        }
+        .media h3 {
+            color: #fbc02d;
+        }
+        .notificacao-item {
+            padding: 12px;
+            margin: 8px 0;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .notificacao-titulo {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+        .notificacao-mensagem {
+            color: #666;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        .notificacao-detalhes {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+        .notificacao-detalhes span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .alerta-importante {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .alerta-importante strong {
+            color: #f57c00;
+        }
+        .footer {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+        }
+        .footer-botao {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .footer-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Salve Mais</h1>
+            <p>{{TENANT_NAME}}</p>
+        </div>
+
+        <div class="data-envio">
+            📅 Resumo do dia {{DATA_ATUAL}}
+        </div>
+
+        <div class="resumo">
+            <h2>📊 Resumo Geral</h2>
+            <div class="resumo-item">
+                <strong>Total de notificações:</strong> 
+                <span class="badge">{{TOTAL_NOTIFICACOES}}</span>
+            </div>
+            {{CONTAS_ATRASADAS}}
+            {{CONTAS_PROXIMAS}}
+            {{FATURAS_ATRASADAS}}
+            {{FATURAS_PROXIMAS}}
+        </div>
+
+        {{ALERTA_CRITICO}}
+
+        <h2 style="color: #333; margin-top: 30px;">📋 Detalhamento das Notificações</h2>
+        
+        {{NOTIFICACOES_CRITICAS}}
+        {{NOTIFICACOES_ALTAS}}
+        {{NOTIFICACOES_MEDIAS}}
+
+        <div class="footer">
+            <a href="#" class="footer-botao">🔗 Acessar o Sistema</a>
+            <p style="margin-top: 20px; color: #666;">
+                <strong>💡 Dica:</strong> Mantenha suas finanças organizadas pagando suas contas em dia!
+            </p>
+            <div class="footer-info">
+                <p>Este é um email automático enviado pelo sistema Salve Mais.</p>
+                <p>Você está recebendo este email porque habilitou as notificações diárias.</p>
+                <p>Para desabilitar, acesse Configurações → Notificações por Email no sistema.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
