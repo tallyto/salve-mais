@@ -160,8 +160,8 @@ public class ContaFixaService {
             ContaFixa contaFixa = new ContaFixa();
             
             // Define o nome com numeração das parcelas
-            String nomeComParcela = String.format("%s (%d/%d)", 
-                dto.nome(), i, dto.numeroParcelas());
+            String nomeComParcela = "%s (%d/%d)".formatted(
+                    dto.nome(), i, dto.numeroParcelas());
             
             contaFixa.setNome(nomeComParcela);
             contaFixa.setConta(conta);

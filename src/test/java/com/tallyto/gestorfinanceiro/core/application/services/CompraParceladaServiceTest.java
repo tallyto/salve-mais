@@ -105,7 +105,7 @@ class CompraParceladaServiceTest {
         assertEquals(4, resultado.getParcelas().size()); // Parcelas 2, 3, 4, 5
         
         // Verifica se as parcelas foram criadas corretamente
-        assertEquals(2, resultado.getParcelas().get(0).getNumeroParcela());
+        assertEquals(2, resultado.getParcelas().getFirst().getNumeroParcela());
         assertEquals(3, resultado.getParcelas().get(1).getNumeroParcela());
         assertEquals(4, resultado.getParcelas().get(2).getNumeroParcela());
         assertEquals(5, resultado.getParcelas().get(3).getNumeroParcela());

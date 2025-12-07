@@ -190,7 +190,7 @@ public class ContaFixaController {
             ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
             
             String filename = mes != null && ano != null 
-                ? String.format("debitos_em_conta_%02d_%d.xlsx", mes, ano)
+                ? "debitos_em_conta_%02d_%d.xlsx".formatted(mes, ano)
                 : "debitos_em_conta.xlsx";
             
             return ResponseEntity.ok()

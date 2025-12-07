@@ -85,8 +85,8 @@ public class NotificacaoService {
                             NotificacaoDTO.Prioridade.ALTA : NotificacaoDTO.Prioridade.MEDIA;
                     
                     String titulo = diasRestantes == 0 ? "Vence Hoje" : 
-                                  diasRestantes == 1 ? "Vence Amanhã" : 
-                                  String.format("Vence em %d dias", diasRestantes);
+                                  diasRestantes == 1 ? "Vence Amanhã" :
+                                          "Vence em %d dias".formatted(diasRestantes);
                     
                     return new NotificacaoDTO(
                             "CONTA_PROXIMA_VENCIMENTO",
@@ -152,8 +152,8 @@ public class NotificacaoService {
                             NotificacaoDTO.Prioridade.ALTA : NotificacaoDTO.Prioridade.MEDIA;
                     
                     String titulo = diasRestantes == 0 ? "Vence Hoje" : 
-                                  diasRestantes == 1 ? "Vence Amanhã" : 
-                                  String.format("Vence em %d dias", diasRestantes);
+                                  diasRestantes == 1 ? "Vence Amanhã" :
+                                          "Vence em %d dias".formatted(diasRestantes);
                     
                     return new NotificacaoDTO(
                             "FATURA_PROXIMA_VENCIMENTO",

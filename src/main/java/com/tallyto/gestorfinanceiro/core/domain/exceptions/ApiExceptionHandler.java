@@ -130,9 +130,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             if (tabelaReferenciada != null) {
                 // Mapeia nomes técnicos para nomes amigáveis
                 String entidadeAmigavel = mapearEntidade(tabelaReferenciada);
-                mensagemUsuario = String.format(
-                    "Não é possível excluir este registro pois está sendo utilizado em %s.", 
-                    entidadeAmigavel
+                mensagemUsuario = "Não é possível excluir este registro pois está sendo utilizado em %s.".formatted(
+                        entidadeAmigavel
                 );
             } else {
                 mensagemUsuario = "Não é possível excluir este registro pois está sendo utilizado em outro lugar do sistema.";
@@ -216,8 +215,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
                 String name = objectError.getObjectName();
 
-                if (objectError instanceof FieldError) {
-                    name = ((FieldError) objectError).getField();
+                if (objectError instanceof FieldError error) {
+                    name = error.getField();
                 }
 
                 return Problem.Object.builder()
@@ -248,10 +247,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(statusCode.value())
                 .message(MSG_ERRO_GENERICA_USUARIO_FINAL)
                 .build();
-        } else if (body instanceof String) {
+        } else if (body instanceof String string) {
             body = Problem.builder()
                 .timestamp(OffsetDateTime.now())
-                .title((String) body)
+                .title(string)
                 .status(statusCode.value())
                 .message(MSG_ERRO_GENERICA_USUARIO_FINAL)
                 .build();

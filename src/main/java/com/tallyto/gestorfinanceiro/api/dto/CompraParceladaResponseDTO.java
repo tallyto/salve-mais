@@ -30,7 +30,7 @@ public record CompraParceladaResponseDTO(
                 : List.of();
 
         int parcelasRestantes = compraParcelada.getTotalParcelas() - compraParcelada.getParcelaInicial() + 1;
-        BigDecimal valorParcela = !parcelasDTO.isEmpty() ? parcelasDTO.get(0).valor() : BigDecimal.ZERO;
+        BigDecimal valorParcela = !parcelasDTO.isEmpty() ? parcelasDTO.getFirst().valor() : BigDecimal.ZERO;
 
         return new CompraParceladaResponseDTO(
                 compraParcelada.getId(),
