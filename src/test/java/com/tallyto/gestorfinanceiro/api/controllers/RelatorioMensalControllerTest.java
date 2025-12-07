@@ -31,12 +31,13 @@ class RelatorioMensalControllerTest {
     private RelatorioMensalDTO sampleRelatorio() {
         RelatorioMensalDTO.ResumoFinanceiroDTO resumo = new RelatorioMensalDTO.ResumoFinanceiroDTO(
                 new BigDecimal("1000.00"), new BigDecimal("0.00"), new BigDecimal("300.00"),
-                new BigDecimal("200.00"), new BigDecimal("100.00"), new BigDecimal("400.00"), new BigDecimal("0.00")
+                new BigDecimal("200.00"), new BigDecimal("100.00"), new BigDecimal("400.00"), new BigDecimal("400.00"), new BigDecimal("0.00")
         );
         return new RelatorioMensalDTO(
                 "2025-09",
                 LocalDate.of(2025, 9, 1),
                 resumo,
+                List.of(),
                 List.of(),
                 List.of(),
                 List.of(),
