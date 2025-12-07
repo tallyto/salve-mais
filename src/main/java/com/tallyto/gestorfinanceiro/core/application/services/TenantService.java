@@ -90,7 +90,7 @@ public class TenantService {
     }
     
     public boolean verificarDominioDisponivel(String dominio) {
-        return !tenantRepository.findByDomain(dominio).isPresent();
+        return tenantRepository.findByDomain(dominio).isEmpty();
     }
     
     // Novos métodos para substituir o acesso direto ao repository
@@ -336,9 +336,8 @@ public class TenantService {
         try (Connection connection = dataSource.getConnection();
              var statement = connection.createStatement()) {
             
-            String query = String.format(
-                "SELECT id, email, nome, criado_em, ultimo_acesso FROM \"%s\".usuario ORDER BY criado_em DESC", 
-                schema
+            String query = "SELECT id, email, nome, criado_em, ultimo_acesso FROM \"%s\".usuario ORDER BY criado_em DESC".formatted(
+                    schema
             );
             
             try (var resultSet = statement.executeQuery(query)) {

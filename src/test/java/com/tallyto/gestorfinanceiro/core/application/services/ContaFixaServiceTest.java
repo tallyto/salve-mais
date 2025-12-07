@@ -77,7 +77,7 @@ class ContaFixaServiceTest {
         assertEquals(12, resultado.size());
         
         // Verificar primeira parcela
-        ContaFixa primeiraParcela = resultado.get(0);
+        ContaFixa primeiraParcela = resultado.getFirst();
         assertEquals("Aluguel (1/12)", primeiraParcela.getNome());
         assertEquals(LocalDate.of(2025, 1, 1), primeiraParcela.getVencimento());
         assertEquals(new BigDecimal("1200.00"), primeiraParcela.getValor());
@@ -128,7 +128,7 @@ class ContaFixaServiceTest {
         assertEquals(4, resultado.size());
         
         // Verificar datas trimestrais
-        assertEquals(LocalDate.of(2025, 3, 15), resultado.get(0).getVencimento());
+        assertEquals(LocalDate.of(2025, 3, 15), resultado.getFirst().getVencimento());
         assertEquals(LocalDate.of(2025, 6, 15), resultado.get(1).getVencimento());
         assertEquals(LocalDate.of(2025, 9, 15), resultado.get(2).getVencimento());
         assertEquals(LocalDate.of(2025, 12, 15), resultado.get(3).getVencimento());
@@ -165,12 +165,12 @@ class ContaFixaServiceTest {
         assertEquals(3, resultado.size());
         
         // Verificar datas anuais
-        assertEquals(LocalDate.of(2025, 1, 31), resultado.get(0).getVencimento());
+        assertEquals(LocalDate.of(2025, 1, 31), resultado.getFirst().getVencimento());
         assertEquals(LocalDate.of(2026, 1, 31), resultado.get(1).getVencimento());
         assertEquals(LocalDate.of(2027, 1, 31), resultado.get(2).getVencimento());
 
         // Verificar nomes
-        assertEquals("IPVA (1/3)", resultado.get(0).getNome());
+        assertEquals("IPVA (1/3)", resultado.getFirst().getNome());
         assertEquals("IPVA (2/3)", resultado.get(1).getNome());
         assertEquals("IPVA (3/3)", resultado.get(2).getNome());
 

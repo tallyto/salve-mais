@@ -22,6 +22,7 @@ import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.VariationDataDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.DashboardService;
+import com.tallyto.gestorfinanceiro.core.application.services.ExportService;
 import com.tallyto.gestorfinanceiro.testsupport.ControllerSliceTest;
 
 @ControllerSliceTest(controllers = DashboardController.class)
@@ -32,6 +33,9 @@ class DashboardControllerTest {
 
     @MockBean
     private DashboardService dashboardService;
+
+    @MockBean
+    private ExportService exportService;
 
     @Test
     @DisplayName("GET /api/dashboard/summary retorna resumo do dashboard")

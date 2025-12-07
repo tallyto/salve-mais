@@ -7,7 +7,7 @@ public class CartaoCreditoException extends RuntimeException {
 
 
     public CartaoCreditoException(Long  id) {
-        super(String.format("Cartão de crédito com id %d não encontrado", id));
+        super("Cartão de crédito com id %d não encontrado".formatted(id));
     }
 
 }

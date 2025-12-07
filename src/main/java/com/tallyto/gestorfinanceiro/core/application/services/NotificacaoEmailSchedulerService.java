@@ -338,18 +338,18 @@ public class NotificacaoEmailSchedulerService {
                 .count();
         
         sb.append("=== RESUMO ===\n");
-        sb.append(String.format("Total de notificações: %d\n", notificacoes.size()));
+        sb.append("Total de notificações: %d\n".formatted(notificacoes.size()));
         if (contasAtrasadas > 0) {
-            sb.append(String.format("Contas atrasadas: %d\n", contasAtrasadas));
+            sb.append("Contas atrasadas: %d\n".formatted(contasAtrasadas));
         }
         if (contasProximasVencimento > 0) {
-            sb.append(String.format("Contas próximas do vencimento: %d\n", contasProximasVencimento));
+            sb.append("Contas próximas do vencimento: %d\n".formatted(contasProximasVencimento));
         }
         if (faturasAtrasadas > 0) {
-            sb.append(String.format("Faturas atrasadas: %d\n", faturasAtrasadas));
+            sb.append("Faturas atrasadas: %d\n".formatted(faturasAtrasadas));
         }
         if (faturasProximasVencimento > 0) {
-            sb.append(String.format("Faturas próximas do vencimento: %d\n", faturasProximasVencimento));
+            sb.append("Faturas próximas do vencimento: %d\n".formatted(faturasProximasVencimento));
         }
         
         sb.append("\n=== DETALHES ===\n\n");
@@ -368,7 +368,7 @@ public class NotificacaoEmailSchedulerService {
         if (!notificacoesCriticas.isEmpty()) {
             sb.append("⚠️ CRÍTICAS:\n");
             for (NotificacaoDTO notif : notificacoesCriticas) {
-                sb.append(String.format("  - %s: %s\n", notif.titulo(), notif.mensagem()));
+                sb.append("  - %s: %s\n".formatted(notif.titulo(), notif.mensagem()));
             }
             sb.append("\n");
         }
@@ -376,7 +376,7 @@ public class NotificacaoEmailSchedulerService {
         if (!notificacoesAltas.isEmpty()) {
             sb.append("🔴 ALTA PRIORIDADE:\n");
             for (NotificacaoDTO notif : notificacoesAltas) {
-                sb.append(String.format("  - %s: %s\n", notif.titulo(), notif.mensagem()));
+                sb.append("  - %s: %s\n".formatted(notif.titulo(), notif.mensagem()));
             }
             sb.append("\n");
         }
@@ -384,7 +384,7 @@ public class NotificacaoEmailSchedulerService {
         if (!notificacoesMedias.isEmpty()) {
             sb.append("🟡 MÉDIA PRIORIDADE:\n");
             for (NotificacaoDTO notif : notificacoesMedias) {
-                sb.append(String.format("  - %s: %s\n", notif.titulo(), notif.mensagem()));
+                sb.append("  - %s: %s\n".formatted(notif.titulo(), notif.mensagem()));
             }
             sb.append("\n");
         }
