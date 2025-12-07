@@ -24,8 +24,15 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests --no-transfer-progress
 
 FROM eclipse-temurin:17-jre-alpine
+
+# Configurar timezone para America/Sao_Paulo (horário de Brasília)
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && \
+    echo "America/Sao_Paulo" > /etc/timezone && \
+    apk del tzdata
+
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 3001
-ENTRYPOINT ["java", "-Xms256m", "-Xmx1024m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx1024m", "-Duser.timezone=America/Sao_Paulo", "-jar", "app.jar"]
