@@ -3,6 +3,30 @@
 
 ## [Unreleased]
 
+## [1.17.0] - 2025-12-11
+
+### Adicionado
+
+- **Melhorias em Compras Parceladas**:
+  - Endpoint `GET /api/compras-parceladas` agora aceita parâmetros de filtro:
+    - `cartaoId` - Filtra por cartão específico
+    - `categoriaId` - Filtra por categoria específica
+    - `apenasPendentes` - Filtra apenas compras com parcelas pendentes
+  - Ordenação automática por data mais recente (dataCompra desc)
+  - Queries otimizadas no repository:
+    - `findAllByOrderByDataCompraDesc()` - Lista ordenada por data
+    - `findComprasComParcelasPendentes()` - Busca compras com parcelas não pagas
+    - `findComprasComParcelasPendentesPorCartao()` - Filtro combinado cartão + pendentes
+    - `findComprasComParcelasPendentesPorCategoria()` - Filtro combinado categoria + pendentes
+  - Service `listarComprasComFiltros()` aplica filtros no banco de dados para melhor performance
+
+### Melhorado
+
+- **Performance**:
+  - Filtros de compras parceladas processados no banco de dados
+  - Redução de tráfego de rede com paginação eficiente
+  - Queries otimizadas com JPA
+
 ## [1.16.0] - 2025-12-07
 
 ### Adicionado

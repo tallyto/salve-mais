@@ -133,6 +133,49 @@ public class CompraParceladaService {
     public Page<CompraParcelada> listarComprasParceladas(Pageable pageable) {
         return compraParceladaRepository.findAll(pageable);
     }
+    
+    /**
+     * Lista todas as compras parceladas ordenadas por data mais recente
+     */
+    public Page<CompraParcelada> listarComprasParceladasOrdenadas(Pageable pageable) {
+        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+    }
+    
+    /**
+     * Lista compras parceladas com parcelas pendentes
+     */
+    public Page<CompraParcelada> listarComprasComParcelasPendentes(Pageable pageable) {
+        return compraParceladaRepository.findComprasComParcelasPendentes(pageable);
+    }
+    
+    /**
+     * Lista compras parceladas com filtros
+     */
+    public Page<CompraParcelada> listarComprasComFiltros(
+            Long cartaoId, 
+            Long categoriaId, 
+            Boolean apenasPendentes,
+            Pageable pageable) {
+        
+        // Se tem filtro de pendentes
+        if (apenasPendentes != null && apenasPendentes) {
+            if (cartaoId != null) {
+                return compraParceladaRepository.findComprasComParcelasPendentesPorCartao(cartaoId, pageable);
+            } else if (categoriaId != null) {
+                return compraParceladaRepository.findComprasComParcelasPendentesPorCategoria(categoriaId, pageable);
+            } else {
+                return compraParceladaRepository.findComprasComParcelasPendentes(pageable);
+            }
+        }
+        
+        // Sem filtro de pendentes
+        if (cartaoId != null) {
+            return compraParceladaRepository.findByCartaoCreditoId(cartaoId, pageable);
+        }
+        
+        // Lista todas ordenadas por data
+        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+    }
 
     /**
      * Busca compras parceladas por cartão

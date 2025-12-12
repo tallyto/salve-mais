@@ -50,11 +50,20 @@ public class CompraParceladaController {
     }
 
     /**
-     * Lista todas as compras parceladas com paginação
+     * Lista todas as compras parceladas com paginação e filtros
+     * @param cartaoId ID do cartão (opcional)
+     * @param categoriaId ID da categoria (opcional)
+     * @param apenasPendentes Filtrar apenas compras com parcelas pendentes (opcional)
+     * @param pageable Configurações de paginação
      */
     @GetMapping
-    public ResponseEntity<Page<CompraParceladaResponseDTO>> listarComprasParceladas(Pageable pageable) {
-        Page<CompraParcelada> compras = compraParceladaService.listarComprasParceladas(pageable);
+    public ResponseEntity<Page<CompraParceladaResponseDTO>> listarComprasParceladas(
+            @RequestParam(required = false) Long cartaoId,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Boolean apenasPendentes,
+            Pageable pageable) {
+        Page<CompraParcelada> compras = compraParceladaService.listarComprasComFiltros(
+            cartaoId, categoriaId, apenasPendentes, pageable);
         Page<CompraParceladaResponseDTO> response = compras.map(CompraParceladaResponseDTO::fromEntity);
         return ResponseEntity.ok(response);
     }
