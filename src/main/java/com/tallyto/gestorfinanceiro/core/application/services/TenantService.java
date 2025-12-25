@@ -446,7 +446,7 @@ public class TenantService {
         Tenant tenant = tenantRepository.findByCreateUserToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou expirado"));
         
-        // Verificar se o token expirou
+        // Verificar se o token expirou (válido por 24 horas)
         if (tenant.getCreateUserTokenExpiry() == null || 
             tenant.getCreateUserTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Token expirado. Solicite um novo link através do suporte.");
@@ -468,6 +468,40 @@ public class TenantService {
         tenant.setCreateUserToken(null);
         tenant.setCreateUserTokenExpiry(null);
         tenantRepository.save(tenant);
+    }
+    
+    public void reenviarTokenCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Verificar se o tenant está ativo
+        if (!tenant.getActive()) {
+            throw new BadRequestException("O tenant precisa estar ativo para receber o lembrete");
+        }
+        
+        // Verificar se o tenant já tem usuários (somente se o schema existir)
+        if (schemaExists(tenant.getDomain())) {
+            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
+            if (!usuarios.isEmpty()) {
+                throw new BadRequestException("Este tenant já possui usuários cadastrados");
+            }
+        }
+        
+        // Gerar novo token (válido por 24 horas)
+        String token = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(token);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        tenantRepository.save(tenant);
+        
+        // Construir link com token
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + token;
+        
+        // Enviar email de lembrete
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
     }
 
     public void toggleTenantStatus(UUID tenantId) {

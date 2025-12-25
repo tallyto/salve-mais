@@ -176,6 +176,17 @@ public class TenantController {
         return ResponseEntity.ok(response);
     }
     
+    @PostMapping("/{id}/reenviar-token-usuario")
+    @Operation(summary = "Reenviar token para criação de usuário (caso tenha expirado)")
+    public ResponseEntity<Map<String, String>> reenviarTokenCriarUsuario(@PathVariable UUID id) {
+        tenantService.reenviarTokenCriarUsuario(id);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Novo token gerado e email enviado com sucesso!");
+        
+        return ResponseEntity.ok(response);
+    }
+    
     @GetMapping("/verificar-token-usuario")
     @Operation(summary = "Verificar token para criação de usuário")
     public ResponseEntity<TenantResponseDTO> verificarTokenCriarUsuario(@RequestParam String token) {

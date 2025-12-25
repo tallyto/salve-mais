@@ -15,6 +15,17 @@ import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository;
 @Service
 public class UsuarioService {
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
+    
+    @Autowired
+    private TenantService tenantService;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @Transactional
     public void atualizarUltimoAcesso(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
@@ -22,14 +33,7 @@ public class UsuarioService {
         usuario.setUltimoAcesso(java.time.LocalDateTime.now());
         usuarioRepository.save(usuario);
     }
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private TenantRepository tenantRepository;
-
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
+    
     @Transactional
     public Usuario cadastrar(UsuarioCadastroDTO dto) {
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
@@ -47,6 +51,9 @@ public class UsuarioService {
             Tenant tenant = tenantRepository.getTenantByDomain(tenantDomain);
             if (tenant != null) {
                 usuario.setTenantId(tenant.getId());
+                
+                // Invalidar token de criação após criar o primeiro usuário
+                tenantService.invalidarTokenCriarUsuario(tenant.getId());
             }
         }
         
