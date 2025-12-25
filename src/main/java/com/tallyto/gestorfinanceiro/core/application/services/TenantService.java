@@ -558,26 +558,44 @@ public class TenantService {
 
     public java.util.Map<String, Object> exportarDadosTenant(UUID tenantId) {
         Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
         
-        try {
-            java.util.Map<String, Object> dados = new java.util.HashMap<>();
-            
-            // Informações do tenant
-            dados.put("tenant", tenant);
-            
-            // Usuários
-            List<Usuario> usuarios = usuarioRepository.findAll();
-            dados.put("usuarios", usuarios);
-            
-            dados.put("totalUsuarios", usuarios.size());
-            dados.put("usuariosAtivos", usuarios.stream().filter(Usuario::getAtivo).count());
-            dados.put("dataExportacao", LocalDateTime.now());
-            
-            return dados;
-        } finally {
-            TenantContext.clear();
-        }
+        java.util.Map<String, Object> dados = new java.util.HashMap<>();
+        
+        // Informações do tenant (sem campos sensíveis)
+        java.util.Map<String, Object> tenantInfo = new java.util.HashMap<>();
+        tenantInfo.put("id", tenant.getId());
+        tenantInfo.put("name", tenant.getName());
+        tenantInfo.put("domain", tenant.getDomain());
+        tenantInfo.put("email", tenant.getEmail());
+        tenantInfo.put("phoneNumber", tenant.getPhoneNumber());
+        tenantInfo.put("active", tenant.getActive());
+        tenantInfo.put("subscriptionPlan", tenant.getSubscriptionPlan());
+        tenantInfo.put("createdAt", tenant.getCreatedAt());
+        dados.put("tenant", tenantInfo);
+        
+        // Buscar usuários do tenant usando tenantId ao invés de contexto
+        List<Usuario> usuarios = usuarioRepository.findByTenantId(tenant.getId());
+        
+        // Usuários sem senhas
+        List<java.util.Map<String, Object>> usuariosSemSenha = usuarios.stream()
+            .map(u -> {
+                java.util.Map<String, Object> usuarioMap = new java.util.HashMap<>();
+                usuarioMap.put("id", u.getId());
+                usuarioMap.put("nome", u.getNome());
+                usuarioMap.put("email", u.getEmail());
+                usuarioMap.put("ativo", u.getAtivo());
+                usuarioMap.put("criadoEm", u.getCriadoEm());
+                usuarioMap.put("ultimoAcesso", u.getUltimoAcesso());
+                return usuarioMap;
+            })
+            .collect(java.util.stream.Collectors.toList());
+        
+        dados.put("usuarios", usuariosSemSenha);
+        dados.put("totalUsuarios", usuarios.size());
+        dados.put("usuariosAtivos", usuarios.stream().filter(Usuario::getAtivo).count());
+        dados.put("dataExportacao", LocalDateTime.now());
+        
+        return dados;
     }
 }
 
