@@ -87,7 +87,23 @@ public class TenantService {
         tenant.setActive(true);
         tenant.setConfirmationToken(null); // Invalidar o token após o uso
         
-        return tenantRepository.save(tenant);
+        // Gerar token para criação de usuário (válido por 24 horas)
+        String createUserToken = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(createUserToken);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        
+        tenant = tenantRepository.save(tenant);
+        
+        // Enviar email de lembrete para criar o primeiro usuário
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + createUserToken;
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
+        
+        return tenant;
     }
     
     public boolean verificarDominioDisponivel(String dominio) {
