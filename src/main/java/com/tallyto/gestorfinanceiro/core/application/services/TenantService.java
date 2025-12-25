@@ -63,11 +63,11 @@ public class TenantService {
         // Salvar o tenant
         tenant = tenantRepository.save(tenant);
         
-        // Enviar email de confirmação
+        // Enviar email de boas-vindas com link de ativação
         String link = confirmationUrl + "?token=" + token;
         emailService.enviarEmailHtml(
             tenant.getEmail(), 
-            "Confirme seu Tenant no Salve Mais", 
+            "Bem-vindo ao Salve Mais - Ative sua Conta", 
             "confirmacao-tenant.html",
             tenant.getName(),
             link
