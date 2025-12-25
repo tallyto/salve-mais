@@ -22,6 +22,8 @@ public interface TenantMapper {
     @Mapping(target = "customSmtpPassword", ignore = true) // Não permitir atualização via DTO simples
     @Mapping(target = "subscriptionStartDate", ignore = true) // Gerenciado internamente
     @Mapping(target = "subscriptionEndDate", ignore = true) // Gerenciado internamente
+    @Mapping(target = "createUserToken", ignore = true) // Gerenciado internamente
+    @Mapping(target = "createUserTokenExpiry", ignore = true) // Gerenciado internamente
     Tenant toEntity(TenantDTO tenantDTO);
 
     TenantResponseDTO toDTO(Tenant tenant);
