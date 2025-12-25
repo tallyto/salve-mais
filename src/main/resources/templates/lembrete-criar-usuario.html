@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete seu Cadastro - Salve Mais</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333333;
+        }
+        .message {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #555555;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .confirm-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .alternative-link {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .alternative-link p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #666666;
+        }
+        .alternative-link a {
+            color: #667eea;
+            word-break: break-all;
+            font-size: 13px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+        .info-box h3 {
+            margin: 0 0 15px 0;
+            color: #1976d2;
+            font-size: 18px;
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            margin-bottom: 10px;
+            color: #555555;
+        }
+        .warning {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            font-size: 14px;
+            color: #856404;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666666;
+            font-size: 14px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>💰 Salve Mais</h1>
+            <p>Seu Gestor Financeiro Pessoal</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Olá, <strong>{{TENANT_NAME}}</strong>! 👋
+            </div>
+            
+            <div class="message">
+                <p>Seu tenant foi criado e ativado com sucesso! 🎉</p>
+                
+                <p>Para começar a usar a plataforma <strong>Salve Mais</strong>, você precisa criar seu primeiro usuário administrativo. Este usuário terá acesso total às configurações e funcionalidades do sistema.</p>
+            </div>
+
+            <div class="info-box">
+                <h3>📋 O que você precisa fazer:</h3>
+                <ul>
+                    <li>Clique no botão abaixo para acessar o formulário de criação de usuário</li>
+                    <li>Preencha seus dados (nome, email e senha)</li>
+                    <li>Após criar o usuário, você poderá fazer login na plataforma</li>
+                </ul>
+            </div>
+
+            <div class="button-container">
+                <a href="{{CREATE_USER_LINK}}" class="confirm-button">
+                    Criar Meu Primeiro Usuário
+                </a>
+            </div>
+
+            <div class="alternative-link">
+                <p><strong>Ou copie e cole este link no seu navegador:</strong></p>
+                <a href="{{CREATE_USER_LINK}}">{{CREATE_USER_LINK}}</a>
+            </div>
+
+            <div class="warning">
+                <strong>⏰ Importante:</strong> Este link é válido por 24 horas. Após este período, você precisará solicitar um novo link através do suporte.
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="message">
+                <p><strong>Informações do seu Tenant:</strong></p>
+                <ul style="padding-left: 20px;">
+                    <li><strong>Nome:</strong> {{TENANT_NAME}}</li>
+                    <li><strong>Domínio:</strong> {{TENANT_DOMAIN}}</li>
+                </ul>
+                <p style="margin-top: 20px;">Lembre-se de usar o domínio <strong>{{TENANT_DOMAIN}}</strong> ao fazer login na plataforma.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Salve Mais - Gestão Financeira Inteligente</strong></p>
+            <p>Este é um email automático. Por favor, não responda.</p>
+            <p>
+                <a href="https://www.salvemais.com.br">www.salvemais.com.br</a>
+            </p>
+            <p style="margin-top: 20px; color: #999999; font-size: 12px;">
+                © 2024 Salve Mais. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

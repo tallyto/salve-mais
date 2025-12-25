@@ -164,4 +164,22 @@ public class TenantController {
         List<UsuarioTenantDTO> usuarios = tenantService.getUsuariosByTenant(id);
         return ResponseEntity.ok(usuarios);
     }
+    
+    @PostMapping("/{id}/enviar-lembrete-usuario")
+    @Operation(summary = "Enviar email lembrando o tenant de criar um usuário")
+    public ResponseEntity<Map<String, String>> enviarLembreteCriarUsuario(@PathVariable UUID id) {
+        tenantService.enviarLembreteCriarUsuario(id);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email de lembrete enviado com sucesso!");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/verificar-token-usuario")
+    @Operation(summary = "Verificar token para criação de usuário")
+    public ResponseEntity<TenantResponseDTO> verificarTokenCriarUsuario(@RequestParam String token) {
+        Tenant tenant = tenantService.verificarTokenCriarUsuario(token);
+        return ResponseEntity.ok(tenantMapper.toDTO(tenant));
+    }
 }

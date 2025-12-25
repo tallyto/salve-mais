@@ -98,4 +98,33 @@ public class EmailService {
             logger.info("Link de recuperação que seria enviado: {}", resetLink);
         }
     }
+    
+    public void enviarEmailLembreteCriarUsuario(String to, String tenantName, String tenantDomain, String createUserLink) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            // Ler template HTML
+            ClassPathResource resource = new ClassPathResource("templates/lembrete-criar-usuario.html");
+            String htmlTemplate = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+            
+            // Substituir placeholders
+            String htmlContent = htmlTemplate
+                .replace("{{TENANT_NAME}}", tenantName)
+                .replace("{{TENANT_DOMAIN}}", tenantDomain)
+                .replace("{{CREATE_USER_LINK}}", createUserLink);
+            
+            helper.setFrom(mailFrom, mailFromName);
+            helper.setTo(to);
+            helper.setSubject("Complete seu Cadastro - Crie seu Primeiro Usuário");
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            logger.info("Email de lembrete para criar usuário enviado para: {}", to);
+        } catch (Exception e) {
+            // Em ambiente de desenvolvimento, apenas logamos o erro e não deixamos a aplicação falhar
+            logger.error("Erro ao enviar email de lembrete para: {}", to, e);
+            logger.info("Link de criação de usuário que seria enviado: {}", createUserLink);
+        }
+    }
 }

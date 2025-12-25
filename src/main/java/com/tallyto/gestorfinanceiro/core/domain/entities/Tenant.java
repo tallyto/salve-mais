@@ -43,6 +43,12 @@ public class Tenant extends Auditable {
     
     @Column(name = "confirmation_token")
     private String confirmationToken;
+    
+    @Column(name = "create_user_token")
+    private String createUserToken;
+    
+    @Column(name = "create_user_token_expiry")
+    private LocalDateTime createUserTokenExpiry;
 
     // Customização de Marca
     @Column(name = "display_name")

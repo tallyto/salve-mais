@@ -15,4 +15,5 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     Optional<Tenant> findByDomain(String domain);
     Optional<Tenant> findByEmail(String email);
     Optional<Tenant> findByConfirmationToken(String token);
+    Optional<Tenant> findByCreateUserToken(String token);
 }

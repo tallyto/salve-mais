@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -372,5 +373,64 @@ public class TenantService {
                 e
             );
         }
+    }
+    
+    public void enviarLembreteCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Verificar se o tenant já tem usuários
+        List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
+        
+        if (!usuarios.isEmpty()) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        }
+        
+        // Verificar se o tenant está ativo
+        if (!tenant.getActive()) {
+            throw new BadRequestException("O tenant precisa estar ativo para receber o lembrete");
+        }
+        
+        // Gerar token para criação de usuário (válido por 24 horas)
+        String token = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(token);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        tenantRepository.save(tenant);
+        
+        // Construir link com token
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + token;
+        
+        // Enviar email de lembrete
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
+    }
+    
+    public Tenant verificarTokenCriarUsuario(String token) {
+        Tenant tenant = tenantRepository.findByCreateUserToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou expirado"));
+        
+        // Verificar se o token expirou
+        if (tenant.getCreateUserTokenExpiry() == null || 
+            tenant.getCreateUserTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Token expirado. Solicite um novo link através do suporte.");
+        }
+        
+        // Verificar se já existe usuário
+        List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenant.getId());
+        if (!usuarios.isEmpty()) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        }
+        
+        return tenant;
+    }
+    
+    public void invalidarTokenCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        tenant.setCreateUserToken(null);
+        tenant.setCreateUserTokenExpiry(null);
+        tenantRepository.save(tenant);
     }
 }
