@@ -182,4 +182,79 @@ public class TenantController {
         Tenant tenant = tenantService.verificarTokenCriarUsuario(token);
         return ResponseEntity.ok(tenantMapper.toDTO(tenant));
     }
+
+    @PutMapping("/{id}/toggle-status")
+    @Operation(summary = "Alternar status (ativo/inativo) do tenant")
+    public ResponseEntity<Map<String, String>> toggleTenantStatus(@PathVariable UUID id) {
+        tenantService.toggleTenantStatus(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Status do tenant alterado com sucesso");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{tenantId}/usuarios/{usuarioId}/toggle-status")
+    @Operation(summary = "Alternar status (ativo/inativo) de um usuário")
+    public ResponseEntity<Map<String, String>> toggleUsuarioStatus(
+            @PathVariable UUID tenantId,
+            @PathVariable UUID usuarioId) {
+        tenantService.toggleUsuarioStatus(tenantId, usuarioId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Status do usuário alterado com sucesso");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{tenantId}/usuarios/{usuarioId}/reset-senha")
+    @Operation(summary = "Enviar email para resetar senha de um usuário específico")
+    public ResponseEntity<Map<String, String>> enviarResetSenha(
+            @PathVariable UUID tenantId,
+            @PathVariable UUID usuarioId) {
+        tenantService.enviarResetSenhaUsuario(tenantId, usuarioId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email de reset de senha enviado com sucesso");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/email-boas-vindas")
+    @Operation(summary = "Enviar email de boas-vindas para o tenant")
+    public ResponseEntity<Map<String, String>> enviarEmailBoasVindas(@PathVariable UUID id) {
+        tenantService.enviarEmailBoasVindas(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email de boas-vindas enviado com sucesso");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/usuarios/reset-todas-senhas")
+    @Operation(summary = "Enviar email de reset de senha para todos os usuários ativos")
+    public ResponseEntity<Map<String, String>> resetarTodasSenhas(@PathVariable UUID id) {
+        tenantService.resetarTodasSenhas(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Emails de reset enviados para todos os usuários ativos");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/usuarios/desativar-todos")
+    @Operation(summary = "Desativar todos os usuários do tenant")
+    public ResponseEntity<Map<String, String>> desativarTodosUsuarios(@PathVariable UUID id) {
+        tenantService.desativarTodosUsuarios(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Todos os usuários foram desativados");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/usuarios/ativar-todos")
+    @Operation(summary = "Ativar todos os usuários do tenant")
+    public ResponseEntity<Map<String, String>> ativarTodosUsuarios(@PathVariable UUID id) {
+        tenantService.ativarTodosUsuarios(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Todos os usuários foram ativados");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/exportar")
+    @Operation(summary = "Exportar todos os dados do tenant")
+    public ResponseEntity<Map<String, Object>> exportarDados(@PathVariable UUID id) {
+        Map<String, Object> dados = tenantService.exportarDadosTenant(id);
+        return ResponseEntity.ok(dados);
+    }
 }
+

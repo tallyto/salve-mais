@@ -433,4 +433,151 @@ public class TenantService {
         tenant.setCreateUserTokenExpiry(null);
         tenantRepository.save(tenant);
     }
+
+    public void toggleTenantStatus(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        tenant.setActive(!tenant.getActive());
+        tenantRepository.save(tenant);
+    }
+
+    public void toggleUsuarioStatus(UUID tenantId, UUID usuarioId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId.toString().replaceAll("-", "").substring(0, 15)))
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+            
+            usuario.setAtivo(!usuario.getAtivo());
+            usuarioRepository.save(usuario);
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    public void enviarResetSenhaUsuario(UUID tenantId, UUID usuarioId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId.toString().replaceAll("-", "").substring(0, 15)))
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+            
+            // Gerar token de reset
+            String token = UUID.randomUUID().toString();
+            usuario.setResetPasswordToken(token);
+            usuario.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(24));
+            usuarioRepository.save(usuario);
+            
+            // Enviar email
+            String resetLink = "https://www.salvemais.com.br/#/resetar-senha?token=" + token;
+            emailService.enviarEmailRecuperacaoSenha(
+                usuario.getEmail(),
+                usuario.getNome(),
+                resetLink
+            );
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    public void enviarEmailBoasVindas(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Reutilizar o template de confirmação de tenant
+        String link = "https://www.salvemais.com.br";
+        emailService.enviarEmailHtml(
+            tenant.getEmail(),
+            "Bem-vindo ao Salve Mais!",
+            "confirmacao-tenant.html",
+            tenant.getName(),
+            link
+        );
+    }
+
+    public void resetarTodasSenhas(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            List<Usuario> usuarios = usuarioRepository.findAll();
+            
+            for (Usuario usuario : usuarios) {
+                if (usuario.getAtivo()) {
+                    // Gerar token de reset
+                    String token = UUID.randomUUID().toString();
+                    usuario.setResetPasswordToken(token);
+                    usuario.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(24));
+                    usuarioRepository.save(usuario);
+                    
+                    // Enviar email
+                    String resetLink = "https://www.salvemais.com.br/#/resetar-senha?token=" + token;
+                    emailService.enviarEmailRecuperacaoSenha(
+                        usuario.getEmail(),
+                        usuario.getNome(),
+                        resetLink
+                    );
+                }
+            }
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    public void desativarTodosUsuarios(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            List<Usuario> usuarios = usuarioRepository.findAll();
+            
+            for (Usuario usuario : usuarios) {
+                usuario.setAtivo(false);
+                usuarioRepository.save(usuario);
+            }
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    public void ativarTodosUsuarios(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            List<Usuario> usuarios = usuarioRepository.findAll();
+            
+            for (Usuario usuario : usuarios) {
+                usuario.setAtivo(true);
+                usuarioRepository.save(usuario);
+            }
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    public java.util.Map<String, Object> exportarDadosTenant(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        TenantContext.setCurrentTenant(tenant.getDomain());
+        
+        try {
+            java.util.Map<String, Object> dados = new java.util.HashMap<>();
+            
+            // Informações do tenant
+            dados.put("tenant", tenant);
+            
+            // Usuários
+            List<Usuario> usuarios = usuarioRepository.findAll();
+            dados.put("usuarios", usuarios);
+            
+            dados.put("totalUsuarios", usuarios.size());
+            dados.put("usuariosAtivos", usuarios.stream().filter(Usuario::getAtivo).count());
+            dados.put("dataExportacao", LocalDateTime.now());
+            
+            return dados;
+        } finally {
+            TenantContext.clear();
+        }
+    }
 }
+
