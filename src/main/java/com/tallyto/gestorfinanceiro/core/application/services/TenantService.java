@@ -411,16 +411,17 @@ public class TenantService {
     public void enviarLembreteCriarUsuario(UUID tenantId) {
         Tenant tenant = findById(tenantId);
         
-        // Verificar se o tenant já tem usuários
-        List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
-        
-        if (!usuarios.isEmpty()) {
-            throw new BadRequestException("Este tenant já possui usuários cadastrados");
-        }
-        
         // Verificar se o tenant está ativo
         if (!tenant.getActive()) {
             throw new BadRequestException("O tenant precisa estar ativo para receber o lembrete");
+        }
+        
+        // Verificar se o tenant já tem usuários (somente se o schema existir)
+        if (schemaExists(tenant.getDomain())) {
+            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
+            if (!usuarios.isEmpty()) {
+                throw new BadRequestException("Este tenant já possui usuários cadastrados");
+            }
         }
         
         // Gerar token para criação de usuário (válido por 24 horas)
