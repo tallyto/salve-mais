@@ -440,12 +440,12 @@ public class TenantService {
         tenantRepository.save(tenant);
     }
 
-    public void toggleUsuarioStatus(UUID tenantId, UUID usuarioId) {
+    public void toggleUsuarioStatus(UUID tenantId, Long usuarioId) {
         Tenant tenant = findById(tenantId);
         TenantContext.setCurrentTenant(tenant.getDomain());
         
         try {
-            Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId.toString().replaceAll("-", "").substring(0, 15)))
+            Usuario usuario = usuarioRepository.findById(usuarioId)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
             
             usuario.setAtivo(!usuario.getAtivo());
@@ -455,12 +455,12 @@ public class TenantService {
         }
     }
 
-    public void enviarResetSenhaUsuario(UUID tenantId, UUID usuarioId) {
+    public void enviarResetSenhaUsuario(UUID tenantId, Long usuarioId) {
         Tenant tenant = findById(tenantId);
         TenantContext.setCurrentTenant(tenant.getDomain());
         
         try {
-            Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId.toString().replaceAll("-", "").substring(0, 15)))
+            Usuario usuario = usuarioRepository.findById(usuarioId)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
             
             // Gerar token de reset

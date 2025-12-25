@@ -196,7 +196,7 @@ public class TenantController {
     @Operation(summary = "Alternar status (ativo/inativo) de um usuário")
     public ResponseEntity<Map<String, String>> toggleUsuarioStatus(
             @PathVariable UUID tenantId,
-            @PathVariable UUID usuarioId) {
+            @PathVariable Long usuarioId) {
         tenantService.toggleUsuarioStatus(tenantId, usuarioId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Status do usuário alterado com sucesso");
@@ -207,7 +207,7 @@ public class TenantController {
     @Operation(summary = "Enviar email para resetar senha de um usuário específico")
     public ResponseEntity<Map<String, String>> enviarResetSenha(
             @PathVariable UUID tenantId,
-            @PathVariable UUID usuarioId) {
+            @PathVariable Long usuarioId) {
         tenantService.enviarResetSenhaUsuario(tenantId, usuarioId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email de reset de senha enviado com sucesso");
