@@ -375,6 +375,23 @@ public class TenantService {
         }
     }
     
+    private boolean schemaExists(String schemaName) {
+        try (Connection connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(
+                 "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = ?)")) {
+            
+            statement.setString(1, schemaName);
+            try (var resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+            }
+            return false;
+        } catch (java.sql.SQLException e) {
+            return false;
+        }
+    }
+    
     public void enviarLembreteCriarUsuario(UUID tenantId) {
         Tenant tenant = findById(tenantId);
         
@@ -418,10 +435,12 @@ public class TenantService {
             throw new BadRequestException("Token expirado. Solicite um novo link através do suporte.");
         }
         
-        // Verificar se já existe usuário
-        List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenant.getId());
-        if (!usuarios.isEmpty()) {
-            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        // Verificar se já existe usuário (somente se o schema existir)
+        if (schemaExists(tenant.getDomain())) {
+            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenant.getId());
+            if (!usuarios.isEmpty()) {
+                throw new BadRequestException("Este tenant já possui usuários cadastrados");
+            }
         }
         
         return tenant;
