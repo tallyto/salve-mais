@@ -1,5 +1,21 @@
 # Instruções para IA - Custom Software Management (CSM) - Backend
 
+## Políticas de Desenvolvimento
+
+### Gestão de Branches
+**IMPORTANTE**: NUNCA fazer commits diretamente na branch `master`. Sempre seguir o fluxo:
+1. Criar nova branch a partir da master: `git checkout -b feature/nome-da-feature`
+2. Fazer commits na nova branch
+3. Criar Pull Request para review
+4. Após aprovação, merge para master
+
+### Timezone da Aplicação
+A aplicação utiliza timezone **America/Sao_Paulo** (UTC-3/UTC-2 com horário de verão):
+- JVM configurada com `TimeZone.setDefault(TimeZone.getTimeZone("America/Sao_Paulo"))`
+- Hibernate: `spring.jpa.properties.hibernate.jdbc.time_zone=America/Sao_Paulo`
+- Jackson: `spring.jackson.time-zone=America/Sao_Paulo`
+- Dockerfile: `-Duser.timezone=America/Sao_Paulo`
+
 ## Contexto do Projeto
 Sistema de gestão financeira multi-tenant com Spring Boot, PostgreSQL e arquitetura REST. Utiliza JWT para autenticação e isolamento de dados por tenant via header HTTP.
 
