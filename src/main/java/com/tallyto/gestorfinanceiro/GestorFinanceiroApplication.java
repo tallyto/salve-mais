@@ -13,8 +13,8 @@ public class GestorFinanceiroApplication {
 
 	@PostConstruct
 	public void init() {
-		// Define UTC como timezone padrão da aplicação
-		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+		// Define America/Sao_Paulo como timezone padrão da aplicação
+		TimeZone.setDefault(TimeZone.getTimeZone("America/Sao_Paulo"));
 	}
 
 	public static void main(String[] args) {
