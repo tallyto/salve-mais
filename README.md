@@ -1,6 +1,24 @@
-# Salve Mais
+# 💰 Salve Mais - Backend
 
-Aplicação Spring Boot para gestão financeira, com suporte a Docker e PostgreSQL.
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=flat&logo=spring-boot&logoColor=white)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+
+**API REST para sistema de gestão financeira multi-tenant com Spring Boot**
+
+Sistema robusto de gestão financeira pessoal com arquitetura multi-tenant, autenticação JWT, isolamento de dados por tenant e recursos avançados de análise financeira.
+
+## 🚀 Principais Funcionalidades
+
+- 🏢 **Multi-tenant**: Isolamento completo de dados por tenant/domínio
+- 🔐 **Autenticação JWT**: Tokens seguros com claims de tenant
+- 💳 **Gestão Financeira**: Receitas, despesas, cartões, faturas e parcelamentos
+- 📊 **Analytics**: Dashboard com métricas e gráficos financeiros
+- 📧 **Sistema de Email**: Notificações e recuperação de senha
+- 🔄 **Migração de Schema**: Flyway para versionamento de banco
+- 📱 **API RESTful**: Endpoints documentados com Swagger/OpenAPI
+- ⚡ **Performance**: Connection pooling (HikariCP) e otimizações JPA
 
 ## Pré-requisitos
 
