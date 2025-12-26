@@ -1,102 +1,247 @@
-# Instruções para IA - Custom Software Management (CSM) - Backend
+# Instruções CSM - Backend (Spring Boot)
 
-## Políticas de Desenvolvimento
+Sistema de gestão financeira multi-tenant com Spring Boot 3.x, PostgreSQL e JWT.
 
-### Gestão de Branches
-**IMPORTANTE**: NUNCA fazer commits diretamente na branch `master`. Sempre seguir o fluxo:
-1. Criar nova branch a partir da master: `git checkout -b feature/nome-da-feature`
-2. Fazer commits na nova branch
-3. Criar Pull Request para review
-4. Após aprovação, merge para master
+## 🚀 Implementando Nova Feature
 
-### Timezone da Aplicação
-A aplicação utiliza timezone **America/Sao_Paulo** (UTC-3/UTC-2 com horário de verão):
-- JVM configurada com `TimeZone.setDefault(TimeZone.getTimeZone("America/Sao_Paulo"))`
-- Hibernate: `spring.jpa.properties.hibernate.jdbc.time_zone=America/Sao_Paulo`
-- Jackson: `spring.jackson.time-zone=America/Sao_Paulo`
-- Dockerfile: `-Duser.timezone=America/Sao_Paulo`
-
-## Contexto do Projeto
-Sistema de gestão financeira multi-tenant com Spring Boot, PostgreSQL e arquitetura REST. Utiliza JWT para autenticação e isolamento de dados por tenant via header HTTP.
-
-## Estrutura do Projeto
-
-### Pacotes Principais
-```
-com.tallyto.gestorfinanceiro
-├── api/controllers          # Endpoints REST
-├── config                   # Configurações (Security, CORS, etc)
-├── context                  # TenantContext para multi-tenancy
-├── core/
-│   ├── application/services # Lógica de negócio
-│   ├── domain/entities      # Entidades JPA
-│   ├── domain/exceptions    # Exceções customizadas
-│   └── infra/repositories   # Repositories JPA
+### 1. Preparação
+```bash
+# Criar branch feature  
+git checkout master && git pull
+git checkout -b feature/nome-da-feature
 ```
 
-### Padrões de Arquitetura
-- **Controller**: Recebe requisições, valida entrada, chama Service
-- **Service**: Lógica de negócio, transações, chama Repository
-- **Repository**: Acesso a dados, queries JPA
-- **Entity**: Mapeamento ORM para tabelas
+### 2. Desenvolvimento
+- **Controller**: Endpoints REST com validação `@Valid`
+- **Service**: Lógica de negócio com `@Transactional`
+- **Repository**: Interface JPA com queries customizadas
+- **Entity**: Mapeamento JPA com relacionamentos
+- **DTO**: Request/Response com validações
 
-## Multi-Tenancy
+### 3. Padrões Obrigatórios
+- **Multi-tenant**: Header `X-Private-Tenant` via `TenantFilter`
+- **JWT**: Tokens com tenant claims via `JwtService`
+- **Validação**: Bean Validation com mensagens customizadas
+- **Logs**: SLF4J com níveis apropriados (INFO, WARN, ERROR)
+- **Exception**: Handlers globais com `@ControllerAdvice`
 
-### TenantContext
+### 4. Finalização
+```bash
+# Atualizar versão no pom.xml
+<version>1.X.Y</version>
+
+# Atualizar CHANGELOG.md
+## [1.X.Y] - Data
+### Adicionado
+- Descrição da feature
+
+# Commit organizado
+git add -A  
+git commit -m "feat: descrição da feature"
+
+# Push e PR
+git push origin feature/nome-da-feature
+```
+
+## 📋 Checklist de Feature
+
+### Backend Core
+- [ ] Controller com endpoints documentados (`@Operation`)
+- [ ] Service com lógica de negócio e validações
+- [ ] Repository com queries otimizadas
+- [ ] Entity com mapeamento JPA correto
+- [ ] DTO com validações Bean Validation
+- [ ] Exception handling personalizado
+- [ ] Logs estruturados (sem console.out)
+- [ ] Testes unitários para service/repository
+
+### Multi-tenant & Segurança
+- [ ] TenantContext utilizado corretamente
+- [ ] Isolamento de dados garantido
+- [ ] JWT com claims de tenant
+- [ ] Endpoints protegidos com `@PreAuthorize` se necessário
+- [ ] Validação de permissões por tenant
+
+### Performance & Qualidade
+- [ ] Queries JPA otimizadas (evitar N+1)
+- [ ] Paginação em listagens grandes
+- [ ] Connection pooling configurado
+- [ ] Transações bem definidas
+- [ ] Código limpo sem duplicação
+
+## 🔧 Configurações Técnicas
+
+### Multi-tenant Setup
 ```java
-// Obtém tenant atual
+// TenantFilter extrai automaticamente
 String tenant = TenantContext.getCurrentTenant();
 
-// Define tenant no contexto
-TenantContext.setCurrentTenant("tenant-domain");
+// Service sempre usar contexto
+@Service
+public class MinhaService {
+    public List<Entity> listar() {
+        // Dados automaticamente filtrados por tenant
+        return repository.findAll();
+    }
+}
+
+// Schema migration automática por tenant
 ```
 
-### TenantFilter
-- Intercepta requisições HTTP
-- Extrai header `X-Private-Tenant`
-- Define contexto do tenant
-- Aplica migração schema se necessário
-
-## Autenticação e Segurança
-
-### JWT Service
-- Geração de tokens com tenant
-- Validação e extração de claims
-- Integração com Spring Security
-
-### Tratamento de Erros
+### Authentication & JWT
 ```java
-@ExceptionHandler(UsernameNotFoundException.class)
-public ResponseEntity<Problem> handleUsernameNotFound(Exception ex) {
-    return new ResponseEntity<>(
-        Problem.builder()
-            .message("Acesso negado")
-            .detail("Token inválido ou expirado")
-            .build(),
-        HttpStatus.FORBIDDEN
-    );
+// Gerar token com tenant
+String token = jwtService.gerarToken(email, usuario.getTenantId());
+
+// Validar token e extrair claims
+String email = jwtService.getEmailFromToken(token);
+UUID tenantId = jwtService.getTenantIdFromToken(token);
+boolean isExpired = jwtService.isTokenExpired(token);
+```
+
+### Exception Handling
+```java
+@ControllerAdvice
+public class ApiExceptionHandler {
+    
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Problem> handleValidation(ValidationException ex) {
+        return ResponseEntity.badRequest()
+            .body(Problem.builder()
+                .message("Dados inválidos")
+                .detail(ex.getMessage())
+                .build());
+    }
 }
 ```
 
-## Recuperação de Senha
+## 🛠️ Comandos Essenciais
 
-### Fluxo Implementado
-1. `AuthController.recuperarSenha()` recebe email
-2. Busca usuário e domain do tenant
-3. Gera token UUID e armazena em `PasswordResetToken`
-4. Inclui domain na URL: `?token=xxx&domain=tenant.com`
-5. Envia email com link completo
+```bash
+# Desenvolvimento
+./mvnw spring-boot:run -Dspring.profiles.active=dev
 
-### Implementação
-```java
-// Obter tenant do contexto
-String tenantDomain = TenantContext.getCurrentTenant();
+# Build
+./mvnw clean package -DskipTests
 
-// Incluir no link
-String link = passwordResetUrl + "?token=" + token + "&domain=" + tenantDomain;
+# Testes
+./mvnw test
+./mvnw test -Dtest=ClasseTest#metodoTest
+
+# Docker
+docker build -t salve-mais-backend .
+docker run -p 3001:3001 salve-mais-backend
+
+# Database migration
+./mvnw flyway:migrate
+./mvnw flyway:info
 ```
 
-## Configurações Importantes
+## ⚠️ Regras Críticas
+
+### Git Workflow
+- **NUNCA** commit direto na master
+- Branch nomenclature: `feature/`, `fix/`, `refactor/`
+- Commits semânticos: `feat:`, `fix:`, `docs:`, `refactor:`
+- PR obrigatório com review
+
+### Multi-tenant
+- Toda operação DEVE respeitar contexto do tenant
+- TenantFilter configura automaticamente
+- Dados isolados por schema/tenant
+- Migrations aplicadas por tenant
+
+### Performance
+- Lazy loading padrão no JPA
+- Fetch joins para evitar N+1
+- Pagination em queries grandes
+- Connection pool otimizado (HikariCP)
+- Índices no banco para campos filtrados
+
+### Segurança
+- JWT com expiração configurável
+- Passwords hasheadas (BCrypt)
+- Headers CORS configurados
+- Rate limiting em endpoints sensíveis
+- Logs sem informações sensíveis
+
+## 🏗️ Estrutura de Código
+
+### Controller Pattern
+```java
+@RestController
+@RequestMapping("/api/entidades")
+public class EntidadeController {
+    
+    @PostMapping
+    public ResponseEntity<EntidadeDTO> criar(@Valid @RequestBody EntidadeDTO dto) {
+        EntidadeDTO criada = service.criar(dto);
+        return ResponseEntity.status(201).body(criada);
+    }
+    
+    @GetMapping
+    public ResponseEntity<Page<EntidadeDTO>> listar(Pageable pageable) {
+        Page<EntidadeDTO> entidades = service.listar(pageable);
+        return ResponseEntity.ok(entidades);
+    }
+}
+```
+
+### Service Pattern  
+```java
+@Service
+@Transactional
+public class EntidadeService {
+    
+    public EntidadeDTO criar(EntidadeDTO dto) {
+        // Validações de negócio
+        validarRegrasNegocio(dto);
+        
+        // Conversão e persistência
+        Entidade entidade = mapper.toEntity(dto);
+        entidade = repository.save(entidade);
+        
+        // Log da operação
+        logger.info("Entidade criada: {}", entidade.getId());
+        
+        return mapper.toDTO(entidade);
+    }
+}
+```
+
+## 🐛 Troubleshooting
+
+### Erro de Tenant
+```
+1. Verificar header X-Private-Tenant na requisição
+2. Confirmar TenantFilter está executando
+3. Validar contexto no TenantContext
+4. Verificar schema do tenant no banco
+```
+
+### JWT Issues
+```
+1. Verificar chave secreta configurada
+2. Confirmar expiração do token
+3. Validar claims do tenant no token
+4. Testar JwtService.validateToken()
+```
+
+### Performance Issues
+```
+1. Analisar queries com spring.jpa.show-sql=true
+2. Verificar índices no banco de dados
+3. Otimizar fetch strategies no JPA
+4. Monitorar connection pool (HikariCP)
+```
+
+### Multi-tenant Problems
+```
+1. Verificar migration aplicada em todos os tenants
+2. Confirmar isolamento de dados
+3. Validar schema switching
+4. Testar criação de novo tenant
+```
 
 ### application.properties
 ```properties
