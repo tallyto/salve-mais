@@ -1,5 +1,7 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,8 @@ import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
@@ -58,20 +62,26 @@ public class AuthController {
 
     @PostMapping("/recuperar-senha")
     public ResponseEntity<?> recuperarSenha(@RequestBody RecuperarSenhaRequestDTO dto) {
+        logger.info("Solicitação de recuperação de senha para email: {}", dto.getEmail());
+        
         try {
             // Buscar usuário para obter o nome
             var usuario = usuarioService.buscarPorEmail(dto.getEmail());
             
             String token = java.util.UUID.randomUUID().toString();
+            logger.info("Token gerado para recuperação de senha: {} para email: {}", token, dto.getEmail());
+            
             passwordResetTokenService.storeToken(token, dto.getEmail());
             String link = passwordResetUrl + "?token=" + token;
             
             // Enviar email com template HTML
             emailService.enviarEmailRecuperacaoSenha(dto.getEmail(), usuario.getNome(), link);
+            logger.info("Email de recuperação de senha enviado com sucesso para: {}", dto.getEmail());
             
             return ResponseEntity.ok(java.util.Collections.singletonMap("message",
                     "Instruções de recuperação enviadas para o e-mail, se existir na base."));
         } catch (RuntimeException e) {
+            logger.warn("Erro na recuperação de senha para email: {} - {}", dto.getEmail(), e.getMessage());
             // Mesmo que o usuário não exista, retornamos sucesso por segurança
             // Isso evita que alguém descubra quais emails estão cadastrados
             return ResponseEntity.ok(java.util.Collections.singletonMap("message",
@@ -81,23 +91,35 @@ public class AuthController {
 
     @PostMapping("/redefinir-senha")
     public ResponseEntity<?> redefinirSenha(@RequestBody RedefinirSenhaRequestDTO dto) {
+        logger.info("Tentativa de redefinição de senha com token: {}", dto.getToken());
+        
         String email = passwordResetTokenService.getEmailIfValid(dto.getToken());
         if (email == null) {
+            logger.warn("Token inválido ou expirado para redefinição de senha: {}", dto.getToken());
             return ResponseEntity.status(400)
                     .body(java.util.Collections.singletonMap("error", "Token inválido ou expirado."));
         }
+        
+        logger.info("Token válido, redefinindo senha para email: {}", email);
         usuarioService.atualizarSenhaPorEmail(email, dto.getNovaSenha());
         passwordResetTokenService.removeToken(dto.getToken());
+        
+        logger.info("Senha redefinida com sucesso para email: {}", email);
         return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Senha redefinida com sucesso."));
     }
 
     @GetMapping("/verificar-token")
     public ResponseEntity<?> verificarToken(@RequestParam String token) {
+        logger.info("Verificando validade do token: {}", token);
+        
         String email = passwordResetTokenService.getEmailIfValid(token);
         if (email == null) {
+            logger.warn("Token inválido ou expirado na verificação: {}", token);
             return ResponseEntity.status(400)
                     .body(java.util.Collections.singletonMap("error", "Token inválido ou expirado."));
         }
+        
+        logger.info("Token válido para email: {}", email);
         return ResponseEntity.ok(java.util.Collections.singletonMap("valid", true));
     }
 }
