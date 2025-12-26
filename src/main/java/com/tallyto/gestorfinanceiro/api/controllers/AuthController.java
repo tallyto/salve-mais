@@ -23,6 +23,8 @@ import com.tallyto.gestorfinanceiro.core.application.services.EmailService;
 import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
 import com.tallyto.gestorfinanceiro.core.application.services.PasswordResetTokenService;
 import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
+import com.tallyto.gestorfinanceiro.context.TenantContext;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
 
 @RestController
 @RequestMapping("api/auth")
@@ -39,6 +41,8 @@ public class AuthController {
     private PasswordResetTokenService passwordResetTokenService;
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private TenantRepository tenantRepository;
     
     @Value("${app.password.reset.url}")
     private String passwordResetUrl;
@@ -68,11 +72,16 @@ public class AuthController {
             // Buscar usuário para obter o nome
             var usuario = usuarioService.buscarPorEmail(dto.getEmail());
             
+            // Usar tenant do contexto atual
+            String tenantDomain = TenantContext.getCurrentTenant();
+            logger.info("Domain obtido do contexto: {}", tenantDomain);
+            
             String token = java.util.UUID.randomUUID().toString();
             logger.info("Token gerado para recuperação de senha: {} para email: {}", token, dto.getEmail());
             
             passwordResetTokenService.storeToken(token, dto.getEmail());
-            String link = passwordResetUrl + "?token=" + token;
+            String link = passwordResetUrl + "?token=" + token + "&domain=" + tenantDomain;
+            logger.info("Link gerado: {}", link);
             
             // Enviar email com template HTML
             emailService.enviarEmailRecuperacaoSenha(dto.getEmail(), usuario.getNome(), link);

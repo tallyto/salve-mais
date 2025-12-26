@@ -3,6 +3,28 @@
 
 ## [Unreleased]
 
+## [1.18.0] - 2025-12-26
+
+### Adicionado
+
+- **Recuperação de Senha com Tenant**:
+  - Link de recuperação de senha agora inclui o domínio do tenant (`&domain=tenant.com`)
+  - Frontend extrai o domain da URL e adiciona ao header `X-PRIVATE-TENANT`
+  - Suporte para multi-tenant na redefinição de senha
+  - Logs aprimorados para debug do processo de recuperação
+
+### Melhorado
+
+- **Tratamento de Erros**:
+  - `UsernameNotFoundException` agora retorna 403 (Forbidden) ao invés de 500
+  - Mensagens de erro mais amigáveis no frontend
+  - Logs menos verbosos para erros de autenticação
+  - Handler específico no `ApiExceptionHandler` para erros de usuário não encontrado
+
+- **Segurança**:
+  - Melhor isolamento de dados por tenant na recuperação de senha
+  - Validação aprimorada de tokens de recuperação com contexto de tenant
+
 ## [1.17.0] - 2025-12-11
 
 ### Adicionado
