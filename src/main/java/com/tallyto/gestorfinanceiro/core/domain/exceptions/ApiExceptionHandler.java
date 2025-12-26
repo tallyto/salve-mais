@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,6 +55,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .detail(request.getDescription(false))
                 .build(),
             HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public final ResponseEntity<Problem> handleUsernameNotFoundException(Exception ex, WebRequest request) {
+        log.warn("UsernameNotFoundException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+            Problem.builder()
+                .timestamp(OffsetDateTime.now())
+                .message("Acesso negado")
+                .detail("Token inválido ou expirado")
+                .build(),
+            HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
