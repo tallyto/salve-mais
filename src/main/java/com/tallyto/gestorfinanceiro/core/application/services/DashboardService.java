@@ -186,11 +186,11 @@ public class DashboardService {
      * Calcula o resumo das parcelas do mês
      */
     private DashboardSummaryDTO.ParcelasResumoDTO calcularResumoParcelasMes(LocalDate inicioMes, LocalDate fimMes) {
-        // Busca todas as parcelas do mês
-        List<Parcela> parcelasMes = parcelaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
+        // Busca todas as parcelas do mês (excluindo compras arquivadas)
+        List<Parcela> parcelasMes = parcelaRepository.findByDataVencimentoBetweenAtivas(inicioMes, fimMes);
         
-        // Total de parcelas ativas (compras parceladas em andamento)
-        long totalParcelasAtivas = parcelaRepository.findByPaga(false).size();
+        // Total de parcelas ativas (compras parceladas em andamento, excluindo arquivadas)
+        long totalParcelasAtivas = parcelaRepository.findParcelasNaoPagasAtivas().size();
         
         // Parcelas pagas e não pagas do mês
         long parcelasPagasMes = parcelasMes.stream().filter(Parcela::isPaga).count();

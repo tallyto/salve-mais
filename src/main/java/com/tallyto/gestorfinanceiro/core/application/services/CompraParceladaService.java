@@ -138,7 +138,7 @@ public class CompraParceladaService {
      * Lista todas as compras parceladas ordenadas por data mais recente
      */
     public Page<CompraParcelada> listarComprasParceladasOrdenadas(Pageable pageable) {
-        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+        return compraParceladaRepository.findAllByArquivadoFalseOrderByDataCompraDesc(pageable);
     }
     
     /**
@@ -155,9 +155,24 @@ public class CompraParceladaService {
             Long cartaoId, 
             Long categoriaId, 
             Boolean apenasPendentes,
+            Boolean incluirArquivadas,
             Pageable pageable) {
         
-        // Se tem filtro de pendentes
+        // Normaliza o parâmetro de arquivadas
+        if (incluirArquivadas == null) {
+            incluirArquivadas = false;
+        }
+        
+        // Se quer apenas arquivadas
+        if (incluirArquivadas) {
+            if (cartaoId != null) {
+                return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoTrueOrderByDataCompraDesc(cartaoId, pageable);
+            } else {
+                return compraParceladaRepository.findAllByArquivadoTrueOrderByDataCompraDesc(pageable);
+            }
+        }
+        
+        // Se tem filtro de pendentes (compras não arquivadas)
         if (apenasPendentes != null && apenasPendentes) {
             if (cartaoId != null) {
                 return compraParceladaRepository.findComprasComParcelasPendentesPorCartao(cartaoId, pageable);
@@ -168,20 +183,20 @@ public class CompraParceladaService {
             }
         }
         
-        // Sem filtro de pendentes
+        // Sem filtro de pendentes (compras não arquivadas)
         if (cartaoId != null) {
-            return compraParceladaRepository.findByCartaoCreditoId(cartaoId, pageable);
+            return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoFalse(cartaoId, pageable);
         }
         
         // Lista todas ordenadas por data
-        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+        return compraParceladaRepository.findAllByArquivadoFalseOrderByDataCompraDesc(pageable);
     }
 
     /**
      * Busca compras parceladas por cartão
      */
     public Page<CompraParcelada> listarComprasParceladasPorCartao(Long cartaoId, Pageable pageable) {
-        return compraParceladaRepository.findByCartaoCreditoId(cartaoId, pageable);
+        return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoFalse(cartaoId, pageable);
     }
 
     /**
@@ -346,6 +361,26 @@ public class CompraParceladaService {
     }
 
     /**
+     * Arquiva uma compra parcelada (remove da visualização sem deletar)
+     */
+    @Transactional
+    public CompraParcelada arquivarCompraParcelada(Long id) {
+        CompraParcelada compra = buscarPorId(id);
+        compra.setArquivado(true);
+        return compraParceladaRepository.save(compra);
+    }
+
+    /**
+     * Desarchiva uma compra parcelada
+     */
+    @Transactional
+    public CompraParcelada desarquivarCompraParcelada(Long id) {
+        CompraParcelada compra = buscarPorId(id);
+        compra.setArquivado(false);
+        return compraParceladaRepository.save(compra);
+    }
+
+    /**
      * Exclui uma compra parcelada e todas as suas parcelas
      */
     @Transactional
@@ -362,9 +397,9 @@ public class CompraParceladaService {
     }
 
     /**
-     * Busca parcelas vencidas
+     * Busca parcelas vencidas (excluindo compras arquivadas)
      */
     public List<Parcela> listarParcelasVencidas() {
-        return parcelaRepository.findParcelasVencidas(LocalDate.now());
+        return parcelaRepository.findParcelasVencidasAtivas(LocalDate.now());
     }
 }

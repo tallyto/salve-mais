@@ -43,4 +43,7 @@ public class CompraParcelada {
 
     @OneToMany(mappedBy = "compraParcelada", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Parcela> parcelas = new ArrayList<>();
+
+    @Column(name = "arquivado", nullable = false)
+    private boolean arquivado = false;
 }

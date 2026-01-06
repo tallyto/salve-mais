@@ -54,6 +54,7 @@ public class CompraParceladaController {
      * @param cartaoId ID do cartão (opcional)
      * @param categoriaId ID da categoria (opcional)
      * @param apenasPendentes Filtrar apenas compras com parcelas pendentes (opcional)
+     * @param incluirArquivadas Incluir compras arquivadas na listagem (opcional, padrão false)
      * @param pageable Configurações de paginação
      */
     @GetMapping
@@ -61,9 +62,10 @@ public class CompraParceladaController {
             @RequestParam(required = false) Long cartaoId,
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) Boolean apenasPendentes,
+            @RequestParam(required = false, defaultValue = "false") Boolean incluirArquivadas,
             Pageable pageable) {
         Page<CompraParcelada> compras = compraParceladaService.listarComprasComFiltros(
-            cartaoId, categoriaId, apenasPendentes, pageable);
+            cartaoId, categoriaId, apenasPendentes, incluirArquivadas, pageable);
         Page<CompraParceladaResponseDTO> response = compras.map(CompraParceladaResponseDTO::fromEntity);
         return ResponseEntity.ok(response);
     }
@@ -166,6 +168,32 @@ public class CompraParceladaController {
         try {
             Parcela parcela = compraParceladaService.desmarcarParcelaComoPaga(parcelaId);
             return ResponseEntity.ok(ParcelaDTO.fromEntity(parcela));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Arquiva uma compra parcelada (remove da visualização sem deletar)
+     */
+    @PatchMapping("/{id}/arquivar")
+    public ResponseEntity<CompraParceladaResponseDTO> arquivarCompraParcelada(@PathVariable Long id) {
+        try {
+            CompraParcelada compra = compraParceladaService.arquivarCompraParcelada(id);
+            return ResponseEntity.ok(CompraParceladaResponseDTO.fromEntity(compra));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Desarchiva uma compra parcelada
+     */
+    @PatchMapping("/{id}/desarquivar")
+    public ResponseEntity<CompraParceladaResponseDTO> desarquivarCompraParcelada(@PathVariable Long id) {
+        try {
+            CompraParcelada compra = compraParceladaService.desarquivarCompraParcelada(id);
+            return ResponseEntity.ok(CompraParceladaResponseDTO.fromEntity(compra));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
