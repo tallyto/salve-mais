@@ -500,7 +500,7 @@ public class ExportService {
             RelatorioMensalDTO relatorio = relatorioMensalService.gerarRelatorioMensal(ano, mes);
             
             // Criar aba do relatório
-            createRelatorioSheet(workbook, relatorio, headerStyle, titleStyle, currencyStyle, dateStyle);
+            createRelatorioSheet(workbook, relatorio, ano, mes, headerStyle, titleStyle, currencyStyle, dateStyle);
             
             // Converter para bytes
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -512,7 +512,7 @@ public class ExportService {
     /**
      * Aba do Relatório Mensal
      */
-    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio,
+    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio, Integer ano, Integer mes,
                                      CellStyle headerStyle, CellStyle titleStyle, 
                                      CellStyle currencyStyle, CellStyle dateStyle) {
         Sheet sheet = workbook.createSheet("Relatório Mensal");
@@ -619,12 +619,17 @@ public class ExportService {
         }
 
         // Seção de Cartões (Faturas)
-        if (relatorio.cartoes() != null && !relatorio.cartoes().isEmpty()) {
+        // Buscar faturas do mês
+        LocalDate inicioMes = LocalDate.of(ano, mes, 1);
+        LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
+        
+        if (faturas != null && !faturas.isEmpty()) {
             Row cartaoTitleRow = sheet.createRow(rowNum++);
             Cell cartaoTitleCell = cartaoTitleRow.createCell(0);
             cartaoTitleCell.setCellValue("FATURAS DE CARTÃO");
             cartaoTitleCell.setCellStyle(titleStyle);
-            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 3));
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
 
             // Cabeçalho da tabela
             Row cartaoHeaderRow = sheet.createRow(rowNum++);
@@ -632,14 +637,16 @@ public class ExportService {
             createHeaderCell(cartaoHeaderRow, 1, "Descrição", headerStyle);
             createHeaderCell(cartaoHeaderRow, 2, "Valor (R$)", headerStyle);
 
-            for (var cartao : relatorio.cartoes()) {
-                if (cartao.compras() != null && !cartao.compras().isEmpty()) {
-                    for (var compra : cartao.compras()) {
+            for (var fatura : faturas) {
+                String nomeCartao = fatura.getCartaoCredito() != null ? fatura.getCartaoCredito().getNome() : "Cartão";
+                
+                if (fatura.getCompras() != null && !fatura.getCompras().isEmpty()) {
+                    for (var compra : fatura.getCompras()) {
                         Row dataRow = sheet.createRow(rowNum++);
-                        dataRow.createCell(0).setCellValue(cartao.nomeCartao());
-                        dataRow.createCell(1).setCellValue(compra.descricao());
+                        dataRow.createCell(0).setCellValue(nomeCartao);
+                        dataRow.createCell(1).setCellValue(compra.getDescricao());
                         Cell valorCell = dataRow.createCell(2);
-                        valorCell.setCellValue(compra.valor().doubleValue());
+                        valorCell.setCellValue(compra.getValor().doubleValue());
                         valorCell.setCellStyle(currencyStyle);
                     }
                 }
