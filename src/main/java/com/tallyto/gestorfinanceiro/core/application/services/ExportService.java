@@ -3,6 +3,7 @@ package com.tallyto.gestorfinanceiro.core.application.services;
 import com.tallyto.gestorfinanceiro.api.dto.CategoryExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
+import com.tallyto.gestorfinanceiro.api.dto.RelatorioMensalDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CompraParcelada;
@@ -29,6 +30,7 @@ public class ExportService {
 
     private final DashboardService dashboardService;
     private final ContaService contaService;
+    private final RelatorioMensalService relatorioMensalService;
     private final CompraRepository compraRepository;
     private final CompraParceladaRepository compraParceladaRepository;
     
@@ -477,5 +479,162 @@ public class ExportService {
             return false;
         }
         return compra.getParcelas().stream().anyMatch(p -> !p.isPaga());
+    }
+
+    /**
+     * Gera arquivo Excel com dados do relatório mensal
+     */
+    public byte[] generateRelatorioMensalExcel(Integer mes, Integer ano) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            
+            // Criar estilos
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle titleStyle = createTitleStyle(workbook);
+            CellStyle currencyStyle = createCurrencyStyle(workbook);
+            CellStyle dateStyle = createDateStyle(workbook);
+            
+            // Buscar dados do relatório
+            RelatorioMensalDTO relatorio = relatorioMensalService.gerarRelatorioMensal(ano, mes);
+            
+            // Criar aba do relatório
+            createRelatorioSheet(workbook, relatorio, headerStyle, titleStyle, currencyStyle, dateStyle);
+            
+            // Converter para bytes
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        }
+    }
+
+    /**
+     * Aba do Relatório Mensal
+     */
+    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio,
+                                     CellStyle headerStyle, CellStyle titleStyle, 
+                                     CellStyle currencyStyle, CellStyle dateStyle) {
+        Sheet sheet = workbook.createSheet("Relatório Mensal");
+        int rowNum = 0;
+
+        // Título
+        Row titleRow = sheet.createRow(rowNum++);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("RELATÓRIO MENSAL");
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 2));
+
+        rowNum++; // Linha vazia
+
+        // Data de exportação
+        Row dateRow = sheet.createRow(rowNum++);
+        dateRow.createCell(0).setCellValue("Data de Exportação:");
+        dateRow.createCell(1).setCellValue(LocalDate.now().format(DATE_FORMATTER));
+
+        rowNum++; // Linha vazia
+
+        // Seção de Proventos
+        if (relatorio.proventos() != null && !relatorio.proventos().isEmpty()) {
+            Row provTitleRow = sheet.createRow(rowNum++);
+            Cell provTitleCell = provTitleRow.createCell(0);
+            provTitleCell.setCellValue("PROVENTOS");
+            provTitleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+            Row provHeaderRow = sheet.createRow(rowNum++);
+            Row provHeaderRow2 = sheet.createRow(rowNum++);
+            createHeaderCell(provHeaderRow2, 0, "Descrição", headerStyle);
+            createHeaderCell(provHeaderRow2, 1, "Valor (R$)", headerStyle);
+
+            BigDecimal totalProventos = BigDecimal.ZERO;
+            for (var provento : relatorio.proventos()) {
+                createDataRow(sheet, rowNum++, provento.descricao(), provento.valor(), currencyStyle);
+                totalProventos = totalProventos.add(provento.valor());
+            }
+            
+            Row totalProvRow = sheet.createRow(rowNum++);
+            totalProvRow.createCell(0).setCellValue("Total Proventos");
+            Cell totalProvCell = totalProvRow.createCell(1);
+            totalProvCell.setCellValue(totalProventos.doubleValue());
+            totalProvCell.setCellStyle(currencyStyle);
+
+            rowNum++; // Linha vazia
+        }
+
+        // Seção de Gastos Fixos
+        if (relatorio.gastosFixos() != null && !relatorio.gastosFixos().isEmpty()) {
+            Row fixTitleRow = sheet.createRow(rowNum++);
+            Cell fixTitleCell = fixTitleRow.createCell(0);
+            fixTitleCell.setCellValue("GASTOS FIXOS");
+            fixTitleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+            Row fixHeaderRow = sheet.createRow(rowNum++);
+            Row fixHeaderRow2 = sheet.createRow(rowNum++);
+            createHeaderCell(fixHeaderRow2, 0, "Descrição", headerStyle);
+            createHeaderCell(fixHeaderRow2, 1, "Valor (R$)", headerStyle);
+
+            BigDecimal totalFixos = BigDecimal.ZERO;
+            for (var gasto : relatorio.gastosFixos()) {
+                createDataRow(sheet, rowNum++, gasto.nome(), gasto.valor(), currencyStyle);
+                totalFixos = totalFixos.add(gasto.valor());
+            }
+            
+            Row totalFixRow = sheet.createRow(rowNum++);
+            totalFixRow.createCell(0).setCellValue("Total Gastos Fixos");
+            Cell totalFixCell = totalFixRow.createCell(1);
+            totalFixCell.setCellValue(totalFixos.doubleValue());
+            totalFixCell.setCellStyle(currencyStyle);
+
+            rowNum++; // Linha vazia
+        }
+
+        // Seção de Outras Despesas
+        if (relatorio.outrasDespesas() != null && !relatorio.outrasDespesas().isEmpty()) {
+            Row otherTitleRow = sheet.createRow(rowNum++);
+            Cell otherTitleCell = otherTitleRow.createCell(0);
+            otherTitleCell.setCellValue("OUTRAS DESPESAS");
+            otherTitleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+            Row otherHeaderRow = sheet.createRow(rowNum++);
+            Row otherHeaderRow2 = sheet.createRow(rowNum++);
+            createHeaderCell(otherHeaderRow2, 0, "Descrição", headerStyle);
+            createHeaderCell(otherHeaderRow2, 1, "Valor (R$)", headerStyle);
+
+            BigDecimal totalOtras = BigDecimal.ZERO;
+            for (var despesa : relatorio.outrasDespesas()) {
+                createDataRow(sheet, rowNum++, despesa.descricao(), despesa.valor(), currencyStyle);
+                totalOtras = totalOtras.add(despesa.valor());
+            }
+            
+            Row totalOtherRow = sheet.createRow(rowNum++);
+            totalOtherRow.createCell(0).setCellValue("Total Outras Despesas");
+            Cell totalOtherCell = totalOtherRow.createCell(1);
+            totalOtherCell.setCellValue(totalOtras.doubleValue());
+            totalOtherCell.setCellStyle(currencyStyle);
+
+            rowNum++; // Linha vazia
+        }
+
+        // Resumo Final
+        Row summaryTitleRow = sheet.createRow(rowNum++);
+        Cell summaryTitleCell = summaryTitleRow.createCell(0);
+        summaryTitleCell.setCellValue("RESUMO");
+        summaryTitleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+        Row summaryHeaderRow = sheet.createRow(rowNum++);
+        Row summaryHeaderRow2 = sheet.createRow(rowNum++);
+        createHeaderCell(summaryHeaderRow2, 0, "Descrição", headerStyle);
+        createHeaderCell(summaryHeaderRow2, 1, "Valor (R$)", headerStyle);
+
+        createDataRow(sheet, rowNum++, "Total Receitas", relatorio.resumoFinanceiro().totalProventos(), currencyStyle);
+        createDataRow(sheet, rowNum++, "Total Despesas", relatorio.resumoFinanceiro().totalGastosFixos()
+                .add(relatorio.resumoFinanceiro().totalComprasDebito())
+                .add(relatorio.resumoFinanceiro().totalOutrasDespesas()), currencyStyle);
+        createDataRow(sheet, rowNum++, "Saldo Líquido", relatorio.resumoFinanceiro().saldoFinal(), currencyStyle);
+
+        // Ajustar largura das colunas
+        sheet.setColumnWidth(0, 30 * 256);
+        sheet.setColumnWidth(1, 20 * 256);
     }
 }

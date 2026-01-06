@@ -2,6 +2,7 @@ package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.ComparativoMensalDTO;
 import com.tallyto.gestorfinanceiro.api.dto.RelatorioMensalDTO;
+import com.tallyto.gestorfinanceiro.core.application.services.ExportService;
 import com.tallyto.gestorfinanceiro.core.application.services.RelatorioMensalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -9,6 +10,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,9 @@ public class RelatorioMensalController {
 
     @Autowired
     private RelatorioMensalService relatorioMensalService;
+
+    @Autowired
+    private ExportService exportService;
 
     @Operation(
             summary = "Gerar relatório mensal",
@@ -135,6 +142,41 @@ public class RelatorioMensalController {
         );
         
         return ResponseEntity.ok(comparativo);
+    }
+
+    @Operation(
+            summary = "Exportar relatório mensal para Excel",
+            description = "Gera um arquivo Excel com o relatório mensal completo"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Arquivo Excel gerado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
+    })
+    @GetMapping("/export/excel/{ano}/{mes}")
+    public ResponseEntity<ByteArrayResource> exportarRelatorioParaExcel(
+            @Parameter(description = "Ano do relatório (ex: 2024)", example = "2024")
+            @PathVariable int ano,
+            
+            @Parameter(description = "Mês do relatório (1-12)", example = "12")
+            @PathVariable int mes
+    ) {
+        try {
+            if (mes < 1 || mes > 12) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            byte[] excelData = exportService.generateRelatorioMensalExcel(mes, ano);
+            ByteArrayResource resource = new ByteArrayResource(excelData);
+
+            String filename = String.format("relatorio-mensal-%02d-%04d.xlsx", mes, ano);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
    
