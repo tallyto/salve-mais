@@ -20,7 +20,8 @@ public record CompraParceladaResponseDTO(
         String cartaoNome,
         List<ParcelaDTO> parcelas,
         Integer parcelasRestantes,
-        BigDecimal valorParcela
+        BigDecimal valorParcela,
+        boolean arquivado
 ) {
     public static CompraParceladaResponseDTO fromEntity(CompraParcelada compraParcelada) {
         List<ParcelaDTO> parcelasDTO = compraParcelada.getParcelas() != null
@@ -45,7 +46,8 @@ public record CompraParceladaResponseDTO(
                 compraParcelada.getCartaoCredito().getNome(),
                 parcelasDTO,
                 parcelasRestantes,
-                valorParcela
+                valorParcela,
+                compraParcelada.isArquivado()
         );
     }
 }

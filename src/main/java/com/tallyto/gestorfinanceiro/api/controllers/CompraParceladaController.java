@@ -172,6 +172,32 @@ public class CompraParceladaController {
     }
 
     /**
+     * Arquiva uma compra parcelada (remove da visualização sem deletar)
+     */
+    @PatchMapping("/{id}/arquivar")
+    public ResponseEntity<CompraParceladaResponseDTO> arquivarCompraParcelada(@PathVariable Long id) {
+        try {
+            CompraParcelada compra = compraParceladaService.arquivarCompraParcelada(id);
+            return ResponseEntity.ok(CompraParceladaResponseDTO.fromEntity(compra));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Desarchiva uma compra parcelada
+     */
+    @PatchMapping("/{id}/desarquivar")
+    public ResponseEntity<CompraParceladaResponseDTO> desarquivarCompraParcelada(@PathVariable Long id) {
+        try {
+            CompraParcelada compra = compraParceladaService.desarquivarCompraParcelada(id);
+            return ResponseEntity.ok(CompraParceladaResponseDTO.fromEntity(compra));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
      * Exclui uma compra parcelada
      */
     @DeleteMapping("/{id}")

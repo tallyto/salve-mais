@@ -138,7 +138,7 @@ public class CompraParceladaService {
      * Lista todas as compras parceladas ordenadas por data mais recente
      */
     public Page<CompraParcelada> listarComprasParceladasOrdenadas(Pageable pageable) {
-        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+        return compraParceladaRepository.findAllByArquivadoFalseOrderByDataCompraDesc(pageable);
     }
     
     /**
@@ -170,18 +170,18 @@ public class CompraParceladaService {
         
         // Sem filtro de pendentes
         if (cartaoId != null) {
-            return compraParceladaRepository.findByCartaoCreditoId(cartaoId, pageable);
+            return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoFalse(cartaoId, pageable);
         }
         
         // Lista todas ordenadas por data
-        return compraParceladaRepository.findAllByOrderByDataCompraDesc(pageable);
+        return compraParceladaRepository.findAllByArquivadoFalseOrderByDataCompraDesc(pageable);
     }
 
     /**
      * Busca compras parceladas por cartão
      */
     public Page<CompraParcelada> listarComprasParceladasPorCartao(Long cartaoId, Pageable pageable) {
-        return compraParceladaRepository.findByCartaoCreditoId(cartaoId, pageable);
+        return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoFalse(cartaoId, pageable);
     }
 
     /**
@@ -343,6 +343,26 @@ public class CompraParceladaService {
             
             parcelaRepository.save(parcela);
         }
+    }
+
+    /**
+     * Arquiva uma compra parcelada (remove da visualização sem deletar)
+     */
+    @Transactional
+    public CompraParcelada arquivarCompraParcelada(Long id) {
+        CompraParcelada compra = buscarPorId(id);
+        compra.setArquivado(true);
+        return compraParceladaRepository.save(compra);
+    }
+
+    /**
+     * Desarchiva uma compra parcelada
+     */
+    @Transactional
+    public CompraParcelada desarquivarCompraParcelada(Long id) {
+        CompraParcelada compra = buscarPorId(id);
+        compra.setArquivado(false);
+        return compraParceladaRepository.save(compra);
     }
 
     /**
