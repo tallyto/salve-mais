@@ -397,9 +397,9 @@ public class CompraParceladaService {
     }
 
     /**
-     * Busca parcelas vencidas
+     * Busca parcelas vencidas (excluindo compras arquivadas)
      */
     public List<Parcela> listarParcelasVencidas() {
-        return parcelaRepository.findParcelasVencidas(LocalDate.now());
+        return parcelaRepository.findParcelasVencidasAtivas(LocalDate.now());
     }
 }

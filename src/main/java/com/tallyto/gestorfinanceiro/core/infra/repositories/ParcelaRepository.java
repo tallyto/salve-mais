@@ -40,4 +40,18 @@ public interface ParcelaRepository extends JpaRepository<Parcela, Long> {
     
     // Busca parcelas com paginação
     Page<Parcela> findByCompraParceladaCartaoCreditoId(Long cartaoId, Pageable pageable);
+
+    // ========== QUERIES PARA EXCLUIR COMPRAS ARQUIVADAS ==========
+    
+    // Busca parcelas não pagas (excluindo compras arquivadas)
+    @Query("SELECT p FROM Parcela p WHERE p.paga = false AND p.compraParcelada.arquivado = false")
+    List<Parcela> findParcelasNaoPagasAtivas();
+    
+    // Busca parcelas por período de vencimento (excluindo compras arquivadas)
+    @Query("SELECT p FROM Parcela p WHERE p.dataVencimento BETWEEN :inicio AND :fim AND p.compraParcelada.arquivado = false")
+    List<Parcela> findByDataVencimentoBetweenAtivas(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+    
+    // Busca parcelas não pagas com vencimento até determinada data (excluindo compras arquivadas)
+    @Query("SELECT p FROM Parcela p WHERE p.paga = false AND p.dataVencimento <= :data AND p.compraParcelada.arquivado = false")
+    List<Parcela> findParcelasVencidasAtivas(@Param("data") LocalDate data);
 }
