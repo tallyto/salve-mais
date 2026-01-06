@@ -3,6 +3,24 @@
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-01-06
+
+### Removido
+
+- **Remoção do Módulo de Planejamento Financeiro**:
+  - Removidas entidades: `Meta`, `PlanoCompra`, `PlanoAposentadoria`
+  - Removidos controllers: `MetaController`, `PlanoCompraController`, `PlanoAposentadoriaController`
+  - Removidos serviços: `MetaService`, `PlanoCompraService`, `PlanoAposentadoriaService`
+  - Removidos repositories: `MetaRepository`, `PlanoCompraRepository`, `PlanoAposentadoriaRepository`
+  - Removidos DTOs: `MetaDTO`, `PlanoCompraDTO`, `PlanoAposentadoriaDTO`, `MetaAtualizarProgressoDTO`
+  - Adicionada migration V30 para remover tabelas: `metas`, `planos_compra`, `plano_aposentadoria`
+
+### Simplificação
+
+- Aplicação agora focada em gerenciamento de contas, compras e cartões de crédito
+- Redução de complexidade arquitetural
+- Melhor performance do banco de dados
+
 ## [1.18.0] - 2025-12-26
 
 ### Adicionado
