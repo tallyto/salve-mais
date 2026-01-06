@@ -634,29 +634,21 @@ public class ExportService {
             // Cabeçalho da tabela
             Row cartaoHeaderRow = sheet.createRow(rowNum++);
             createHeaderCell(cartaoHeaderRow, 0, "Cartão", headerStyle);
-            createHeaderCell(cartaoHeaderRow, 1, "Descrição", headerStyle);
-            createHeaderCell(cartaoHeaderRow, 2, "Valor (R$)", headerStyle);
+            createHeaderCell(cartaoHeaderRow, 1, "Valor da Fatura (R$)", headerStyle);
 
             for (var fatura : faturas) {
+                Row dataRow = sheet.createRow(rowNum++);
                 String nomeCartao = fatura.getCartaoCredito() != null ? fatura.getCartaoCredito().getNome() : "Cartão";
-                
-                if (fatura.getCompras() != null && !fatura.getCompras().isEmpty()) {
-                    for (var compra : fatura.getCompras()) {
-                        Row dataRow = sheet.createRow(rowNum++);
-                        dataRow.createCell(0).setCellValue(nomeCartao);
-                        dataRow.createCell(1).setCellValue(compra.getDescricao());
-                        Cell valorCell = dataRow.createCell(2);
-                        valorCell.setCellValue(compra.getValor().doubleValue());
-                        valorCell.setCellStyle(currencyStyle);
-                    }
-                }
+                dataRow.createCell(0).setCellValue(nomeCartao);
+                Cell valorCell = dataRow.createCell(1);
+                valorCell.setCellValue(fatura.getValorTotal().doubleValue());
+                valorCell.setCellStyle(currencyStyle);
             }
             
             // Total de cartões (usando o valor do resumo financeiro que é correto)
             Row totalCartoesRow = sheet.createRow(rowNum++);
-            totalCartoesRow.createCell(0).setCellValue("");
-            totalCartoesRow.createCell(1).setCellValue("Total Cartões");
-            Cell totalCartoesCell = totalCartoesRow.createCell(2);
+            totalCartoesRow.createCell(0).setCellValue("Total Cartões");
+            Cell totalCartoesCell = totalCartoesRow.createCell(1);
             totalCartoesCell.setCellValue(relatorio.resumoFinanceiro().totalCartoes().doubleValue());
             totalCartoesCell.setCellStyle(currencyStyle);
 
@@ -706,7 +698,8 @@ public class ExportService {
         createDataRow(sheet, rowNum++, "Total Receitas", relatorio.resumoFinanceiro().totalProventos(), currencyStyle);
         createDataRow(sheet, rowNum++, "Total Despesas", relatorio.resumoFinanceiro().totalGastosFixos()
                 .add(relatorio.resumoFinanceiro().totalComprasDebito())
-                .add(relatorio.resumoFinanceiro().totalOutrasDespesas()), currencyStyle);
+                .add(relatorio.resumoFinanceiro().totalOutrasDespesas())
+                .add(relatorio.resumoFinanceiro().totalCartoes()), currencyStyle);
         createDataRow(sheet, rowNum++, "Saldo Líquido", relatorio.resumoFinanceiro().saldoFinal(), currencyStyle);
 
         // Ajustar largura das colunas
