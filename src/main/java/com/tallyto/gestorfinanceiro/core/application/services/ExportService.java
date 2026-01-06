@@ -500,7 +500,7 @@ public class ExportService {
             RelatorioMensalDTO relatorio = relatorioMensalService.gerarRelatorioMensal(ano, mes);
             
             // Criar aba do relatório
-            createRelatorioSheet(workbook, relatorio, ano, mes, headerStyle, titleStyle, currencyStyle, dateStyle);
+            createRelatorioSheet(workbook, relatorio, headerStyle, titleStyle, currencyStyle, dateStyle);
             
             // Converter para bytes
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -512,7 +512,7 @@ public class ExportService {
     /**
      * Aba do Relatório Mensal
      */
-    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio, Integer ano, Integer mes,
+    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio,
                                      CellStyle headerStyle, CellStyle titleStyle, 
                                      CellStyle currencyStyle, CellStyle dateStyle) {
         Sheet sheet = workbook.createSheet("Relatório Mensal");
@@ -619,12 +619,7 @@ public class ExportService {
         }
 
         // Seção de Cartões (Faturas)
-        // Buscar faturas do mês
-        LocalDate inicioMes = LocalDate.of(ano, mes, 1);
-        LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
-        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
-        
-        if (faturas != null && !faturas.isEmpty()) {
+        if (relatorio.cartoes() != null && !relatorio.cartoes().isEmpty()) {
             Row cartaoTitleRow = sheet.createRow(rowNum++);
             Cell cartaoTitleCell = cartaoTitleRow.createCell(0);
             cartaoTitleCell.setCellValue("FATURAS DE CARTÃO");
@@ -637,27 +632,25 @@ public class ExportService {
             createHeaderCell(cartaoHeaderRow, 1, "Descrição", headerStyle);
             createHeaderCell(cartaoHeaderRow, 2, "Valor (R$)", headerStyle);
 
-            BigDecimal totalCartoes = BigDecimal.ZERO;
-            for (var fatura : faturas) {
-                if (fatura.getCompras() != null) {
-                    for (var compra : fatura.getCompras()) {
+            for (var cartao : relatorio.cartoes()) {
+                if (cartao.compras() != null && !cartao.compras().isEmpty()) {
+                    for (var compra : cartao.compras()) {
                         Row dataRow = sheet.createRow(rowNum++);
-                        dataRow.createCell(0).setCellValue(fatura.getCartaoCredito() != null ? fatura.getCartaoCredito().getNome() : "Cartão");
-                        dataRow.createCell(1).setCellValue(compra.getDescricao());
+                        dataRow.createCell(0).setCellValue(cartao.nomeCartao());
+                        dataRow.createCell(1).setCellValue(compra.descricao());
                         Cell valorCell = dataRow.createCell(2);
-                        valorCell.setCellValue(compra.getValor().doubleValue());
+                        valorCell.setCellValue(compra.valor().doubleValue());
                         valorCell.setCellStyle(currencyStyle);
-                        totalCartoes = totalCartoes.add(compra.getValor());
                     }
                 }
             }
             
-            // Total de cartões
+            // Total de cartões (usando o valor do resumo financeiro que é correto)
             Row totalCartoesRow = sheet.createRow(rowNum++);
             totalCartoesRow.createCell(0).setCellValue("");
             totalCartoesRow.createCell(1).setCellValue("Total Cartões");
             Cell totalCartoesCell = totalCartoesRow.createCell(2);
-            totalCartoesCell.setCellValue(totalCartoes.doubleValue());
+            totalCartoesCell.setCellValue(relatorio.resumoFinanceiro().totalCartoes().doubleValue());
             totalCartoesCell.setCellStyle(currencyStyle);
 
             rowNum++; // Linha vazia
