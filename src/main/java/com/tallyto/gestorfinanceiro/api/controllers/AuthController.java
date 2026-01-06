@@ -19,12 +19,11 @@ import com.tallyto.gestorfinanceiro.api.dto.LoginDTO;
 import com.tallyto.gestorfinanceiro.api.dto.RecuperarSenhaRequestDTO;
 import com.tallyto.gestorfinanceiro.api.dto.RedefinirSenhaRequestDTO;
 import com.tallyto.gestorfinanceiro.api.dto.TokenDTO;
+import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.application.services.EmailService;
 import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
 import com.tallyto.gestorfinanceiro.core.application.services.PasswordResetTokenService;
 import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
-import com.tallyto.gestorfinanceiro.context.TenantContext;
-import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
 
 @RestController
 @RequestMapping("api/auth")
@@ -41,8 +40,6 @@ public class AuthController {
     private PasswordResetTokenService passwordResetTokenService;
     @Autowired
     private UsuarioService usuarioService;
-    @Autowired
-    private TenantRepository tenantRepository;
     
     @Value("${app.password.reset.url}")
     private String passwordResetUrl;

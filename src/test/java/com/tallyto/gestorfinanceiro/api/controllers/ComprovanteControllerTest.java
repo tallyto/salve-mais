@@ -1,6 +1,5 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tallyto.gestorfinanceiro.api.dto.AnexoDTO;
 import com.tallyto.gestorfinanceiro.api.dto.UrlDownloadDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.ContaFixaService;
