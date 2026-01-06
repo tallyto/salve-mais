@@ -155,9 +155,24 @@ public class CompraParceladaService {
             Long cartaoId, 
             Long categoriaId, 
             Boolean apenasPendentes,
+            Boolean incluirArquivadas,
             Pageable pageable) {
         
-        // Se tem filtro de pendentes
+        // Normaliza o parâmetro de arquivadas
+        if (incluirArquivadas == null) {
+            incluirArquivadas = false;
+        }
+        
+        // Se quer apenas arquivadas
+        if (incluirArquivadas) {
+            if (cartaoId != null) {
+                return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoTrueOrderByDataCompraDesc(cartaoId, pageable);
+            } else {
+                return compraParceladaRepository.findAllByArquivadoTrueOrderByDataCompraDesc(pageable);
+            }
+        }
+        
+        // Se tem filtro de pendentes (compras não arquivadas)
         if (apenasPendentes != null && apenasPendentes) {
             if (cartaoId != null) {
                 return compraParceladaRepository.findComprasComParcelasPendentesPorCartao(cartaoId, pageable);
@@ -168,7 +183,7 @@ public class CompraParceladaService {
             }
         }
         
-        // Sem filtro de pendentes
+        // Sem filtro de pendentes (compras não arquivadas)
         if (cartaoId != null) {
             return compraParceladaRepository.findByCartaoCreditoIdAndArquivadoFalse(cartaoId, pageable);
         }

@@ -48,4 +48,18 @@ public interface CompraParceladaRepository extends JpaRepository<CompraParcelada
            "LEFT JOIN cp.parcelas p " +
            "WHERE cp.categoria.id = :categoriaId AND p.paga = false AND cp.arquivado = false")
     Page<CompraParcelada> findComprasComParcelasPendentesPorCategoria(@Param("categoriaId") Long categoriaId, Pageable pageable);
+
+    // ========== QUERIES PARA COMPRAS ARQUIVADAS ==========
+    
+    // Busca compras parceladas arquivadas
+    Page<CompraParcelada> findAllByArquivadoTrueOrderByDataCompraDesc(Pageable pageable);
+    
+    // Busca compras parceladas arquivadas por cartão
+    Page<CompraParcelada> findByCartaoCreditoIdAndArquivadoTrueOrderByDataCompraDesc(Long cartaoId, Pageable pageable);
+    
+    // Busca compras parceladas arquivadas com parcelas pendentes por cartão
+    @Query("SELECT DISTINCT cp FROM CompraParcelada cp " +
+           "LEFT JOIN cp.parcelas p " +
+           "WHERE cp.cartaoCredito.id = :cartaoId AND p.paga = false AND cp.arquivado = true")
+    Page<CompraParcelada> findComprasArquivadasComParcelasPendentesPorCartao(@Param("cartaoId") Long cartaoId, Pageable pageable);
 }
