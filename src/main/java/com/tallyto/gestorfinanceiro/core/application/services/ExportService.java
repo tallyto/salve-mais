@@ -7,8 +7,10 @@ import com.tallyto.gestorfinanceiro.api.dto.RelatorioMensalDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CompraParcelada;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.CompraRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.CompraParceladaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -33,6 +35,7 @@ public class ExportService {
     private final RelatorioMensalService relatorioMensalService;
     private final CompraRepository compraRepository;
     private final CompraParceladaRepository compraParceladaRepository;
+    private final FaturaRepository faturaRepository;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -301,18 +304,18 @@ public class ExportService {
     }
 
     /**
-     * Aba 5: Compras Parceladas
+     * Aba 5: Faturas
      */
     private void createInstallmentsSheet(Workbook workbook, List<CompraParcelada> compras,
                                        CellStyle headerStyle, CellStyle titleStyle, 
                                        CellStyle currencyStyle, CellStyle dateStyle) {
-        Sheet sheet = workbook.createSheet("Compras Parceladas");
+        Sheet sheet = workbook.createSheet("Faturas");
         int rowNum = 0;
 
         // Título
         Row titleRow = sheet.createRow(rowNum++);
         Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue("COMPRAS PARCELADAS EM ABERTO");
+        titleCell.setCellValue("FATURAS EM ABERTO");
         titleCell.setCellStyle(titleStyle);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
@@ -497,7 +500,7 @@ public class ExportService {
             RelatorioMensalDTO relatorio = relatorioMensalService.gerarRelatorioMensal(ano, mes);
             
             // Criar aba do relatório
-            createRelatorioSheet(workbook, relatorio, headerStyle, titleStyle, currencyStyle, dateStyle);
+            createRelatorioSheet(workbook, relatorio, ano, mes, headerStyle, titleStyle, currencyStyle, dateStyle);
             
             // Converter para bytes
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -509,7 +512,7 @@ public class ExportService {
     /**
      * Aba do Relatório Mensal
      */
-    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio,
+    private void createRelatorioSheet(Workbook workbook, RelatorioMensalDTO relatorio, Integer ano, Integer mes,
                                      CellStyle headerStyle, CellStyle titleStyle, 
                                      CellStyle currencyStyle, CellStyle dateStyle) {
         Sheet sheet = workbook.createSheet("Relatório Mensal");
@@ -616,7 +619,12 @@ public class ExportService {
         }
 
         // Seção de Cartões (Faturas)
-        if (relatorio.cartoes() != null && !relatorio.cartoes().isEmpty()) {
+        // Buscar faturas do mês
+        LocalDate inicioMes = LocalDate.of(ano, mes, 1);
+        LocalDate fimMes = inicioMes.withDayOfMonth(inicioMes.lengthOfMonth());
+        List<Fatura> faturas = faturaRepository.findByDataVencimentoBetween(inicioMes, fimMes);
+        
+        if (faturas != null && !faturas.isEmpty()) {
             Row cartaoTitleRow = sheet.createRow(rowNum++);
             Cell cartaoTitleCell = cartaoTitleRow.createCell(0);
             cartaoTitleCell.setCellValue("FATURAS DE CARTÃO");
@@ -630,16 +638,16 @@ public class ExportService {
             createHeaderCell(cartaoHeaderRow, 2, "Valor (R$)", headerStyle);
 
             BigDecimal totalCartoes = BigDecimal.ZERO;
-            for (var cartao : relatorio.cartoes()) {
-                if (cartao.compras() != null) {
-                    for (var compra : cartao.compras()) {
+            for (var fatura : faturas) {
+                if (fatura.getCompras() != null) {
+                    for (var compra : fatura.getCompras()) {
                         Row dataRow = sheet.createRow(rowNum++);
-                        dataRow.createCell(0).setCellValue(cartao.nomeCartao());
-                        dataRow.createCell(1).setCellValue(compra.descricao());
+                        dataRow.createCell(0).setCellValue(fatura.getCartaoCredito() != null ? fatura.getCartaoCredito().getNome() : "Cartão");
+                        dataRow.createCell(1).setCellValue(compra.getDescricao());
                         Cell valorCell = dataRow.createCell(2);
-                        valorCell.setCellValue(compra.valor().doubleValue());
+                        valorCell.setCellValue(compra.getValor().doubleValue());
                         valorCell.setCellStyle(currencyStyle);
-                        totalCartoes = totalCartoes.add(compra.valor());
+                        totalCartoes = totalCartoes.add(compra.getValor());
                     }
                 }
             }
