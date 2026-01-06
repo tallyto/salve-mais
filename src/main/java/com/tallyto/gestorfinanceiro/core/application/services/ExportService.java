@@ -621,41 +621,34 @@ public class ExportService {
             Cell cartaoTitleCell = cartaoTitleRow.createCell(0);
             cartaoTitleCell.setCellValue("FATURAS DE CARTÃO");
             cartaoTitleCell.setCellStyle(titleStyle);
-            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 3));
+
+            // Cabeçalho da tabela
+            Row cartaoHeaderRow = sheet.createRow(rowNum++);
+            createHeaderCell(cartaoHeaderRow, 0, "Cartão", headerStyle);
+            createHeaderCell(cartaoHeaderRow, 1, "Descrição", headerStyle);
+            createHeaderCell(cartaoHeaderRow, 2, "Valor (R$)", headerStyle);
 
             BigDecimal totalCartoes = BigDecimal.ZERO;
             for (var cartao : relatorio.cartoes()) {
-                // Título do cartão
-                Row cartaoNameRow = sheet.createRow(rowNum++);
-                Cell cartaoNameCell = cartaoNameRow.createCell(0);
-                cartaoNameCell.setCellValue(cartao.nomeCartao());
-                cartaoNameCell.setCellStyle(titleStyle);
-                
-                Row cartaoHeaderRow = sheet.createRow(rowNum++);
-                createHeaderCell(cartaoHeaderRow, 0, "Descrição", headerStyle);
-                createHeaderCell(cartaoHeaderRow, 1, "Valor (R$)", headerStyle);
-
-                BigDecimal totalCartao = BigDecimal.ZERO;
                 if (cartao.compras() != null) {
                     for (var compra : cartao.compras()) {
-                        createDataRow(sheet, rowNum++, compra.descricao(), compra.valor(), currencyStyle);
-                        totalCartao = totalCartao.add(compra.valor());
+                        Row dataRow = sheet.createRow(rowNum++);
+                        dataRow.createCell(0).setCellValue(cartao.nomeCartao());
+                        dataRow.createCell(1).setCellValue(compra.descricao());
+                        Cell valorCell = dataRow.createCell(2);
+                        valorCell.setCellValue(compra.valor().doubleValue());
+                        valorCell.setCellStyle(currencyStyle);
+                        totalCartoes = totalCartoes.add(compra.valor());
                     }
                 }
-                
-                Row totalCartaoRow = sheet.createRow(rowNum++);
-                totalCartaoRow.createCell(0).setCellValue("Subtotal " + cartao.nomeCartao());
-                Cell totalCartaoCell = totalCartaoRow.createCell(1);
-                totalCartaoCell.setCellValue(totalCartao.doubleValue());
-                totalCartaoCell.setCellStyle(currencyStyle);
-                
-                totalCartoes = totalCartoes.add(totalCartao);
-                rowNum++; // Linha vazia
             }
             
+            // Total de cartões
             Row totalCartoesRow = sheet.createRow(rowNum++);
-            totalCartoesRow.createCell(0).setCellValue("Total Cartões");
-            Cell totalCartoesCell = totalCartoesRow.createCell(1);
+            totalCartoesRow.createCell(0).setCellValue("");
+            totalCartoesRow.createCell(1).setCellValue("Total Cartões");
+            Cell totalCartoesCell = totalCartoesRow.createCell(2);
             totalCartoesCell.setCellValue(totalCartoes.doubleValue());
             totalCartoesCell.setCellStyle(currencyStyle);
 
