@@ -6,6 +6,7 @@ import com.tallyto.gestorfinanceiro.api.dto.DashboardSummaryDTO;
 import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.VariationDataDTO;
 import com.tallyto.gestorfinanceiro.core.domain.entities.*;
+import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,8 +61,9 @@ public class DashboardService {
      * @return DashboardSummaryDTO com os dados de resumo
      */
     public DashboardSummaryDTO getSummary(Integer mes, Integer ano) {
-        // Obtém saldo total das contas
+        // Obtém saldo total das contas (excluindo reserva de emergência)
         BigDecimal saldoTotal = contaRepository.findAll().stream()
+                .filter(conta -> !TipoConta.RESERVA_EMERGENCIA.equals(conta.getTipo()))
                 .map(Conta::getSaldo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -612,8 +614,9 @@ public class DashboardService {
         LocalDate inicioMesAnterior = mesAnterior.atDay(1);
         LocalDate fimMesAnterior = mesAnterior.atEndOfMonth();
         
-        // Calcula dados do mês atual
+        // Calcula dados do mês atual (excluindo reserva de emergência)
         BigDecimal saldoTotalAtual = contaRepository.findAll().stream()
+                .filter(conta -> !TipoConta.RESERVA_EMERGENCIA.equals(conta.getTipo()))
                 .map(Conta::getSaldo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                 
