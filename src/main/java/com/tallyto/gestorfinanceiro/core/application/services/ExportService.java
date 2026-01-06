@@ -587,6 +587,81 @@ public class ExportService {
             rowNum++; // Linha vazia
         }
 
+        // Seção de Compras em Débito
+        if (relatorio.comprasDebito() != null && !relatorio.comprasDebito().isEmpty()) {
+            Row debitoTitleRow = sheet.createRow(rowNum++);
+            Cell debitoTitleCell = debitoTitleRow.createCell(0);
+            debitoTitleCell.setCellValue("COMPRAS EM DÉBITO");
+            debitoTitleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+            Row debitoHeaderRow = sheet.createRow(rowNum++);
+            Row debitoHeaderRow2 = sheet.createRow(rowNum++);
+            createHeaderCell(debitoHeaderRow2, 0, "Descrição", headerStyle);
+            createHeaderCell(debitoHeaderRow2, 1, "Valor (R$)", headerStyle);
+
+            BigDecimal totalDebito = BigDecimal.ZERO;
+            for (var compra : relatorio.comprasDebito()) {
+                createDataRow(sheet, rowNum++, compra.descricao(), compra.valor(), currencyStyle);
+                totalDebito = totalDebito.add(compra.valor());
+            }
+            
+            Row totalDebitoRow = sheet.createRow(rowNum++);
+            totalDebitoRow.createCell(0).setCellValue("Total Compras em Débito");
+            Cell totalDebitoCell = totalDebitoRow.createCell(1);
+            totalDebitoCell.setCellValue(totalDebito.doubleValue());
+            totalDebitoCell.setCellStyle(currencyStyle);
+
+            rowNum++; // Linha vazia
+        }
+
+        // Seção de Cartões (Faturas)
+        if (relatorio.cartoes() != null && !relatorio.cartoes().isEmpty()) {
+            Row cartaoTitleRow = sheet.createRow(rowNum++);
+            Cell cartaoTitleCell = cartaoTitleRow.createCell(0);
+            cartaoTitleCell.setCellValue("FATURAS DE CARTÃO");
+            cartaoTitleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 0, 2));
+
+            BigDecimal totalCartoes = BigDecimal.ZERO;
+            for (var cartao : relatorio.cartoes()) {
+                // Título do cartão
+                Row cartaoNameRow = sheet.createRow(rowNum++);
+                Cell cartaoNameCell = cartaoNameRow.createCell(0);
+                cartaoNameCell.setCellValue(cartao.nomeCartao());
+                cartaoNameCell.setCellStyle(titleStyle);
+                
+                Row cartaoHeaderRow = sheet.createRow(rowNum++);
+                createHeaderCell(cartaoHeaderRow, 0, "Descrição", headerStyle);
+                createHeaderCell(cartaoHeaderRow, 1, "Valor (R$)", headerStyle);
+
+                BigDecimal totalCartao = BigDecimal.ZERO;
+                if (cartao.compras() != null) {
+                    for (var compra : cartao.compras()) {
+                        createDataRow(sheet, rowNum++, compra.descricao(), compra.valor(), currencyStyle);
+                        totalCartao = totalCartao.add(compra.valor());
+                    }
+                }
+                
+                Row totalCartaoRow = sheet.createRow(rowNum++);
+                totalCartaoRow.createCell(0).setCellValue("Subtotal " + cartao.nomeCartao());
+                Cell totalCartaoCell = totalCartaoRow.createCell(1);
+                totalCartaoCell.setCellValue(totalCartao.doubleValue());
+                totalCartaoCell.setCellStyle(currencyStyle);
+                
+                totalCartoes = totalCartoes.add(totalCartao);
+                rowNum++; // Linha vazia
+            }
+            
+            Row totalCartoesRow = sheet.createRow(rowNum++);
+            totalCartoesRow.createCell(0).setCellValue("Total Cartões");
+            Cell totalCartoesCell = totalCartoesRow.createCell(1);
+            totalCartoesCell.setCellValue(totalCartoes.doubleValue());
+            totalCartoesCell.setCellStyle(currencyStyle);
+
+            rowNum++; // Linha vazia
+        }
+
         // Seção de Outras Despesas
         if (relatorio.outrasDespesas() != null && !relatorio.outrasDespesas().isEmpty()) {
             Row otherTitleRow = sheet.createRow(rowNum++);
