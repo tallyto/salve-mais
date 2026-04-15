@@ -14,10 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import com.tallyto.gestorfinanceiro.context.TenantContext;
-import com.tallyto.gestorfinanceiro.core.database.FlywayMigrationService;
-import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
-
-import static com.tallyto.gestorfinanceiro.context.TenantContext.PRIVATE_TENANT_HEADER;
 
 
 
@@ -25,12 +21,6 @@ import static com.tallyto.gestorfinanceiro.context.TenantContext.PRIVATE_TENANT_
 @Component
 @Slf4j
 public class TenantFilter extends OncePerRequestFilter {
-
-    @Autowired
-    private FlywayMigrationService flywayMigrationService;
-
-    @Autowired
-    private TenantRepository tenantRepository;
 
     @Autowired
     private HandlerExceptionResolver handlerExceptionResolver;
@@ -41,18 +31,8 @@ public class TenantFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) {
        try {
-           String privateTenant = request.getHeader(PRIVATE_TENANT_HEADER);
-
-           if (privateTenant != null && !privateTenant.isEmpty()) {
-               var tenant = tenantRepository.getTenantByDomain(privateTenant);
-               if (tenant != null) {
-                   TenantContext.setCurrentTenant(privateTenant);
-                   flywayMigrationService.migrateTenantSchema(privateTenant);
-               } else {
-                   log.error("Tenant not found for domain: {}", privateTenant);
-               }
-           }
-
+           // O tenantDomain agora é definido pelo JwtAuthenticationFilter a partir do JWT
+           // Este filter é mantido para compatibilidade com requisições sem JWT (públicas)
            filterChain.doFilter(request, response);
        } catch (Exception ex) {
            handlerExceptionResolver.resolveException(request, response, null, ex);

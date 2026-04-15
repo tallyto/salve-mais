@@ -7,7 +7,6 @@ import java.util.Objects;
 
 public class TenantContext {
     private static final String LOGGER_TENANT_ID = "tenant_id";
-    public static final String PRIVATE_TENANT_HEADER = "X-Private-Tenant";
     public static final String DEFAULT_TENANT = "public";
 
     private static final ThreadLocal<String> currentTenant = new InheritableThreadLocal<>();
