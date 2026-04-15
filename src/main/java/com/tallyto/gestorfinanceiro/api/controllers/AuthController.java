@@ -24,6 +24,10 @@ import com.tallyto.gestorfinanceiro.core.application.services.EmailService;
 import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
 import com.tallyto.gestorfinanceiro.core.application.services.PasswordResetTokenService;
 import com.tallyto.gestorfinanceiro.core.application.services.UsuarioService;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
+import com.tallyto.gestorfinanceiro.core.domain.entities.UsuarioGlobal;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioGlobalRepository;
 
 @RestController
 @RequestMapping("api/auth")
@@ -40,24 +44,61 @@ public class AuthController {
     private PasswordResetTokenService passwordResetTokenService;
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private UsuarioGlobalRepository usuarioGlobalRepository;
+    @Autowired
+    private TenantRepository tenantRepository;
     
     @Value("${app.password.reset.url}")
     private String passwordResetUrl;
 
+    /**
+     * Realiza o login do usuário
+     * Nova lógica centralizada: busca usuário na tabela usuario_global (public)
+     * e obtém o tenant para gerar o JWT com tenantDomain
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
+            // Autenticar usando UsuarioDetailsService que agora busca de usuario_global
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getSenha()));
-            // Atualiza o campo ultimoAcesso
-            usuarioService.atualizarUltimoAcesso(loginDTO.getEmail());
             
-            // Buscar usuário para obter o tenantId
-            var usuario = usuarioService.buscarPorEmail(loginDTO.getEmail());
-            String token = jwtService.gerarToken(loginDTO.getEmail(), usuario.getTenantId());
+            // Buscar usuário global para obter tenantId
+            UsuarioGlobal usuarioGlobal = usuarioGlobalRepository.findByEmail(loginDTO.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado na tabela centralizada"));
+            
+            if (!usuarioGlobal.getAtivo()) {
+                logger.warn("Tentativa de login de usuário inativo: {}", loginDTO.getEmail());
+                return ResponseEntity.status(401).body("Usuário inativo");
+            }
+            
+            // Buscar tenant para obter o domain
+            Tenant tenant = tenantRepository.findById(usuarioGlobal.getTenantId())
+                    .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+            
+            // Atualizar último acesso na tabela usuario_global
+            usuarioGlobal.setAtualizadoEm(java.time.LocalDateTime.now());
+            usuarioGlobalRepository.save(usuarioGlobal);
+            
+            // Atualizar último acesso também na tabela usuario local (para compatibilidade temporária)
+            try {
+                usuarioService.atualizarUltimoAcesso(loginDTO.getEmail());
+            } catch (Exception e) {
+                logger.debug("Não foi possível atualizar último acesso em usuário local: {}", e.getMessage());
+            }
+            
+            // Gerar JWT com email, tenantId e tenantDomain
+            String token = jwtService.gerarToken(loginDTO.getEmail(), usuarioGlobal.getTenantId(), tenant.getDomain());
+            
+            logger.info("Login bem-sucedido para usuário: {} do tenant: {}", loginDTO.getEmail(), tenant.getDomain());
             return ResponseEntity.ok(new TokenDTO(token));
         } catch (AuthenticationException e) {
+            logger.warn("Falha na autenticação para email: {}", loginDTO.getEmail());
             return ResponseEntity.status(401).body("Usuário ou senha inválidos");
+        } catch (RuntimeException e) {
+            logger.error("Erro durante o login para email: {} - {}", loginDTO.getEmail(), e.getMessage());
+            return ResponseEntity.status(401).body("Erro ao realizar login");
         }
     }
 
@@ -66,18 +107,24 @@ public class AuthController {
         logger.info("Solicitação de recuperação de senha para email: {}", dto.getEmail());
         
         try {
-            // Buscar usuário para obter o nome
-            var usuario = usuarioService.buscarPorEmail(dto.getEmail());
+            // Buscar usuário global para obter tenant
+            UsuarioGlobal usuarioGlobal = usuarioGlobalRepository.findByEmail(dto.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
             
-            // Usar tenant do contexto atual
-            String tenantDomain = TenantContext.getCurrentTenant();
-            logger.info("Domain obtido do contexto: {}", tenantDomain);
+            // Buscar tenant para obter o domain
+            Tenant tenant = tenantRepository.findById(usuarioGlobal.getTenantId())
+                    .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+            
+            // Buscar usuário local para obter o nome (compatibilidade temporária)
+            TenantContext.setCurrentTenant(tenant.getDomain());
+            var usuario = usuarioService.buscarPorEmail(dto.getEmail());
+            TenantContext.clear();
             
             String token = java.util.UUID.randomUUID().toString();
             logger.info("Token gerado para recuperação de senha: {} para email: {}", token, dto.getEmail());
             
             passwordResetTokenService.storeToken(token, dto.getEmail());
-            String link = passwordResetUrl + "?token=" + token + "&domain=" + tenantDomain;
+            String link = passwordResetUrl + "?token=" + token + "&domain=" + tenant.getDomain();
             logger.info("Link gerado: {}", link);
             
             // Enviar email com template HTML
@@ -107,7 +154,27 @@ public class AuthController {
         }
         
         logger.info("Token válido, redefinindo senha para email: {}", email);
-        usuarioService.atualizarSenhaPorEmail(email, dto.getNovaSenha());
+        
+        try {
+            // Atualizar senha na tabela usuario_global
+            UsuarioGlobal usuarioGlobal = usuarioGlobalRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            
+            // Criptografar nova senha
+            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = 
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+            usuarioGlobal.setSenha(encoder.encode(dto.getNovaSenha()));
+            usuarioGlobal.setAtualizadoEm(java.time.LocalDateTime.now());
+            usuarioGlobalRepository.save(usuarioGlobal);
+            
+            // Atualizar também na tabela usuario local (compatibilidade temporária)
+            usuarioService.atualizarSenhaPorEmail(email, dto.getNovaSenha());
+        } catch (Exception e) {
+            logger.error("Erro ao atualizar senha: {}", e.getMessage());
+            return ResponseEntity.status(400)
+                    .body(java.util.Collections.singletonMap("error", "Erro ao atualizar senha."));
+        }
+        
         passwordResetTokenService.removeToken(dto.getToken());
         
         logger.info("Senha redefinida com sucesso para email: {}", email);

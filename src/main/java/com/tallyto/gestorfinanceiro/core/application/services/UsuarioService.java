@@ -9,11 +9,16 @@ import com.tallyto.gestorfinanceiro.api.dto.UsuarioCadastroDTO;
 import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
+import com.tallyto.gestorfinanceiro.core.domain.entities.UsuarioGlobal;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioGlobalRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UsuarioService {
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioService.class);
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -23,17 +28,28 @@ public class UsuarioService {
     
     @Autowired
     private TenantService tenantService;
+    
+    @Autowired
+    private UsuarioGlobalRepository usuarioGlobalRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Transactional
     public void atualizarUltimoAcesso(String email) {
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        usuario.setUltimoAcesso(java.time.LocalDateTime.now());
-        usuarioRepository.save(usuario);
+        try {
+            Usuario usuario = usuarioRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            usuario.setUltimoAcesso(java.time.LocalDateTime.now());
+            usuarioRepository.save(usuario);
+        } catch (Exception e) {
+            logger.debug("Não foi possível atualizar último acesso em usuário local: {}", e.getMessage());
+        }
     }
     
+    /**
+     * Cria um novo usuário tanto na tabela local (tenant-specific) quanto na tabela global
+     * Sincroniza automaticamente com usuario_global para permitir login centralizado
+     */
     @Transactional
     public Usuario cadastrar(UsuarioCadastroDTO dto) {
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
@@ -47,17 +63,55 @@ public class UsuarioService {
         
         // Obter o tenant do contexto e definir o tenantId
         String tenantDomain = TenantContext.getCurrentTenant();
+        Tenant tenant = null;
         if (tenantDomain != null && !"public".equals(tenantDomain)) {
-            Tenant tenant = tenantRepository.getTenantByDomain(tenantDomain);
+            tenant = tenantRepository.getTenantByDomain(tenantDomain);
             if (tenant != null) {
                 usuario.setTenantId(tenant.getId());
                 
                 // Invalidar token de criação após criar o primeiro usuário
                 tenantService.invalidarTokenCriarUsuario(tenant.getId());
             }
+        } else {
+            // Se não houver tenant no contexto, usar o tenant padrão (public)
+            tenant = tenantRepository.findByDomain("public")
+                    .orElseThrow(() -> new RuntimeException("Tenant padrão não encontrado"));
+            usuario.setTenantId(tenant.getId());
         }
         
-        return usuarioRepository.save(usuario);
+        usuario = usuarioRepository.save(usuario);
+        
+        // Sincronizar com usuario_global
+        sincronizarComGlobal(usuario);
+        
+        return usuario;
+    }
+
+    /**
+     * Sincroniza um usuário local com a tabela usuario_global
+     */
+    private void sincronizarComGlobal(Usuario usuario) {
+        try {
+            if (usuario.getTenantId() == null) {
+                logger.warn("Não foi possível sincronizar usuário {} - tenantId não definido", usuario.getEmail());
+                return;
+            }
+            
+            // Verificar se já existe na tabela global
+            if (!usuarioGlobalRepository.existsByEmail(usuario.getEmail())) {
+                UsuarioGlobal usuarioGlobal = new UsuarioGlobal(
+                    usuario.getEmail(),
+                    usuario.getSenha(),
+                    usuario.getTenantId()
+                );
+                usuarioGlobal.setAtivo(usuario.getAtivo());
+                usuarioGlobal.setCriadoEm(usuario.getCriadoEm());
+                usuarioGlobalRepository.save(usuarioGlobal);
+                logger.debug("Usuário {} sincronizado com usuario_global", usuario.getEmail());
+            }
+        } catch (Exception e) {
+            logger.error("Erro ao sincronizar usuário {} com usuario_global: {}", usuario.getEmail(), e.getMessage());
+        }
     }
 
     @Transactional
@@ -66,6 +120,18 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         usuario.setSenha(passwordEncoder.encode(novaSenha));
         usuarioRepository.save(usuario);
+        
+        // Sincronizar a nova senha com usuario_global
+        try {
+            usuarioGlobalRepository.findByEmail(email).ifPresent(usuarioGlobal -> {
+                usuarioGlobal.setSenha(usuario.getSenha());
+                usuarioGlobal.setAtualizadoEm(java.time.LocalDateTime.now());
+                usuarioGlobalRepository.save(usuarioGlobal);
+                logger.debug("Senha de {} sincronizada com usuario_global", email);
+            });
+        } catch (Exception e) {
+            logger.error("Erro ao sincronizar senha de {} com usuario_global: {}", email, e.getMessage());
+        }
     }
 
     @Transactional
@@ -84,6 +150,7 @@ public class UsuarioService {
 
     /**
      * Atualiza a senha do usuário, validando a senha atual.
+     * Sincroniza automaticamente com usuario_global
      * 
      * @param email      email do usuário
      * @param senhaAtual senha atual informada
@@ -100,6 +167,17 @@ public class UsuarioService {
         }
         usuario.setSenha(encoder.encode(novaSenha));
         usuarioRepository.save(usuario);
+        
+        // Sincronizar a nova senha com usuario_global
+        try {
+            usuarioGlobalRepository.findByEmail(email).ifPresent(usuarioGlobal -> {
+                usuarioGlobal.setSenha(usuario.getSenha());
+                usuarioGlobal.setAtualizadoEm(java.time.LocalDateTime.now());
+                usuarioGlobalRepository.save(usuarioGlobal);
+            });
+        } catch (Exception e) {
+            logger.error("Erro ao sincronizar senha de {} com usuario_global: {}", email, e.getMessage());
+        }
     }
 
     // Métodos de Administração

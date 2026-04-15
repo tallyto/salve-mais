@@ -1,7 +1,9 @@
 package com.tallyto.gestorfinanceiro.config;
 
+import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.application.services.JwtService;
 import com.tallyto.gestorfinanceiro.core.application.services.UsuarioDetailsService;
+import com.tallyto.gestorfinanceiro.core.database.FlywayMigrationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +30,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtService jwtService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
+    @Autowired
+    private FlywayMigrationService flywayMigrationService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
@@ -35,33 +39,64 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String email = null;
+        String tenantDomain = null;
+        boolean tenantContextSet = false;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            try {
-                email = jwtService.getEmailFromToken(token);
-            } catch (Exception ignored) {}
-        }
-
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                UserDetails userDetails = usuarioDetailsService.loadUserByUsername(email);
-                if (userDetails != null) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+                try {
+                    email = jwtService.getEmailFromToken(token);
+                    tenantDomain = jwtService.getTenantDomainFromToken(token);
+                } catch (Exception e) {
+                    logger.debug("Erro ao extrair claims do JWT: {}", e.getMessage());
                 }
-            } catch (UsernameNotFoundException e) {
-                // Log de forma menos verbosa e retorna 403
-                logger.warn("Token inválido ou usuário não encontrado para email: {}", email);
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write("{\"error\":\"Acesso negado\",\"message\":\"Token inválido ou expirado\"}");
-                return;
+            }
+
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                try {
+                    // Definir o contexto do tenant se disponível no JWT
+                    if (tenantDomain != null && !tenantDomain.isEmpty()) {
+                        TenantContext.setCurrentTenant(tenantDomain);
+                        tenantContextSet = true;
+                        logger.debug("TenantContext definido para: {}", tenantDomain);
+                        
+                        // Executar migração do schema do tenant se necessário
+                        try {
+                            flywayMigrationService.migrateTenantSchema(tenantDomain);
+                        } catch (Exception e) {
+                            logger.warn("Erro ao migrar schema do tenant {}: {}", tenantDomain, e.getMessage());
+                        }
+                    }
+
+                    UserDetails userDetails = usuarioDetailsService.loadUserByUsername(email);
+                    if (userDetails != null) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        logger.debug("Autenticação estabelecida para usuário: {} no tenant: {}", email, tenantDomain);
+                    }
+                } catch (UsernameNotFoundException e) {
+                    // Log de forma menos verbosa e retorna 403
+                    logger.warn("Usuário não encontrado ou inativo para email: {} no tenant: {}", email, tenantDomain);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\":\"Acesso negado\",\"message\":\"Token inválido ou expirado\"}");
+                    return;
+                }
+            }
+
+            // Passar o request adiante COM o TenantContext definido
+            filterChain.doFilter(request, response);
+
+        } finally {
+            // Limpar o contexto do tenant apenas ao final da requisição
+            if (tenantContextSet) {
+                TenantContext.clear();
+                logger.debug("TenantContext limpo após processamento da requisição");
             }
         }
-        filterChain.doFilter(request, response);
     }
 }
