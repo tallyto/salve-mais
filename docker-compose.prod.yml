@@ -4,8 +4,8 @@ services:
   app:
     build: .
     image: gestor-financeiro:latest
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     ports:
