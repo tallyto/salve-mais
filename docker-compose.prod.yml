@@ -7,7 +7,13 @@ services:
     # env_file:
     #   - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_MAIL_HOST=${EMAIL_HOST}
+      - SPRING_MAIL_PORT=${EMAIL_PORT}
+      - SPRING_MAIL_USERNAME=${EMAIL_SENDER}
+      - TZ=America/Sao_Paulo
     ports:
       - "3001:3001"
     restart: always
