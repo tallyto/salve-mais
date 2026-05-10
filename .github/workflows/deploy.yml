@@ -1,68 +1,50 @@
-name: Deploy to VPS
+name: Deploy to Proxmox Docker LXC
 
 on:
   push:
     branches:
-      - master  # ou main, dependendo do nome da sua branch principal
+      - master  # ou 'main', verifique o nome da sua branch principal
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    name: Build and Deploy
+    runs-on: self-hosted  # Rodará na sua LXC com o Runner
+    
+    env:
+      # CONFIGURAÇÃO CRUCIAL: IP da sua LXC com Docker e a porta que você expôs (padrão 2375)
+      DOCKER_HOST: "tcp://192.168.0.105:2375" 
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v4
+
       - name: Extract version from pom.xml
         id: version
         run: |
-          VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
+          VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+' || echo "1.0.0")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Deploying version: $VERSION"
-        
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: 'unnecessary'
-          if_key_exists: replace
-          
-      - name: Adding Known Hosts
-        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-      
-      - name: Deploy to VPS
+          echo "🚀 Preparando deploy da versão: $VERSION"
+
+      - name: Verify Docker Connection
+        run: |
+          echo "Tentando conectar ao Docker em $DOCKER_HOST..."
+          docker info | grep "Name" || (echo "❌ Erro: Não foi possível conectar na LXC do Docker. Verifique o IP e se o Docker está exposto via TCP." && exit 1)
+
+      - name: Execute Deploy Script
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            set -e
-            cd ~/projetos/salve-mais
-            
-            echo "=== Iniciando deploy da versão $VERSION ==="
-            
-            # Pull das últimas alterações
-            echo "🔄 Atualizando código..."
-            git pull origin master
-            
-            # Verificar se o arquivo .env existe
-            if [ ! -f ".env" ]; then
-              echo "❌ ERRO: Arquivo .env não encontrado na VPS!"
-              exit 1
-            fi
-            
-            # Tornar o script executável (caso não esteja)
-            chmod +x deploy.sh
-            
-            # Executar o script de deploy
-            echo "🚀 Executando deploy..."
-            ./deploy.sh
-            
-            # Verificar se o deploy foi bem-sucedido
-            if [ $? -eq 0 ]; then
-              echo "✅ Deploy da versão $VERSION concluído com sucesso!"
-              echo "🌐 Aplicação disponível em: http://$(hostname -I | cut -d' ' -f1):3001"
-            else
-              echo "❌ Erro no deploy! Verifique os logs."
-              exit 1
-            fi
-          EOF
-      
+          # Garante que o script tenha permissão de execução
+          chmod +x deploy.sh
+          
+          echo "=== Iniciando Deploy Remoto ==="
+          # O comando será executado pelo Runner, mas enviado para o Docker da outra LXC
+          ./deploy.sh
+          
+          echo "✅ Deploy da versão $VERSION concluído com sucesso!"
+
+      - name: Cleanup old images
+        if: always()
+        run: |
+          echo "Limpando imagens antigas na LXC remota..."
+          docker image prune -f
