@@ -1,50 +1,57 @@
-name: Deploy to Proxmox Docker LXC
+name: Deploy Gestor Financeiro
 
 on:
   push:
     branches:
-      - master  # ou 'main', verifique o nome da sua branch principal
+      - master  # Certifique-se de que sua branch principal se chama master
 
 jobs:
   deploy:
-    name: Build and Deploy
-    runs-on: self-hosted  # Rodará na sua LXC com o Runner
-    
+    name: Build and Deploy to Proxmox
+    runs-on: self-hosted
+    # Conecta ao ambiente 'dev' que você criou no GitHub
+    environment: dev 
+
     env:
-      # CONFIGURAÇÃO CRUCIAL: IP da sua LXC com Docker e a porta que você expôs (padrão 2375)
-      DOCKER_HOST: "tcp://192.168.0.105:2375" 
+      # Endereço da LXC que hospeda o Docker
+      DOCKER_HOST: "tcp://192.168.0.105:2375"
+      # Mapeamento dos Secrets para variáveis de ambiente do Shell
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      # Adicione a senha se tiver criado o secret:
+      # DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Extract version from pom.xml
+      - name: Extrair Versão (pom.xml)
         id: version
         run: |
           VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+' || echo "1.0.0")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "🚀 Preparando deploy da versão: $VERSION"
+          echo "🚀 Versão detectada: $VERSION"
 
-      - name: Verify Docker Connection
+      - name: Validar Conexão com Docker Remoto
         run: |
-          echo "Tentando conectar ao Docker em $DOCKER_HOST..."
-          docker info | grep "Name" || (echo "❌ Erro: Não foi possível conectar na LXC do Docker. Verifique o IP e se o Docker está exposto via TCP." && exit 1)
+          # Verifica se o binário do docker existe e se alcança a outra LXC
+          DOCKER_BIN=$(command -v docker || echo "/usr/bin/docker")
+          echo "Testando conexão com a LXC 192.168.0.105..."
+          $DOCKER_BIN info | grep "Name" || (echo "❌ Erro: Não foi possível conectar ao Docker. Verifique se o serviço está exposto na LXC 105." && exit 1)
 
-      - name: Execute Deploy Script
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
+      - name: Executar Deploy (Docker Compose)
         run: |
-          # Garante que o script tenha permissão de execução
-          chmod +x deploy.sh
+          echo "=== Iniciando Deploy da versão ${{ steps.version.outputs.version }} ==="
           
-          echo "=== Iniciando Deploy Remoto ==="
-          # O comando será executado pelo Runner, mas enviado para o Docker da outra LXC
+          # O Docker Compose automaticamente usará as variáveis DB_URL e DB_USERNAME 
+          # que definimos no bloco 'env' global lá no topo.
+          chmod +x deploy.sh
           ./deploy.sh
           
-          echo "✅ Deploy da versão $VERSION concluído com sucesso!"
+          echo "✅ Deploy concluído com sucesso!"
 
-      - name: Cleanup old images
+      - name: Limpeza de Imagens Órfãs
         if: always()
         run: |
-          echo "Limpando imagens antigas na LXC remota..."
+          echo "Limpando imagens antigas para economizar espaço no Proxmox..."
           docker image prune -f
