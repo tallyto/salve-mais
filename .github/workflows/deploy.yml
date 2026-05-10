@@ -3,55 +3,66 @@ name: Deploy Gestor Financeiro
 on:
   push:
     branches:
-      - master  # Certifique-se de que sua branch principal se chama master
+      - master  # Certifique-se de que sua branch principal é master ou main
 
 jobs:
   deploy:
-    name: Build and Deploy to Proxmox
+    name: Build and Deploy
     runs-on: self-hosted
-    # Conecta ao ambiente 'dev' que você criou no GitHub
-    environment: dev 
+    environment: dev  # Usa o ambiente 'dev' que você configurou no GitHub
 
     env:
-      # Endereço da LXC que hospeda o Docker
+      # Se você configurou o /etc/hosts, pode usar: tcp://docker.proxmox.local:2375
       DOCKER_HOST: "tcp://192.168.0.105:2375"
-      # Mapeamento dos Secrets para variáveis de ambiente do Shell
+      
+      # Mapeamento das Secrets para o ambiente do Shell do Runner
       DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      # Adicione a senha se tiver criado o secret:
-      # DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+      EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+      EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
 
     steps:
-      - name: Checkout do Código
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Extrair Versão (pom.xml)
+      - name: Extrair Versão do Projeto
         id: version
         run: |
           VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+' || echo "1.0.0")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "🚀 Versão detectada: $VERSION"
 
-      - name: Validar Conexão com Docker Remoto
+      - name: Verificar Instalação do Docker
         run: |
-          # Verifica se o binário do docker existe e se alcança a outra LXC
-          DOCKER_BIN=$(command -v docker || echo "/usr/bin/docker")
-          echo "Testando conexão com a LXC 192.168.0.105..."
-          $DOCKER_BIN info | grep "Name" || (echo "❌ Erro: Não foi possível conectar ao Docker. Verifique se o serviço está exposto na LXC 105." && exit 1)
+          if ! command -v docker &> /dev/null; then
+            echo "Instalando cliente Docker no Runner..."
+            sudo apt-get update && sudo apt-get install -y docker.io
+          fi
 
-      - name: Executar Deploy (Docker Compose)
+      - name: Preparar Ambiente (.env)
         run: |
-          echo "=== Iniciando Deploy da versão ${{ steps.version.outputs.version }} ==="
-          
-          # O Docker Compose automaticamente usará as variáveis DB_URL e DB_USERNAME 
-          # que definimos no bloco 'env' global lá no topo.
+          echo "=== Gerando arquivo .env para o deploy ==="
+          # Cria o arquivo .env que o seu deploy.sh e o docker-compose exigem
+          echo "DB_URL=${{ secrets.DB_URL }}" > .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> .env
+          echo "EMAIL_PORT=${{ secrets.EMAIL_PORT }}" >> .env
+          echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
+          echo "✅ Arquivo .env gerado com sucesso."
+
+      - name: Executar Script de Deploy
+        run: |
+          echo "Iniciando deploy da versão ${{ steps.version.outputs.version }}..."
           chmod +x deploy.sh
           ./deploy.sh
-          
-          echo "✅ Deploy concluído com sucesso!"
 
-      - name: Limpeza de Imagens Órfãs
+      - name: Limpeza Pós-Deploy
         if: always()
         run: |
-          echo "Limpando imagens antigas para economizar espaço no Proxmox..."
+          echo "Limpando imagens órfãs na LXC remota..."
           docker image prune -f
+          # Opcional: remover o .env por segurança após o uso
+          rm .env
