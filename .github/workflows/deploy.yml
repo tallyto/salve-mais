@@ -3,25 +3,34 @@ name: Deploy Gestor Financeiro
 on:
   push:
     branches:
-      - master  # Certifique-se de que sua branch principal é master ou main
+      - master
 
 jobs:
   deploy:
     name: Build and Deploy
     runs-on: self-hosted
-    environment: dev  # Usa o ambiente 'dev' que você configurou no GitHub
+    environment: dev
 
     env:
-      # Se você configurou o /etc/hosts, pode usar: tcp://docker.proxmox.local:2375
-      DOCKER_HOST: "tcp://192.168.0.105:2375"
-      
-      # Mapeamento das Secrets para o ambiente do Shell do Runner
+      # Docker remoto
+      DOCKER_HOST: ${{ secrets.DOCKER_HOST }}
+
+      # DATABASE
       DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      # EMAIL
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+
+      # AWS
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
       - name: Checkout do código
@@ -38,31 +47,66 @@ jobs:
         run: |
           if ! command -v docker &> /dev/null; then
             echo "Instalando cliente Docker no Runner..."
-            sudo apt-get update && sudo apt-get install -y docker.io
+            sudo apt-get update
+            sudo apt-get install -y docker.io docker-compose-plugin
           fi
+
+      - name: Verificar conexão com Docker remoto
+        run: |
+          echo "🐳 Docker Host: $DOCKER_HOST"
+          docker version
+          docker ps
 
       - name: Preparar Ambiente (.env)
         run: |
           echo "=== Gerando arquivo .env para o deploy ==="
-          # Cria o arquivo .env que o seu deploy.sh e o docker-compose exigem
+
+          # DATABASE
           echo "DB_URL=${{ secrets.DB_URL }}" > .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+
+          # EMAIL
           echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> .env
           echo "EMAIL_PORT=${{ secrets.EMAIL_PORT }}" >> .env
           echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" >> .env
+
+          # AWS
+          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+
           echo "✅ Arquivo .env gerado com sucesso."
 
       - name: Executar Script de Deploy
         run: |
-          echo "Iniciando deploy da versão ${{ steps.version.outputs.version }}..."
+          echo "🚀 Iniciando deploy da versão ${{ steps.version.outputs.version }}..."
+
           chmod +x deploy.sh
+
+          export DB_URL="${{ secrets.DB_URL }}"
+          export DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+
+          export EMAIL_HOST="${{ secrets.EMAIL_HOST }}"
+          export EMAIL_PORT="${{ secrets.EMAIL_PORT }}"
+          export EMAIL_SENDER="${{ secrets.EMAIL_SENDER }}"
+
+          export AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}"
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          export AWS_REGION="${{ secrets.AWS_REGION }}"
+
           ./deploy.sh
 
       - name: Limpeza Pós-Deploy
         if: always()
         run: |
-          echo "Limpando imagens órfãs na LXC remota..."
-          docker image prune -f
-          # Opcional: remover o .env por segurança após o uso
-          rm .env
+          echo "🧹 Limpando imagens órfãs..."
+          docker image prune -af
+
+          echo "🗑️ Removendo arquivo .env..."
+          rm -f .env
