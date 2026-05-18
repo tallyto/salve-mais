@@ -11,7 +11,7 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface AnexoMapper {
 
-    @Mapping(target = "contaFixaId", source = "anexo", qualifiedByName = "getContaFixaId")
+    @Mapping(target = "contaFixaId", source = ".", qualifiedByName = "getContaFixaId")
     AnexoDTO toDTO(Anexo anexo);
 
     @Named("getContaFixaId")
