@@ -1,5 +1,6 @@
 package com.tallyto.gestorfinanceiro.config.security;
 
+import com.tallyto.gestorfinanceiro.config.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,49 +18,90 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.tallyto.gestorfinanceiro.config.JwtAuthenticationFilter;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
             .csrf(csrf -> csrf.disable())
+
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
             .authorizeHttpRequests(auth -> auth
+
+                // Preflight CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Healthcheck
+                .requestMatchers("/", "/health").permitAll()
+
+                // Swagger
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**"
+                ).permitAll()
+
+                // Auth
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // Tenant
                 .requestMatchers("/api/tenants/cadastro").permitAll()
                 .requestMatchers("/api/tenants/verificar").permitAll()
                 .requestMatchers("/api/tenants/confirmar").permitAll()
-                .requestMatchers("/api/usuarios").permitAll()
                 .requestMatchers("/api/tenants/verificar-dominio").permitAll()
+
+                // Usuários
+                .requestMatchers("/api/usuarios").permitAll()
+
+                // Todo resto protegido
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
-        configuration.addAllowedMethod("GET");
-        configuration.addAllowedMethod("POST");
-        configuration.addAllowedMethod("PUT");
-        configuration.addAllowedMethod("DELETE");
-        configuration.addAllowedMethod("PATCH");
-        configuration.addAllowedMethod("OPTIONS");
-        configuration.addAllowedHeader("*");
+
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        configuration.setAllowedMethods(List.of(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+
         configuration.setAllowCredentials(false);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
@@ -69,7 +111,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
+
         return authenticationConfiguration.getAuthenticationManager();
     }
 }
