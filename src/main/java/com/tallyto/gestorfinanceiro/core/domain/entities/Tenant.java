@@ -1,7 +1,6 @@
 package com.tallyto.gestorfinanceiro.core.domain.entities;
 
-
-
+import com.tallyto.gestorfinanceiro.core.domain.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,6 +63,16 @@ public class Tenant extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "subscription_plan", nullable = false)
     private SubscriptionPlan subscriptionPlan = SubscriptionPlan.FREE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_status", nullable = false)
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.TRIAL;
+
+    @Column(name = "stripe_subscription_id")
+    private String stripeSubscriptionId;
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
 
     @Column(name = "max_users")
     private Integer maxUsers;

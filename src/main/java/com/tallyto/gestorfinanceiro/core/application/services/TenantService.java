@@ -4,6 +4,7 @@ import com.tallyto.gestorfinanceiro.api.dto.*;
 import com.tallyto.gestorfinanceiro.context.TenantContext;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Usuario;
+import com.tallyto.gestorfinanceiro.core.domain.enums.SubscriptionStatus;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.BadRequestException;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundException;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
@@ -55,7 +56,9 @@ public class TenantService {
         tenant.setName(dto.name());
         tenant.setEmail(dto.email());
         tenant.setActive(false);
-        
+        tenant.setSubscriptionStatus(SubscriptionStatus.TRIAL);
+        tenant.setTrialEndDate(LocalDateTime.now().plusDays(14));
+
         // Gerar token de confirmação
         String token = UUID.randomUUID().toString();
         tenant.setConfirmationToken(token);

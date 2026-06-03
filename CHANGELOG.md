@@ -3,6 +3,24 @@
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-06-02
+
+### Adicionado
+
+- **Fundação de Assinatura SaaS (Fase 1 — Produtização)**:
+  - Enum `SubscriptionStatus` com ciclo de vida completo: `TRIAL → ATIVO → INADIMPLENTE → CANCELADO`
+  - Entidade `Plano` com limites de usuários, transações, storage e campo `stripePriceId` para integração futura com Stripe
+  - Repository `PlanoRepository` com busca por tipo e por `stripePriceId`
+  - Migration `V32`: adiciona coluna `subscription_status` na tabela `tenants`, colunas `stripe_customer_id` e `stripe_subscription_id`, e cria tabela `planos` com 4 planos pré-cadastrados (Gratuito, Básico, Premium, Enterprise)
+  - `SubscriptionService`: transições de estado da assinatura (`ativarAssinatura`, `marcarComoInadimplente`, `cancelarAssinatura`, `reativarAssinatura`, `expirarTrialsVencidos`)
+  - `SubscriptionScheduler`: job cron diário às 02:00 que expira trials vencidos e envia e-mail de notificação
+  - Novos campos em `Tenant`: `subscriptionStatus` (padrão `TRIAL`), `stripeCustomerId`, `stripeSubscriptionId`
+  - Novos métodos em `TenantRepository`: busca por Stripe customer/subscription ID, busca por status e `trialEndDate`
+
+### Alterado
+
+- `TenantService.cadastrarTenant`: todo novo tenant inicia com `subscriptionStatus = TRIAL` e `trialEndDate = agora + 14 dias`
+
 ## [1.19.0] - 2026-01-06
 
 ### Removido

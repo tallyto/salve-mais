@@ -68,6 +68,28 @@ A aplicação estará disponível em <http://localhost:8080>
 - `docker-compose.yml` — Ambiente de desenvolvimento
 - `docker-compose.prod.yml` — Ambiente de produção
 
+## Roadmap de Produtização
+
+O objetivo é transformar o Salve Mais em um SaaS completo com self-service, cobrança recorrente e painel administrativo.
+
+| Fase | Descrição | Status |
+| --- | --- | --- |
+| **Fase 1 — Fundação de Assinatura** | Enum `SubscriptionStatus`, entidade `Plano`, ciclo de vida `TRIAL → ATIVO → INADIMPLENTE → CANCELADO`, scheduler de expiração de trial | ✅ Concluída |
+| **Fase 2 — Enforcement de Plano** | `PlanLimitService` (limite de usuários, transações e storage), retorno HTTP 402 quando tenant bloqueado, middleware de verificação de status | 🔜 Próxima |
+| **Fase 3 — Integração Stripe** | `BillingService`, `StripeWebhookController`, checkout session, webhooks de pagamento (sucesso, falha, cancelamento), sincronização de planos | ⏳ Planejada |
+| **Fase 4 — Frontend (salve-mais-ui)** | Interceptor HTTP 402 com toast persistente, seção de billing (countdown do trial, uso do plano, CTA de upgrade), fluxo de onboarding | ⏳ Planejada |
+| **Fase 5 — Landing Page (salve-mais-page)** | Site público com comparativo de planos, preços e CTA de cadastro (Angular + PrimeNG) | ⏳ Planejada |
+| **Fase 6 — Admin Backoffice (salve-mais-admin)** | Painel do operador: gestão de tenants, MRR, status de assinaturas, intervenção manual | ⏳ Planejada |
+
+### Planos disponíveis
+
+| Plano | Preço/mês | Usuários | Transações/mês | Storage |
+| --- | --- | --- | --- | --- |
+| Gratuito | R$ 0 | 1 | 50 | 500 MB |
+| Básico | R$ 29,90 | 3 | 200 | 2 GB |
+| Premium | R$ 59,90 | 10 | 1.000 | 10 GB |
+| Enterprise | R$ 149,90 | ilimitado | ilimitado | 100 GB |
+
 ## Licença
 
 MIT
