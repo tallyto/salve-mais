@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.config.security;
 
 import com.tallyto.gestorfinanceiro.config.JwtAuthenticationFilter;
+import com.tallyto.gestorfinanceiro.config.SubscriptionGuardFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private SubscriptionGuardFilter subscriptionGuardFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -72,6 +76,10 @@ public class SecurityConfig {
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
+            )
+            .addFilterAfter(
+                subscriptionGuardFilter,
+                JwtAuthenticationFilter.class
             );
 
         return http.build();

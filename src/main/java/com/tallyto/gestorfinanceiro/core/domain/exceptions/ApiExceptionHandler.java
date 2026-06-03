@@ -105,6 +105,21 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(PaymentRequiredException.class)
+    public final ResponseEntity<Problem> handlePaymentRequiredException(PaymentRequiredException ex, WebRequest request) {
+        log.warn("PaymentRequiredException: {}", ex.getMessage());
+        Problem problem = Problem.builder()
+                .timestamp(OffsetDateTime.now())
+                .message(ex.getMessage())
+                .userMessage(ex.getMessage())
+                .detail(request.getDescription(false))
+                .status(HttpStatus.PAYMENT_REQUIRED.value())
+                .type(ProblemType.ASSINATURA_BLOQUEADA.getUri())
+                .title(ProblemType.ASSINATURA_BLOQUEADA.getTitle())
+                .build();
+        return new ResponseEntity<>(problem, HttpStatus.PAYMENT_REQUIRED);
+    }
+
     @ExceptionHandler(EntityInUseException.class)
     public final ResponseEntity<Problem> handleEntityInUseException(EntityInUseException ex, WebRequest request) {
         log.warn("EntityInUseException: {}", ex.getMessage(), ex);

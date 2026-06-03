@@ -28,7 +28,10 @@ public class UsuarioService {
     
     @Autowired
     private TenantService tenantService;
-    
+
+    @Autowired
+    private PlanLimitService planLimitService;
+
     @Autowired
     private UsuarioGlobalRepository usuarioGlobalRepository;
 
@@ -52,6 +55,11 @@ public class UsuarioService {
      */
     @Transactional
     public Usuario cadastrar(UsuarioCadastroDTO dto) {
+        String tenantDomain = TenantContext.getCurrentTenant();
+        if (tenantDomain != null && !"public".equals(tenantDomain)) {
+            planLimitService.verificarLimiteUsuarios(tenantDomain);
+        }
+
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("E-mail já cadastrado");
         }
@@ -60,9 +68,8 @@ public class UsuarioService {
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
         usuario.setCriadoEm(java.time.LocalDateTime.now());
-        
+
         // Obter o tenant do contexto e definir o tenantId
-        String tenantDomain = TenantContext.getCurrentTenant();
         Tenant tenant = null;
         if (tenantDomain != null && !"public".equals(tenantDomain)) {
             tenant = tenantRepository.getTenantByDomain(tenantDomain);

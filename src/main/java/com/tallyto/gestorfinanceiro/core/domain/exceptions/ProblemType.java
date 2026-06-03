@@ -12,6 +12,8 @@ public enum ProblemType {
     MENSAGEM_INCOMPREENSIVEL("/mensagem-incompreensivel", "Mensagem incompreensível"),
     RECURSO_NAO_ENCONTRADO("/recurso-nao-encontrado", "Recurso não encontrado"),
     DADOS_INVALIDOS("/dados-invalidos", "Dados inválidos"),
+    ASSINATURA_BLOQUEADA("/assinatura-bloqueada", "Assinatura bloqueada"),
+    LIMITE_PLANO_EXCEDIDO("/limite-plano-excedido", "Limite do plano excedido"),
     ;
 
     private final String title;
