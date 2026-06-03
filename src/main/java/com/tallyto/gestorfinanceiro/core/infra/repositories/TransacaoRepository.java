@@ -93,6 +93,8 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long>, Jpa
     Page<Transacao> findAllByOrderByDataDesc(Pageable pageable);
     
     
+    long countByDataBetween(LocalDateTime inicio, LocalDateTime fim);
+
     /**
      * Busca uma transação de transferência de entrada com base nos dados da transferência de saída.
      */

@@ -69,6 +69,9 @@ public class SecurityConfig {
                 // Usuários
                 .requestMatchers("/api/usuarios").permitAll()
 
+                // Webhook Stripe — sem JWT, validado pela assinatura do payload
+                .requestMatchers("/api/webhook/stripe").permitAll()
+
                 // Todo resto protegido
                 .anyRequest().authenticated()
             )
