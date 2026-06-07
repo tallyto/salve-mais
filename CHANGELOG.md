@@ -3,6 +3,12 @@
 
 ## [Unreleased]
 
+## [1.21.1] - 2026-06-07
+
+### Corrigido
+
+- **Resumo de notificações**: o endpoint `/api/notificacoes/resumo` agora também contabiliza notificações do tipo `CONTA_PROXIMA_VENCIMENTO` e `FATURA_PROXIMA_VENCIMENTO` (prioridade MEDIA), que antes ficavam de fora do agregado e faziam o widget de notificações do frontend aparecer vazio mesmo havendo alertas
+
 ## [1.21.0] - 2026-06-06
 
 ### Adicionado

@@ -97,6 +97,12 @@ public class NotificacaoController {
         long faturasAtrasadas = todasNotificacoes.stream()
                 .filter(n -> "FATURA_ATRASADA".equals(n.tipo()))
                 .count();
+        long contasProximasVencimento = todasNotificacoes.stream()
+                .filter(n -> "CONTA_PROXIMA_VENCIMENTO".equals(n.tipo()))
+                .count();
+        long faturasProximasVencimento = todasNotificacoes.stream()
+                .filter(n -> "FATURA_PROXIMA_VENCIMENTO".equals(n.tipo()))
+                .count();
 
         Map<String, Object> resumo = Map.of(
                 "totalNotificacoes", totalNotificacoes,
@@ -104,6 +110,8 @@ public class NotificacaoController {
                 "notificacoesAltas", notificacoesAltas,
                 "contasAtrasadas", contasAtrasadas,
                 "faturasAtrasadas", faturasAtrasadas,
+                "contasProximasVencimento", contasProximasVencimento,
+                "faturasProximasVencimento", faturasProximasVencimento,
                 "temNotificacoes", totalNotificacoes > 0
         );
 
