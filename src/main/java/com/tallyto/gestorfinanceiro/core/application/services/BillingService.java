@@ -8,6 +8,7 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.tallyto.gestorfinanceiro.api.dto.BillingStatusDTO;
+import com.tallyto.gestorfinanceiro.api.dto.PlanoDTO;
 import com.tallyto.gestorfinanceiro.api.dto.SubscriptionRequestDTO;
 import com.tallyto.gestorfinanceiro.api.dto.SubscriptionResponseDTO;
 import com.tallyto.gestorfinanceiro.config.stripe.StripeGateway;
@@ -43,6 +44,22 @@ public class BillingService {
     @Autowired private TransacaoRepository transacaoRepository;
     @Autowired private StripeGateway stripeGateway;
     @Autowired private ObjectMapper objectMapper;
+
+    @Transactional(readOnly = true)
+    public java.util.List<PlanoDTO> listarPlanos() {
+        return planoRepository.findByAtivoTrueOrderByPrecoMensalAsc().stream()
+                .map(p -> new PlanoDTO(
+                        p.getId(),
+                        p.getNome(),
+                        p.getDescricao(),
+                        p.getTipo().name(),
+                        p.getPrecoMensal(),
+                        p.getMaxUsuarios(),
+                        p.getMaxTransacoesMes(),
+                        p.getMaxStorageGb()
+                ))
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public BillingStatusDTO getStatus(Tenant tenant) {

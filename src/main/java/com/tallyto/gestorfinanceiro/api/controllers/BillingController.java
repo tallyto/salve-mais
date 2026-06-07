@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.BillingStatusDTO;
+import com.tallyto.gestorfinanceiro.api.dto.PlanoDTO;
 import com.tallyto.gestorfinanceiro.api.dto.SubscriptionRequestDTO;
 import com.tallyto.gestorfinanceiro.api.dto.SubscriptionResponseDTO;
 import com.tallyto.gestorfinanceiro.context.TenantContext;
@@ -20,6 +21,11 @@ public class BillingController {
 
     @Autowired private BillingService billingService;
     @Autowired private TenantService tenantService;
+
+    @GetMapping("/planos")
+    public ResponseEntity<java.util.List<PlanoDTO>> planos() {
+        return ResponseEntity.ok(billingService.listarPlanos());
+    }
 
     @GetMapping("/status")
     public ResponseEntity<BillingStatusDTO> status() {

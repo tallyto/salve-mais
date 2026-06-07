@@ -75,10 +75,10 @@ O objetivo é transformar o Salve Mais em um SaaS completo com self-service, cob
 | Fase | Descrição | Status |
 | --- | --- | --- |
 | **Fase 1 — Fundação de Assinatura** | Enum `SubscriptionStatus`, entidade `Plano`, ciclo de vida `TRIAL → ATIVO → INADIMPLENTE → CANCELADO`, scheduler de expiração de trial | ✅ Concluída |
-| **Fase 2 — Enforcement de Plano** | `PlanLimitService` (limite de usuários, transações e storage), retorno HTTP 402 quando tenant bloqueado, middleware de verificação de status | 🔜 Próxima |
-| **Fase 3 — Integração Stripe** | `BillingService`, `StripeWebhookController`, checkout session, webhooks de pagamento (sucesso, falha, cancelamento), sincronização de planos | ⏳ Planejada |
-| **Fase 4 — Frontend (salve-mais-ui)** | Interceptor HTTP 402 com toast persistente, seção de billing (countdown do trial, uso do plano, CTA de upgrade), fluxo de onboarding | ⏳ Planejada |
-| **Fase 5 — Landing Page (salve-mais-page)** | Site público com comparativo de planos, preços e CTA de cadastro (Angular + PrimeNG) | ⏳ Planejada |
+| **Fase 2 — Enforcement de Plano** | `PlanLimitService` (limite de usuários, transações e storage), retorno HTTP 402 quando tenant bloqueado, middleware de verificação de status | ✅ Concluída |
+| **Fase 3 — Integração Stripe** | `BillingService`, `StripeWebhookController`, checkout session, webhooks de pagamento (sucesso, falha, cancelamento), sincronização de planos | ✅ Concluída |
+| **Fase 4 — Frontend (salve-mais-ui)** | Interceptor HTTP 402 com toast persistente, seção de billing (countdown do trial, uso do plano, CTA de upgrade), fluxo de onboarding | ✅ Concluída |
+| **Fase 5 — Landing Page (salve-mais-page)** | Site público com comparativo de planos, preços e CTA de cadastro (Angular + PrimeNG) | 🔜 Próxima |
 | **Fase 6 — Admin Backoffice (salve-mais-admin)** | Painel do operador: gestão de tenants, MRR, status de assinaturas, intervenção manual | ⏳ Planejada |
 
 ### Planos disponíveis

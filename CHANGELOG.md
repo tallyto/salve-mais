@@ -3,6 +3,16 @@
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-06-06
+
+### Adicionado
+
+- **Endpoint de catálogo de planos (apoio à Fase 4 — Frontend)**:
+  - `GET /api/billing/planos`: lista os planos ativos disponíveis para assinatura, ordenados por preço
+  - `PlanoDTO`: representação pública do `Plano` (id, nome, descrição, tipo, preço mensal e limites)
+  - `PlanoRepository.findByAtivoTrueOrderByPrecoMensalAsc`
+  - `BillingService.listarPlanos`
+
 ## [1.20.0] - 2026-06-02
 
 ### Adicionado
