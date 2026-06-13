@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +20,8 @@ import com.tallyto.gestorfinanceiro.core.domain.exceptions.ResourceNotFoundExcep
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.TransacaoException;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.ReservaEmergenciaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.TransacaoRepository;
 
 
 @Service
@@ -34,6 +35,12 @@ public class ContaService {
     
     @Autowired
     private FaturaRepository faturaRepository;
+
+    @Autowired
+    private TransacaoRepository transacaoRepository;
+
+    @Autowired
+    private ReservaEmergenciaRepository reservaEmergenciaRepository;
     
     public Conta getOne(Long id) {
         return contaRepository.findById(id).orElse(null);
@@ -76,12 +83,22 @@ public class ContaService {
     @Transactional
     public void excluirConta(Long id) {
         Conta conta = findOrFail(id);
-        
-        try {
-            contaRepository.delete(conta);
-        } catch (DataIntegrityViolationException e) {
-            throw new EntityInUseException("conta", id, "transações, reservas de emergência ou outras operações");
+
+        if (reservaEmergenciaRepository.existsByConta_Id(id)) {
+            throw new EntityInUseException(
+                "Esta conta está vinculada a uma reserva de emergência. " +
+                "Exclua a reserva de emergência antes de remover a conta."
+            );
         }
+
+        if (transacaoRepository.existsByConta_Id(id)) {
+            throw new EntityInUseException(
+                "Esta conta possui transações registradas e não pode ser excluída. " +
+                "Remova as transações associadas primeiro ou arquive a conta."
+            );
+        }
+
+        contaRepository.delete(conta);
     }
 
     /**

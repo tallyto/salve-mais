@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReservaEmergenciaRepository extends JpaRepository<ReservaEmergencia, Long> {
-    // Métodos personalizados podem ser adicionados aqui, se necessário
+    boolean existsByConta_Id(Long contaId);
 }

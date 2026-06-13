@@ -95,6 +95,8 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long>, Jpa
     
     long countByDataBetween(LocalDateTime inicio, LocalDateTime fim);
 
+    boolean existsByConta_Id(Long contaId);
+
     /**
      * Busca uma transação de transferência de entrada com base nos dados da transferência de saída.
      */
