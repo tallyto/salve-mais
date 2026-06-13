@@ -1,4 +1,8 @@
-# Use root/example as user/password credentials
+# Ambiente de desenvolvimento — sobe apenas a infra (banco, e-mail de teste e
+# um admin de banco). Backend (mvn spring-boot:run) e frontend (ng serve)
+# continuam rodando nativamente, com hot-reload, fora do Docker.
+#
+# Credenciais do banco: gestor / gestor@admin (combina com application-dev.properties)
 version: '3.1'
 
 services:
@@ -12,10 +16,31 @@ services:
       POSTGRES_PASSWORD: gestor@admin
     ports:
       - 5432:5432
+    volumes:
+      - salve-mais-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gestor -d gestor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 
   mailhog:
     image: mailhog/mailhog
+    restart: always
     ports:
       - "1025:1025" # Porta SMTP
-      - "8025:8025" # Porta da interface da web
+      - "8025:8025" # Interface web — http://localhost:8025
+
+  # Interface web para inspecionar o banco durante o desenvolvimento
+  # Acesse http://localhost:8081 (sistema: PostgreSQL, servidor: postgres)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  salve-mais-db-data:

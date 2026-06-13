@@ -3,6 +3,14 @@
 
 ## [Unreleased]
 
+## [1.21.2] - 2026-06-12
+
+### Manutenção
+
+- **Documentação**: removidos docs obsoletos (`AI_CODE_REVIEW_GUIDE.md`, `ARQUITETURA_USUARIOS_CENTRALIZADOS.md`, `DEPLOY.md`, `INSTRUCTIONS.md`, `MIGRACAO_USUARIOS_GUIA.md`) — conteúdo já incorporado ao código ou ao `ARQUITETURA.md`
+- **Infraestrutura**: removidos `deploy.sh` e `docker-compose.prod.yml` (scripts de deploy substituídos por pipeline atualizado)
+- **Docker**: `docker-compose.yml` de desenvolvimento melhorado com volume persistente, healthcheck no postgres, serviço `adminer` e comentários de orientação
+
 ## [1.21.1] - 2026-06-07
 
 ### Corrigido
