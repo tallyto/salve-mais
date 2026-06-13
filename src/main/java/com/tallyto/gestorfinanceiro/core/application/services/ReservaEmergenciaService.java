@@ -5,14 +5,18 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Fatura;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ReservaEmergencia;
+import com.tallyto.gestorfinanceiro.core.domain.entities.Transacao;
 import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
+import com.tallyto.gestorfinanceiro.core.domain.enums.TipoTransacao;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaFixaRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ContaRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.FaturaRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.ReservaEmergenciaRepository;
+import com.tallyto.gestorfinanceiro.core.infra.repositories.TransacaoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,6 +25,8 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class ReservaEmergenciaService {
@@ -36,6 +42,9 @@ public class ReservaEmergenciaService {
 
     @Autowired
     private FaturaRepository faturaRepository;
+
+    @Autowired
+    private TransacaoRepository transacaoRepository;
 
     /**
      * Busca todas as reservas de emergência
@@ -56,44 +65,37 @@ public class ReservaEmergenciaService {
     }
 
     /**
-     * Cria uma nova reserva de emergência
+     * Cria uma nova reserva de emergência usando a conta RESERVA_EMERGENCIA
+     * já selecionada pelo usuário. Nunca cria uma conta duplicada.
      */
+    @Transactional
     public ReservaEmergenciaDTO create(ReservaEmergenciaInputDTO inputDTO) {
-        ReservaEmergencia reserva = new ReservaEmergencia();
-        Conta contaOriginal = contaRepository.findById(inputDTO.contaId())
+        Conta contaSelecionada = contaRepository.findById(inputDTO.contaId())
                 .orElseThrow(() -> new EntityNotFoundException("Conta não encontrada"));
-        
-        // Em vez de modificar a conta existente, cria uma nova conta do tipo RESERVA_EMERGENCIA
-        Conta contaReserva = new Conta();
-        contaReserva.setTitular(contaOriginal.getTitular());
-        contaReserva.setDescricao("Reserva de Emergência");
-        contaReserva.setSaldo(BigDecimal.ZERO);
-        contaReserva.setTipo(TipoConta.RESERVA_EMERGENCIA);
-        
-        // Define a taxa de rendimento da conta, se fornecida
-        if (inputDTO.taxaRendimento() != null) {
-            contaReserva.setTaxaRendimento(inputDTO.taxaRendimento());
-        } else {
-            // Taxa de rendimento padrão (ex: baseada na Selic)
-            contaReserva.setTaxaRendimento(BigDecimal.valueOf(13.25));
+
+        if (!TipoConta.RESERVA_EMERGENCIA.equals(contaSelecionada.getTipo())) {
+            throw new IllegalArgumentException("A conta selecionada deve ser do tipo RESERVA_EMERGENCIA");
         }
-        
-        // Salva a nova conta de reserva
-        contaReserva = contaRepository.save(contaReserva);
-        
-        reserva.setConta(contaReserva);
+
+        // Atualiza a taxa de rendimento da conta selecionada, se fornecida
+        BigDecimal taxa = inputDTO.taxaRendimento() != null
+                ? inputDTO.taxaRendimento()
+                : BigDecimal.valueOf(13.25);
+        contaSelecionada.setTaxaRendimento(taxa);
+        contaRepository.save(contaSelecionada);
+
+        ReservaEmergencia reserva = new ReservaEmergencia();
+        reserva.setConta(contaSelecionada);
         reserva.setObjetivo(inputDTO.objetivo());
         reserva.setMultiplicadorDespesas(inputDTO.multiplicadorDespesas());
         reserva.setValorContribuicaoMensal(inputDTO.valorContribuicaoMensal());
         reserva.setDataCriacao(LocalDate.now());
-        
-        // Inicializa valores
-        reserva.setSaldoAtual(BigDecimal.ZERO);
+        reserva.setSaldoAtual(contaSelecionada.getSaldo());
         reserva.setPercentualConcluido(BigDecimal.ZERO);
-        
-        // Calcula a data prevista para completar a reserva
+
+        calcularPercentualConcluido(reserva);
         calcularDataPrevisaoCompletar(reserva);
-        
+
         return toDTO(reservaEmergenciaRepository.save(reserva));
     }
 
@@ -166,6 +168,30 @@ public class ReservaEmergenciaService {
     }
     
     /**
+     * Retorna o histórico de contribuições (depósitos) da reserva,
+     * ordenado do mais recente para o mais antigo.
+     */
+    public List<HistoricoContribuicaoDTO> historico(Long reservaId) {
+        ReservaEmergencia reserva = reservaEmergenciaRepository.findById(reservaId)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva de emergência não encontrada"));
+
+        Long contaReservaId = reserva.getConta().getId();
+
+        return transacaoRepository.findByConta_IdAndTipo(
+                contaReservaId,
+                TipoTransacao.TRANSFERENCIA_ENTRADA,
+                PageRequest.of(0, 100, Sort.by("data").descending())
+        ).stream()
+         .map(t -> new HistoricoContribuicaoDTO(
+                 t.getId(),
+                 t.getValor(),
+                 t.getData(),
+                 t.getContaDestino() != null ? t.getContaDestino().getTitular() : "—"
+         ))
+         .collect(Collectors.toList());
+    }
+
+    /**
      * Calcula o valor objetivo da reserva com base nas despesas mensais
      */
     public BigDecimal calcularObjetivoAutomatico(Integer multiplicadorDespesas) {
@@ -186,41 +212,58 @@ public class ReservaEmergenciaService {
     }
     
     /**
-     * Realiza uma contribuição de uma conta para a reserva de emergência
+     * Realiza uma contribuição de uma conta para a reserva de emergência,
+     * debitando a conta de origem, creditando a conta da reserva e
+     * registrando as transações correspondentes.
      */
+    @Transactional
     public ReservaEmergenciaDTO contribuirParaReserva(Long reservaId, ContribuicaoReservaDTO contribuicaoDTO) {
-        // Busca a reserva de emergência
         ReservaEmergencia reserva = reservaEmergenciaRepository.findById(reservaId)
                 .orElseThrow(() -> new EntityNotFoundException("Reserva de emergência não encontrada"));
-        
-        // Busca a conta de origem
+
         Conta contaOrigem = contaRepository.findById(contribuicaoDTO.contaOrigemId())
                 .orElseThrow(() -> new EntityNotFoundException("Conta de origem não encontrada"));
-        
-        // Busca a conta da reserva
+
         Conta contaReserva = reserva.getConta();
-        
-        // Verifica se há saldo suficiente na conta de origem
+
         if (contaOrigem.getSaldo().compareTo(contribuicaoDTO.valor()) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente na conta de origem");
         }
-        
-        // Realiza a transferência
+
+        // Atualiza saldos
         contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(contribuicaoDTO.valor()));
         contaReserva.setSaldo(contaReserva.getSaldo().add(contribuicaoDTO.valor()));
-        
-        // Atualiza o saldo da reserva
-        reserva.setSaldoAtual(contaReserva.getSaldo());
-        
-        // Recalcula percentual concluído
-        calcularPercentualConcluido(reserva);
-        
-        // Recalcula a data prevista para completar a reserva
-        calcularDataPrevisaoCompletar(reserva);
-        
-        // Salva as alterações
+
         contaRepository.save(contaOrigem);
         contaRepository.save(contaReserva);
+
+        // Registra transação de saída na conta de origem
+        Transacao saida = new Transacao();
+        saida.setTipo(TipoTransacao.TRANSFERENCIA_SAIDA);
+        saida.setValor(contribuicaoDTO.valor());
+        saida.setData(java.time.LocalDateTime.now());
+        saida.setConta(contaOrigem);
+        saida.setContaDestino(contaReserva);
+        saida.setDescricao("Contribuição para reserva de emergência");
+        saida.setSistema(true);
+        transacaoRepository.save(saida);
+
+        // Registra transação de entrada na conta da reserva
+        Transacao entrada = new Transacao();
+        entrada.setTipo(TipoTransacao.TRANSFERENCIA_ENTRADA);
+        entrada.setValor(contribuicaoDTO.valor());
+        entrada.setData(java.time.LocalDateTime.now());
+        entrada.setConta(contaReserva);
+        entrada.setContaDestino(contaOrigem);
+        entrada.setDescricao("Contribuição para reserva de emergência");
+        entrada.setSistema(true);
+        transacaoRepository.save(entrada);
+
+        // Atualiza reserva
+        reserva.setSaldoAtual(contaReserva.getSaldo());
+        calcularPercentualConcluido(reserva);
+        calcularDataPrevisaoCompletar(reserva);
+
         return toDTO(reservaEmergenciaRepository.save(reserva));
     }
     

@@ -1,6 +1,7 @@
 package com.tallyto.gestorfinanceiro.api.controllers;
 
 import com.tallyto.gestorfinanceiro.api.dto.ContribuicaoReservaDTO;
+import com.tallyto.gestorfinanceiro.api.dto.HistoricoContribuicaoDTO;
 import com.tallyto.gestorfinanceiro.api.dto.ReservaEmergenciaDTO;
 import com.tallyto.gestorfinanceiro.api.dto.ReservaEmergenciaDetalheDTO;
 import com.tallyto.gestorfinanceiro.api.dto.ReservaEmergenciaInputDTO;
@@ -69,5 +70,10 @@ public class ReservaEmergenciaController {
             @PathVariable Long id,
             @Valid @RequestBody ContribuicaoReservaDTO contribuicaoDTO) {
         return ResponseEntity.ok(reservaEmergenciaService.contribuirParaReserva(id, contribuicaoDTO));
+    }
+
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<List<HistoricoContribuicaoDTO>> historico(@PathVariable Long id) {
+        return ResponseEntity.ok(reservaEmergenciaService.historico(id));
     }
 }
