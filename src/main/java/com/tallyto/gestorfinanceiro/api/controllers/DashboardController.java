@@ -7,6 +7,8 @@ import com.tallyto.gestorfinanceiro.api.dto.MonthlyExpenseDTO;
 import com.tallyto.gestorfinanceiro.api.dto.VariationDataDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.DashboardService;
 import com.tallyto.gestorfinanceiro.core.application.services.ExportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "Dashboard", description = "Indicadores, tendências e exportações do dashboard")
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -34,6 +37,7 @@ public class DashboardController {
      * @return Resumo com saldos, receitas e despesas
      */
     @GetMapping("/summary")
+    @Operation(summary = "Obter resumo do dashboard")
     public ResponseEntity<DashboardSummaryDTO> getSummary(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
@@ -47,6 +51,7 @@ public class DashboardController {
      * @return Lista de categorias com valores e percentuais
      */
     @GetMapping("/expenses-by-category")
+    @Operation(summary = "Obter despesas por categoria")
     public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
@@ -58,6 +63,7 @@ public class DashboardController {
      * @return Dados da regra 50/30/20 com valores ideais e reais
      */
     @GetMapping("/budget-rule")
+    @Operation(summary = "Obter regra 50/30/20")
     public ResponseEntity<BudgetRuleDTO> getBudgetRule() {
         return ResponseEntity.ok(dashboardService.getBudgetRule());
     }
@@ -68,6 +74,7 @@ public class DashboardController {
      * @return Lista com valores por mês
      */
     @GetMapping("/monthly-trend")
+    @Operation(summary = "Obter tendência mensal")
     public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrend(
             @RequestParam(value = "months", defaultValue = "6") int months) {
         return ResponseEntity.ok(dashboardService.getMonthlyExpenseTrend(months));
@@ -79,6 +86,7 @@ public class DashboardController {
      * @return Lista com valores mensais do ano
      */
     @GetMapping("/monthly-trend/year/{year}")
+    @Operation(summary = "Obter tendência mensal por ano")
     public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrendByYear(@PathVariable int year) {
         return ResponseEntity.ok(dashboardService.getMonthlyExpenseTrendByYear(year));
     }
@@ -90,6 +98,7 @@ public class DashboardController {
      * @return Lista com variações comparando mês atual com anterior
      */
     @GetMapping("/variations")
+    @Operation(summary = "Obter variações mensais")
     public ResponseEntity<List<VariationDataDTO>> getVariationData(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
@@ -101,6 +110,7 @@ public class DashboardController {
      * @return Resposta simples para teste
      */
     @GetMapping("/export/test")
+    @Operation(summary = "Testar exportação do dashboard")
     public ResponseEntity<String> testExport() {
         return ResponseEntity.ok("ExportService está funcionando! Endpoint disponível.");
     }
@@ -112,6 +122,7 @@ public class DashboardController {
      * @return Arquivo Excel com dados do dashboard
      */
     @GetMapping("/export/excel")
+    @Operation(summary = "Exportar dashboard para Excel")
     public ResponseEntity<byte[]> exportDashboardToExcel(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {

@@ -23,7 +23,10 @@ import com.tallyto.gestorfinanceiro.core.application.services.ContaService;
 import com.tallyto.gestorfinanceiro.core.application.services.RendimentoService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.enums.TipoConta;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Contas", description = "Gestão de contas e transferências")
 @RestController
 @RequestMapping("/api/contas")
 public class ContaController {
@@ -34,11 +37,13 @@ public class ContaController {
     private RendimentoService rendimentoService;
 
     @GetMapping
+    @Operation(summary = "Listar contas")
     public Page<Conta> listar(Pageable pageable) {
         return contaService.findAllAccounts(pageable);
     }
 
     @GetMapping("/tipos")
+    @Operation(summary = "Listar tipos de conta")
     public ResponseEntity<List<TipoContaDTO>> listarTipos() {
         List<TipoContaDTO> tipos = Arrays.stream(TipoConta.values())
                 .map(tipo -> new TipoContaDTO(tipo, tipo.getDescricao()))
@@ -47,11 +52,13 @@ public class ContaController {
     }
 
     @GetMapping("/tipo/{tipo}")
+    @Operation(summary = "Listar contas por tipo")
     public ResponseEntity<List<Conta>> listarPorTipo(@PathVariable TipoConta tipo) {
         return ResponseEntity.ok(contaService.findByTipo(tipo));
     }
 
     @GetMapping("/{id}/projetar-rendimento")
+    @Operation(summary = "Projetar rendimento de uma conta")
     public ResponseEntity<BigDecimal> projetarRendimento(
             @PathVariable Long id,
             @RequestParam(defaultValue = "12") int meses) {
@@ -61,27 +68,32 @@ public class ContaController {
     }
 
     @PostMapping
+    @Operation(summary = "Criar conta")
     public Conta criar(@RequestBody Conta conta) {
         return contaService.create(conta);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar conta")
     public Conta atualizar(@PathVariable Long id, @RequestBody Conta conta) {
         return contaService.update(id, conta);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar conta por ID")
     public ResponseEntity<Conta> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(contaService.findOrFail(id));
     }
     
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir conta")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         contaService.excluirConta(id);
         return ResponseEntity.noContent().build();
     }
     
     @PostMapping("/transferir")
+    @Operation(summary = "Transferir saldo entre contas")
     public ResponseEntity<Void> transferir(@RequestBody TransferenciaDTO transferencia) {
         contaService.transferir(
             transferencia.contaOrigemId(), 

@@ -9,6 +9,8 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CompraParcelada;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Parcela;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Compras Parceladas", description = "Gestão de compras parceladas e parcelas")
 @RestController
 @RequestMapping("api/compras-parceladas")
 public class CompraParceladaController {
@@ -32,6 +35,7 @@ public class CompraParceladaController {
      * Cria uma nova compra parcelada
      */
     @PostMapping
+    @Operation(summary = "Criar compra parcelada")
     public ResponseEntity<?> criarCompraParcelada(
             @Valid @RequestBody CompraParceladaRequestDTO request) {
         try {
@@ -58,6 +62,7 @@ public class CompraParceladaController {
      * @param pageable Configurações de paginação
      */
     @GetMapping
+    @Operation(summary = "Listar compras parceladas com filtros")
     public ResponseEntity<Page<CompraParceladaResponseDTO>> listarComprasParceladas(
             @RequestParam(required = false) Long cartaoId,
             @RequestParam(required = false) Long categoriaId,
@@ -74,6 +79,7 @@ public class CompraParceladaController {
      * Lista compras parceladas por cartão
      */
     @GetMapping("/cartao/{cartaoId}")
+    @Operation(summary = "Listar compras parceladas por cartão")
     public ResponseEntity<Page<CompraParceladaResponseDTO>> listarPorCartao(
             @PathVariable Long cartaoId,
             Pageable pageable) {
@@ -86,6 +92,7 @@ public class CompraParceladaController {
      * Busca uma compra parcelada por ID
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar compra parcelada por ID")
     public ResponseEntity<CompraParceladaResponseDTO> buscarPorId(@PathVariable Long id) {
         try {
             CompraParcelada compra = compraParceladaService.buscarPorId(id);
@@ -99,6 +106,7 @@ public class CompraParceladaController {
      * Atualiza uma compra parcelada
      */
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar compra parcelada")
     public ResponseEntity<?> atualizarCompraParcelada(
             @PathVariable Long id,
             @Valid @RequestBody CompraParceladaRequestDTO request) {
@@ -124,6 +132,7 @@ public class CompraParceladaController {
      * Lista parcelas de uma compra parcelada
      */
     @GetMapping("/{id}/parcelas")
+    @Operation(summary = "Listar parcelas de uma compra parcelada")
     public ResponseEntity<List<ParcelaDTO>> listarParcelas(@PathVariable Long id) {
         List<Parcela> parcelas = compraParceladaService.listarParcelasPorCompra(id);
         List<ParcelaDTO> response = parcelas.stream()
@@ -136,6 +145,7 @@ public class CompraParceladaController {
      * Busca parcelas por cartão e período
      */
     @GetMapping("/parcelas/cartao/{cartaoId}")
+    @Operation(summary = "Listar parcelas por cartão e período")
     public ResponseEntity<List<ParcelaDTO>> listarParcelasPorCartaoEPeriodo(
             @PathVariable Long cartaoId,
             @RequestParam LocalDate inicio,
@@ -151,6 +161,7 @@ public class CompraParceladaController {
      * Marca uma parcela como paga
      */
     @PatchMapping("/parcelas/{parcelaId}/pagar")
+    @Operation(summary = "Marcar parcela como paga")
     public ResponseEntity<ParcelaDTO> marcarParcelaComoPaga(@PathVariable Long parcelaId) {
         try {
             Parcela parcela = compraParceladaService.marcarParcelaComoPaga(parcelaId);
@@ -164,6 +175,7 @@ public class CompraParceladaController {
      * Desmarca uma parcela como paga
      */
     @PatchMapping("/parcelas/{parcelaId}/despagar")
+    @Operation(summary = "Desmarcar parcela como paga")
     public ResponseEntity<ParcelaDTO> desmarcarParcelaComoPaga(@PathVariable Long parcelaId) {
         try {
             Parcela parcela = compraParceladaService.desmarcarParcelaComoPaga(parcelaId);
@@ -177,6 +189,7 @@ public class CompraParceladaController {
      * Arquiva uma compra parcelada (remove da visualização sem deletar)
      */
     @PatchMapping("/{id}/arquivar")
+    @Operation(summary = "Arquivar compra parcelada")
     public ResponseEntity<CompraParceladaResponseDTO> arquivarCompraParcelada(@PathVariable Long id) {
         try {
             CompraParcelada compra = compraParceladaService.arquivarCompraParcelada(id);
@@ -190,6 +203,7 @@ public class CompraParceladaController {
      * Desarchiva uma compra parcelada
      */
     @PatchMapping("/{id}/desarquivar")
+    @Operation(summary = "Desarquivar compra parcelada")
     public ResponseEntity<CompraParceladaResponseDTO> desarquivarCompraParcelada(@PathVariable Long id) {
         try {
             CompraParcelada compra = compraParceladaService.desarquivarCompraParcelada(id);
@@ -203,6 +217,7 @@ public class CompraParceladaController {
      * Exclui uma compra parcelada
      */
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir compra parcelada")
     public ResponseEntity<Void> excluirCompraParcelada(@PathVariable Long id) {
         try {
             compraParceladaService.excluirCompraParcelada(id);
@@ -216,6 +231,7 @@ public class CompraParceladaController {
      * Lista parcelas não pagas de um cartão
      */
     @GetMapping("/parcelas/nao-pagas/cartao/{cartaoId}")
+    @Operation(summary = "Listar parcelas não pagas por cartão")
     public ResponseEntity<List<ParcelaDTO>> listarParcelasNaoPagas(@PathVariable Long cartaoId) {
         List<Parcela> parcelas = compraParceladaService.listarParcelasNaoPagas(cartaoId);
         List<ParcelaDTO> response = parcelas.stream()
@@ -228,6 +244,7 @@ public class CompraParceladaController {
      * Lista parcelas vencidas
      */
     @GetMapping("/parcelas/vencidas")
+    @Operation(summary = "Listar parcelas vencidas")
     public ResponseEntity<List<ParcelaDTO>> listarParcelasVencidas() {
         List<Parcela> parcelas = compraParceladaService.listarParcelasVencidas();
         List<ParcelaDTO> response = parcelas.stream()

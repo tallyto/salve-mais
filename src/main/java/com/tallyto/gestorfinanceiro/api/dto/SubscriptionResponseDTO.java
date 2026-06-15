@@ -1,3 +1,9 @@
 package com.tallyto.gestorfinanceiro.api.dto;
 
-public record SubscriptionResponseDTO(String checkoutUrl) {}
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Resposta da assinatura com URL de checkout")
+public record SubscriptionResponseDTO(
+        @Schema(description = "URL para concluir o pagamento")
+        String checkoutUrl
+) {}

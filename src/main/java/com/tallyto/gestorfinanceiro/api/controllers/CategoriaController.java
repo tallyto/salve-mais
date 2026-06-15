@@ -3,6 +3,8 @@ package com.tallyto.gestorfinanceiro.api.controllers;
 import com.tallyto.gestorfinanceiro.api.dto.CategoriaDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CategoriaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Categorias", description = "Gestão de categorias")
 @RestController
 @RequestMapping("/api/categorias")
 @Validated
@@ -23,6 +26,7 @@ public class CategoriaController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar categorias")
     public List<Categoria> listarCategorias() {
         return categoriaService.listarCategorias();
     }
@@ -32,11 +36,13 @@ public class CategoriaController {
      * @return Mapa com os tipos de categoria e suas respectivas listas
      */
     @GetMapping("/por-tipo")
+    @Operation(summary = "Listar categorias agrupadas por tipo")
     public Map<Categoria.TipoCategoria, List<Categoria>> listarCategoriasPorTipo() {
         return categoriaService.listarCategoriasPorTipo();
     }
 
     @PostMapping
+    @Operation(summary = "Criar categoria")
     public ResponseEntity<Categoria> criarCategoria(@Valid @RequestBody CategoriaDTO categoriaDTO) {
         Categoria categoria = mapDTOToEntity(categoriaDTO);
         Categoria categoriaSalva = categoriaService.salvarCategoria(categoria);
@@ -44,18 +50,21 @@ public class CategoriaController {
     }
 
     @GetMapping("/{nome}")
+    @Operation(summary = "Buscar categoria por nome")
     public ResponseEntity<Categoria> buscarCategoriaPorNome(@PathVariable String nome) {
         Categoria categoria = categoriaService.buscarCategoriaPorNome(nome);
         return ResponseEntity.ok(categoria);
     }
 
     @GetMapping("/id/{id}")
+    @Operation(summary = "Buscar categoria por ID")
     public ResponseEntity<Categoria> buscarCategoriaPorId(@PathVariable Long id) {
         Categoria categoria = categoriaService.buscaCategoriaPorId(id);
         return ResponseEntity.ok(categoria);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar categoria")
     public ResponseEntity<Categoria> atualizarCategoria(@PathVariable Long id, @Valid @RequestBody CategoriaDTO categoriaDTO) {
         Categoria categoria = mapDTOToEntity(categoriaDTO);
         Categoria categoriaAtualizada = categoriaService.atualizarCategoria(id, categoria);
@@ -63,6 +72,7 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir categoria")
     public ResponseEntity<Void> excluirCategoria(@PathVariable Long id) {
         categoriaService.excluirCategoria(id);
         return ResponseEntity.noContent().build();

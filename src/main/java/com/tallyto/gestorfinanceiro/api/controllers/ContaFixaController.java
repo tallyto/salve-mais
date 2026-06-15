@@ -28,9 +28,12 @@ import com.tallyto.gestorfinanceiro.core.application.services.ContaFixaService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
 import com.tallyto.gestorfinanceiro.core.domain.entities.ContaFixa;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+@Tag(name = "Contas Fixas", description = "Gestão de contas fixas e recorrentes")
 @RestController
 @RequestMapping("/api/contas/fixas")
 @Validated
@@ -45,6 +48,7 @@ public class ContaFixaController {
     }
 
     @PostMapping
+    @Operation(summary = "Criar conta fixa")
     public ResponseEntity<ContaFixa> criarContaFixa(@Valid @RequestBody ContaFixaDTO contaFixaDTO) {
         ContaFixa contaFixa = mapDTOToEntity(contaFixaDTO);
         ContaFixa contaFixaSalva = contaFixaService.salvarContaFixa(contaFixa);
@@ -52,6 +56,7 @@ public class ContaFixaController {
     }
 
     @PostMapping("/recorrente")
+    @Operation(summary = "Criar contas fixas recorrentes")
     public ResponseEntity<List<ContaFixa>> criarContasFixasRecorrentes(
             @Valid @RequestBody ContaFixaRecorrenteDTO contaFixaRecorrenteDTO) {
         try {
@@ -63,6 +68,7 @@ public class ContaFixaController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar contas fixas")
     public Page<ContaFixa> listarContasFixas(
             Pageable pageable,
             @RequestParam(value = "mes", required = false) Integer mes,
@@ -76,6 +82,7 @@ public class ContaFixaController {
     }
 
     @GetMapping("/categoria/{categoriaId}")
+    @Operation(summary = "Listar contas fixas por categoria")
     public ResponseEntity<List<ContaFixa>> listarContasFixasPorCategoria(
             @PathVariable Long categoriaId
     ) {
@@ -84,18 +91,21 @@ public class ContaFixaController {
     }
 
     @GetMapping("/total")
+    @Operation(summary = "Calcular total de contas fixas não pagas")
     public ResponseEntity<BigDecimal> calcularTotalContasFixas() {
         BigDecimal total = contaFixaService.calcularTotalContasFixasNaoPagas();
         return ResponseEntity.ok(total);
     }
 
     @GetMapping("/vencidas")
+    @Operation(summary = "Listar contas fixas vencidas e não pagas")
     public ResponseEntity<List<ContaFixa>> listarContasFixasVencidasNaoPagas() {
         List<ContaFixa> contasFixas = contaFixaService.listarContasFixasVencidasNaoPagas();
         return ResponseEntity.ok(contasFixas);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar conta fixa por ID")
     public ResponseEntity<ContaFixa> buscarContaFixaPorId(@PathVariable Long id) {
         ContaFixa contaFixa = contaFixaService.buscarContaFixaPorId(id);
         if (contaFixa == null) {
@@ -105,6 +115,7 @@ public class ContaFixaController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar conta fixa")
     public ResponseEntity<ContaFixa> atualizarContaFixa(
             @PathVariable Long id,
             @Valid @RequestBody ContaFixaDTO contaFixaDTO) {
@@ -135,6 +146,7 @@ public class ContaFixaController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir conta fixa")
     public ResponseEntity<Void> excluirContaFixa(@PathVariable Long id) {
         ContaFixa contaFixa = contaFixaService.buscarContaFixaPorId(id);
         if (contaFixa == null) {
@@ -149,6 +161,7 @@ public class ContaFixaController {
      * Marca uma conta fixa como paga e cria a transação correspondente
      */
     @PostMapping("/{id}/pagar")
+    @Operation(summary = "Marcar conta fixa como paga")
     public ResponseEntity<ContaFixa> pagarContaFixa(
             @PathVariable Long id,
             @RequestParam(required = false) String observacoes) {
@@ -166,6 +179,7 @@ public class ContaFixaController {
      * Recria uma despesa fixa para o próximo mês como não paga
      */
     @PostMapping("/{id}/recriar-proximo-mes")
+    @Operation(summary = "Recriar despesa fixa para o próximo mês")
     public ResponseEntity<ContaFixa> recriarDespesaProximoMes(@PathVariable Long id) {
         try {
             ContaFixa novaDespesa = contaFixaService.recriarDespesaProximoMes(id);
@@ -181,6 +195,7 @@ public class ContaFixaController {
      * Exporta as contas fixas para Excel
      */
     @GetMapping("/exportar")
+    @Operation(summary = "Exportar contas fixas para Excel")
     public ResponseEntity<ByteArrayResource> exportarContasFixasParaExcel(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {

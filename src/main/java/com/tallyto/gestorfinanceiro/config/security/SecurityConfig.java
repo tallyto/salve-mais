@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // Healthcheck
-                .requestMatchers("/", "/health").permitAll()
+                .requestMatchers("/", "/health", "/actuator/health").permitAll()
 
                 // Swagger
                 .requestMatchers(

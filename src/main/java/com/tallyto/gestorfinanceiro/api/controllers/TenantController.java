@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.tallyto.gestorfinanceiro.api.dto.*;
+import com.tallyto.gestorfinanceiro.config.openapi.OpenApiPublic;
 import com.tallyto.gestorfinanceiro.core.application.services.TenantService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.mappers.TenantMapper;
@@ -48,6 +49,7 @@ public class TenantController {
     }
 
     @PostMapping("/cadastro")
+    @OpenApiPublic
     public ResponseEntity<Map<String, String>> cadastrarTenant(
             @Valid @RequestBody TenantCadastroDTO tenantCadastroDTO) {
         tenantService.cadastrarTenant(tenantCadastroDTO);
@@ -60,6 +62,7 @@ public class TenantController {
     }
 
     @GetMapping("/verificar")
+    @OpenApiPublic
     public ResponseEntity<?> verificarToken(@RequestParam String token) {
         boolean valido = tenantService.verificarToken(token);
 
@@ -73,6 +76,7 @@ public class TenantController {
     }
 
     @PostMapping("/confirmar")
+    @OpenApiPublic
     public ResponseEntity<Map<String, Object>> confirmarTenant(@RequestBody Map<String, String> requestBody) {
         String token = requestBody.get("token");
 
@@ -92,6 +96,7 @@ public class TenantController {
     }
 
     @GetMapping("/verificar-dominio")
+    @OpenApiPublic
     public ResponseEntity<Boolean> verificarDominioDisponivel(@RequestParam String dominio) {
         boolean disponivel = tenantService.verificarDominioDisponivel(dominio);
         return ResponseEntity.ok(disponivel);
@@ -268,4 +273,3 @@ public class TenantController {
         return ResponseEntity.ok(dados);
     }
 }
-

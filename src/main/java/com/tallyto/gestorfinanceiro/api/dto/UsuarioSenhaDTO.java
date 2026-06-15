@@ -1,8 +1,16 @@
 package com.tallyto.gestorfinanceiro.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Dados para atualização de senha do usuário")
 public class UsuarioSenhaDTO {
+    @Schema(description = "E-mail do usuário", example = "maria@empresa.com")
     private String email;
+
+    @Schema(description = "Senha atual", example = "SenhaAtual123")
     private String senhaAtual;
+
+    @Schema(description = "Nova senha", example = "NovaSenha123")
     private String novaSenha;
 
     public String getEmail() {

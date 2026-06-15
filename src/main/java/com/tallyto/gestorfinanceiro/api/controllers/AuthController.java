@@ -28,7 +28,14 @@ import com.tallyto.gestorfinanceiro.core.domain.entities.Tenant;
 import com.tallyto.gestorfinanceiro.core.domain.entities.UsuarioGlobal;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.TenantRepository;
 import com.tallyto.gestorfinanceiro.core.infra.repositories.UsuarioGlobalRepository;
+import com.tallyto.gestorfinanceiro.config.openapi.OpenApiPublic;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Autenticação", description = "Login, recuperação e redefinição de senha")
+@OpenApiPublic
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
@@ -58,6 +65,11 @@ public class AuthController {
      * e obtém o tenant para gerar o JWT com tenantDomain
      */
     @PostMapping("/login")
+    @Operation(summary = "Autenticar usuário e emitir JWT")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Token emitido com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
+    })
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
         try {
             // Autenticar usando UsuarioDetailsService que agora busca de usuario_global
@@ -103,6 +115,7 @@ public class AuthController {
     }
 
     @PostMapping("/recuperar-senha")
+    @Operation(summary = "Solicitar recuperação de senha")
     public ResponseEntity<?> recuperarSenha(@RequestBody RecuperarSenhaRequestDTO dto) {
         logger.info("Solicitação de recuperação de senha para email: {}", dto.getEmail());
         
@@ -143,6 +156,7 @@ public class AuthController {
     }
 
     @PostMapping("/redefinir-senha")
+    @Operation(summary = "Redefinir senha com token válido")
     public ResponseEntity<?> redefinirSenha(@RequestBody RedefinirSenhaRequestDTO dto) {
         logger.info("Tentativa de redefinição de senha com token: {}", dto.getToken());
         
@@ -182,6 +196,7 @@ public class AuthController {
     }
 
     @GetMapping("/verificar-token")
+    @Operation(summary = "Verificar validade de token de recuperação")
     public ResponseEntity<?> verificarToken(@RequestParam String token) {
         logger.info("Verificando validade do token: {}", token);
         

@@ -39,7 +39,7 @@ public class SubscriptionGuardFilter extends OncePerRequestFilter {
             "/v3/api-docs"
     );
 
-    private static final Set<String> PUBLIC_EXACT = Set.of("/", "/health", "/api/usuarios");
+    private static final Set<String> PUBLIC_EXACT = Set.of("/", "/health", "/actuator/health", "/api/usuarios");
 
     @Autowired
     private TenantRepository tenantRepository;

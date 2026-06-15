@@ -24,9 +24,12 @@ import com.tallyto.gestorfinanceiro.core.application.services.CompraDebitoServic
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CompraDebito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Conta;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+@Tag(name = "Compras de Débito", description = "Gestão de compras realizadas no débito")
 @RestController
 @RequestMapping("/api/compras/debito")
 @Validated
@@ -41,6 +44,7 @@ public class CompraDebitoController {
     }
 
     @PostMapping
+    @Operation(summary = "Criar compra de débito")
     public ResponseEntity<CompraDebito> criarCompraDebito(@Valid @RequestBody CompraDebitoDTO compraDebitoDTO) {
         CompraDebito compraDebito = mapDTOToEntity(compraDebitoDTO);
         CompraDebito compraDebitoSalva = compraDebitoService.salvarCompraDebito(compraDebito);
@@ -48,6 +52,7 @@ public class CompraDebitoController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar compras de débito")
     public Page<CompraDebito> listarCompras(
             Pageable pageable,
             @RequestParam(value = "mes", required = false) Integer mes,
@@ -59,6 +64,7 @@ public class CompraDebitoController {
     }
 
     @GetMapping("/categoria/{categoriaId}")
+    @Operation(summary = "Listar compras de débito por categoria")
     public ResponseEntity<List<CompraDebito>> listarComprasPorCategoria(
             @PathVariable Long categoriaId
     ) {
@@ -67,6 +73,7 @@ public class CompraDebitoController {
     }
 
     @GetMapping("/total")
+    @Operation(summary = "Calcular total de compras de débito por período")
     public ResponseEntity<BigDecimal> calcularTotalPorPeriodo(
             @RequestParam LocalDate dataInicio,
             @RequestParam LocalDate dataFim) {
@@ -75,6 +82,7 @@ public class CompraDebitoController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar compra de débito por ID")
     public ResponseEntity<CompraDebito> buscarCompraDebitoPorId(@PathVariable Long id) {
         CompraDebito compraDebito = compraDebitoService.buscarCompraDebitoPorId(id);
         if (compraDebito == null) {
@@ -84,6 +92,7 @@ public class CompraDebitoController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar compra de débito")
     public ResponseEntity<CompraDebito> atualizarCompraDebito(
             @PathVariable Long id,
             @Valid @RequestBody CompraDebitoDTO compraDebitoDTO) {
@@ -107,6 +116,7 @@ public class CompraDebitoController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir compra de débito")
     public ResponseEntity<Void> excluirCompraDebito(@PathVariable Long id) {
         CompraDebito compraDebito = compraDebitoService.buscarCompraDebitoPorId(id);
         if (compraDebito == null) {

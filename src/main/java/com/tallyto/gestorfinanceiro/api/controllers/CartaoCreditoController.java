@@ -4,6 +4,8 @@ import com.tallyto.gestorfinanceiro.api.dto.CartaoLimiteDTO;
 import com.tallyto.gestorfinanceiro.api.dto.CartaoLimiteStatusDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.CartaoCreditoService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Cartões de Crédito", description = "Gestão de cartões de crédito")
 @RestController
 @RequestMapping("/api/cartao-credito")
 public class CartaoCreditoController {
@@ -22,22 +25,26 @@ public class CartaoCreditoController {
     private CartaoCreditoService cartaoCreditoService;
 
     @GetMapping
+    @Operation(summary = "Listar cartões de crédito")
     public List<CartaoCredito> listarCartaoCredito() {
         return cartaoCreditoService.listarCartoesCredito();
     }
     
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar cartão de crédito por ID")
     public CartaoCredito buscarCartaoCredito(@PathVariable Long id) {
         return cartaoCreditoService.findOrFail(id);
     }
 
     @PostMapping
+    @Operation(summary = "Salvar cartão de crédito")
     public CartaoCredito salvarCartaoCredito(@RequestBody CartaoCredito cartaoCredito) {
         return cartaoCreditoService.salvarCartaoCredito(cartaoCredito);
     }
     
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Excluir cartão de crédito")
     public void excluirCartaoCredito(@PathVariable Long id) {
         cartaoCreditoService.excluirCartaoCredito(id);
     }
@@ -48,6 +55,7 @@ public class CartaoCreditoController {
      * Configura o limite do cartão de crédito
      */
     @PutMapping("/{id}/limite")
+    @Operation(summary = "Configurar limite do cartão de crédito")
     public ResponseEntity<CartaoCredito> configurarLimite(
             @PathVariable Long id,
             @Valid @RequestBody CartaoLimiteDTO limiteDTO) {
@@ -65,6 +73,7 @@ public class CartaoCreditoController {
      * Verifica o status atual do limite do cartão
      */
     @GetMapping("/{id}/limite/status")
+    @Operation(summary = "Verificar status do limite do cartão")
     public ResponseEntity<CartaoLimiteStatusDTO> verificarStatusLimite(@PathVariable Long id) {
         try {
             CartaoLimiteStatusDTO status = cartaoCreditoService.verificarStatusLimite(id);
@@ -78,6 +87,7 @@ public class CartaoCreditoController {
      * Lista status de limite de todos os cartões ativos
      */
     @GetMapping("/limite/status")
+    @Operation(summary = "Listar status de limite de todos os cartões")
     public List<CartaoLimiteStatusDTO> listarStatusLimiteTodos() {
         return cartaoCreditoService.listarStatusLimiteTodos();
     }
@@ -86,6 +96,7 @@ public class CartaoCreditoController {
      * Verifica cartões com alertas de limite
      */
     @GetMapping("/limite/alertas")
+    @Operation(summary = "Listar alertas de limite dos cartões")
     public List<CartaoLimiteStatusDTO> verificarAlertas() {
         return cartaoCreditoService.verificarAlertas();
     }
@@ -94,6 +105,7 @@ public class CartaoCreditoController {
      * Calcula limite disponível para uso
      */
     @GetMapping("/{id}/limite/disponivel")
+    @Operation(summary = "Calcular limite disponível do cartão")
     public ResponseEntity<Map<String, BigDecimal>> calcularLimiteDisponivel(@PathVariable Long id) {
         try {
             BigDecimal limiteDisponivel = cartaoCreditoService.calcularLimiteDisponivel(id);
@@ -107,6 +119,7 @@ public class CartaoCreditoController {
      * Verifica se uma compra pode ser realizada
      */
     @PostMapping("/{id}/limite/verificar-compra")
+    @Operation(summary = "Verificar se uma compra cabe no limite do cartão")
     public ResponseEntity<Map<String, Object>> verificarCompra(
             @PathVariable Long id,
             @RequestBody Map<String, BigDecimal> request) {

@@ -6,6 +6,8 @@ import com.tallyto.gestorfinanceiro.core.application.services.CompraService;
 import com.tallyto.gestorfinanceiro.core.domain.entities.CartaoCredito;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Categoria;
 import com.tallyto.gestorfinanceiro.core.domain.entities.Compra;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "Compras", description = "Gestão de compras no cartão de crédito")
 @RestController
 @RequestMapping("api/compras")
 public class CompraController {
@@ -23,11 +26,13 @@ public class CompraController {
     private CompraService compraService;
 
     @PostMapping
+    @Operation(summary = "Criar compra")
     public Compra criarCompra(@RequestBody CompraDTO compra) {
         return compraService.salvarCompra(toEntity(compra));
     }
 
     @GetMapping
+    @Operation(summary = "Listar compras com filtros opcionais")
     public Page<Compra> listarCompras(
             Pageable pageable,
             @RequestParam(value = "mes", required = false) Integer mes,
@@ -41,11 +46,13 @@ public class CompraController {
     }
 
     @GetMapping("/cartao/{cartaoId}")
+    @Operation(summary = "Listar compras de um cartão até uma data")
     public List<Compra> listarPorCartao(@PathVariable Long cartaoId, @RequestParam LocalDate dataVencimento) {
         return compraService.comprasPorCartaoAteData(cartaoId, dataVencimento);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar compra por ID")
     public ResponseEntity<Compra> buscarPorId(@PathVariable Long id) {
         try {
             Compra compra = compraService.buscarCompraPorId(id);
@@ -56,6 +63,7 @@ public class CompraController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar compra")
     public ResponseEntity<Compra> atualizarCompra(@PathVariable Long id, @RequestBody CompraDTO compraDTO) {
         try {
             Compra compra = toEntity(compraDTO);
@@ -68,6 +76,7 @@ public class CompraController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir compra")
     public ResponseEntity<Void> excluirCompra(@PathVariable Long id) {
         try {
             compraService.excluirCompra(id);

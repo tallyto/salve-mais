@@ -22,9 +22,12 @@ import com.tallyto.gestorfinanceiro.api.dto.TransacaoInputDTO;
 import com.tallyto.gestorfinanceiro.core.application.services.TransacaoService;
 import com.tallyto.gestorfinanceiro.core.domain.enums.TipoTransacao;
 import com.tallyto.gestorfinanceiro.core.domain.exceptions.TransacaoException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+@Tag(name = "Transações", description = "Gestão de transações financeiras")
 @RestController
 @RequestMapping("api/transacoes")
 public class TransacaoController {
@@ -39,6 +42,7 @@ public class TransacaoController {
      * Lista todas as transações com filtros opcionais
      */
     @GetMapping
+    @Operation(summary = "Listar transações")
     public ResponseEntity<Page<TransacaoDTO>> listarTransacoes(
             @RequestParam(required = false) Long contaId,
             @RequestParam(required = false) TipoTransacao tipo,
@@ -61,6 +65,7 @@ public class TransacaoController {
      * Busca uma transação por ID
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar transação por ID")
     public ResponseEntity<TransacaoDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(transacaoService.toDTO(transacaoService.findById(id)));
     }
@@ -69,6 +74,7 @@ public class TransacaoController {
      * Cria uma nova transação
      */
     @PostMapping
+    @Operation(summary = "Criar transação")
     public ResponseEntity<TransacaoDTO> criarTransacao(@Valid @RequestBody TransacaoInputDTO transacaoDTO) {
         try {
             return new ResponseEntity<>(transacaoService.criarTransacao(transacaoDTO), HttpStatus.CREATED);
@@ -81,6 +87,7 @@ public class TransacaoController {
      * Remove uma transação por ID
      */
     @DeleteMapping("/{id}")
+    @Operation(summary = "Remover transação")
     public ResponseEntity<Void> removerTransacao(@PathVariable Long id) {
         transacaoService.removerTransacao(id);
         return ResponseEntity.noContent().build();
