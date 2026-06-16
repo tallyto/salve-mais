@@ -129,6 +129,6 @@ public class AnexoService implements AnexoServiceInterface {
      */
     @Override
     public List<Anexo> listarTodosAnexos() {
-        return anexoRepository.findAll();
+        return anexoRepository.findAllBy();
     }
 }
