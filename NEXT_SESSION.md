@@ -172,3 +172,13 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - O que foi feito: adicionei `TenantStatsServiceTest` cobrindo o cálculo e a restauração do tenant original.
 - Testes executados: pendentes nesta sessão.
 - Próximo passo: validar a suíte e commitar a fatia antes de continuar com `TenantService`.
+
+### 2026-06-15 - tenant user admin
+
+- Objetivo: extrair os fluxos de administração de usuários do `TenantService`.
+- O que foi feito: criei `TenantUserService` e movi para ele `toggleUsuarioStatus(...)`, `enviarResetSenhaUsuario(...)`, `resetarTodasSenhas(...)`, `desativarTodosUsuarios(...)` e `ativarTodosUsuarios(...)`.
+- O que foi feito: `TenantService` agora delega esses fluxos para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.4` no `pom.xml`.
+- O que foi feito: adicionei `TenantUserServiceTest` cobrindo toggle, reset e desativação de usuários.
+- Testes executados: pendentes nesta sessão.
+- Próximo passo: validar a suíte e commitar a fatia antes de seguir com `TenantService`.

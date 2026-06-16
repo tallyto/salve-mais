@@ -41,6 +41,9 @@ public class TenantService {
 
     @Autowired
     private TenantStatsService tenantStatsService;
+
+    @Autowired
+    private TenantUserService tenantUserService;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;
@@ -450,44 +453,11 @@ public class TenantService {
     }
 
     public void toggleUsuarioStatus(UUID tenantId, Long usuarioId) {
-        Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
-        
-        try {
-            Usuario usuario = usuarioRepository.findById(usuarioId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-            
-            usuario.setAtivo(!usuario.getAtivo());
-            usuarioRepository.save(usuario);
-        } finally {
-            TenantContext.clear();
-        }
+        tenantUserService.toggleUsuarioStatus(tenantId, usuarioId);
     }
 
     public void enviarResetSenhaUsuario(UUID tenantId, Long usuarioId) {
-        Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
-        
-        try {
-            Usuario usuario = usuarioRepository.findById(usuarioId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-            
-            // Gerar token de reset
-            String token = UUID.randomUUID().toString();
-            usuario.setResetPasswordToken(token);
-            usuario.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(24));
-            usuarioRepository.save(usuario);
-            
-            // Enviar email
-            String resetLink = "https://www.salvemais.com.br/#/resetar-senha?token=" + token;
-            emailService.enviarEmailRecuperacaoSenha(
-                usuario.getEmail(),
-                usuario.getNome(),
-                resetLink
-            );
-        } finally {
-            TenantContext.clear();
-        }
+        tenantUserService.enviarResetSenhaUsuario(tenantId, usuarioId);
     }
 
     public void enviarEmailBoasVindas(UUID tenantId) {
@@ -505,64 +475,15 @@ public class TenantService {
     }
 
     public void resetarTodasSenhas(UUID tenantId) {
-        Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
-        
-        try {
-            List<Usuario> usuarios = usuarioRepository.findAll();
-            
-            for (Usuario usuario : usuarios) {
-                if (usuario.getAtivo()) {
-                    // Gerar token de reset
-                    String token = UUID.randomUUID().toString();
-                    usuario.setResetPasswordToken(token);
-                    usuario.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(24));
-                    usuarioRepository.save(usuario);
-                    
-                    // Enviar email
-                    String resetLink = "https://www.salvemais.com.br/#/resetar-senha?token=" + token;
-                    emailService.enviarEmailRecuperacaoSenha(
-                        usuario.getEmail(),
-                        usuario.getNome(),
-                        resetLink
-                    );
-                }
-            }
-        } finally {
-            TenantContext.clear();
-        }
+        tenantUserService.resetarTodasSenhas(tenantId);
     }
 
     public void desativarTodosUsuarios(UUID tenantId) {
-        Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
-        
-        try {
-            List<Usuario> usuarios = usuarioRepository.findAll();
-            
-            for (Usuario usuario : usuarios) {
-                usuario.setAtivo(false);
-                usuarioRepository.save(usuario);
-            }
-        } finally {
-            TenantContext.clear();
-        }
+        tenantUserService.desativarTodosUsuarios(tenantId);
     }
 
     public void ativarTodosUsuarios(UUID tenantId) {
-        Tenant tenant = findById(tenantId);
-        TenantContext.setCurrentTenant(tenant.getDomain());
-        
-        try {
-            List<Usuario> usuarios = usuarioRepository.findAll();
-            
-            for (Usuario usuario : usuarios) {
-                usuario.setAtivo(true);
-                usuarioRepository.save(usuario);
-            }
-        } finally {
-            TenantContext.clear();
-        }
+        tenantUserService.ativarTodosUsuarios(tenantId);
     }
 
     public TenantExportDTO exportarDadosTenant(UUID tenantId) {

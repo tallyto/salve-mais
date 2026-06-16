@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>br.com.salvemais</groupId>
 	<artifactId>salve-mais</artifactId>
-	<version>1.21.3</version>
+	<version>1.21.4</version>
 	<name>salve-mais</name>
 	<description>Serviço para gerenciar contas pessoais</description>
 	<properties>
