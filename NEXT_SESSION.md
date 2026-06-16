@@ -98,3 +98,109 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 4. Bump de versão no `pom.xml` (backend) ou `package.json` (frontend)
 5. Atualizar a tabela de roadmap no `README.md` marcando a fase como concluída
    (e, se aplicável, o checklist no documento de backlog específico)
+
+## Sessão atual
+
+### 2026-06-15 - dashboard trends
+
+- Objetivo: reduzir o tamanho do `DashboardService` sem mudar o contrato do controller.
+- O que foi feito: criei `DashboardTrendService` e movi para ele a lógica de tendência mensal, tendência anual e variações.
+- O que foi feito: `DashboardService` agora delega esses métodos e fica focado em resumo, despesas por categoria e regra 50/30/20.
+- O que foi feito: adicionei `DashboardTrendServiceTest` cobrindo tendência mensal e variações sem reserva de emergência.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: se continuar a limpeza, separar o bloco de resumo/regra 50/30/20 do `DashboardService`.
+
+### 2026-06-15 - dashboard overview
+
+- Objetivo: separar o bloco de resumo e regra 50/30/20 do dashboard.
+- O que foi feito: criei `DashboardOverviewService` e movi para ele `getSummary()` e `getBudgetRule()`.
+- O que foi feito: `DashboardService` virou uma fachada fina que delega para `DashboardTrendService` e `DashboardOverviewService`.
+- O que foi feito: adicionei `DashboardOverviewServiceTest` cobrindo resumo vazio e regra 50/30/20 sem movimento.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: a próxima divisão natural é revisar `DashboardService` e ver se `getExpensesByCategory()` também deve ser extraído.
+
+### 2026-06-15 - dashboard category expenses
+
+- Objetivo: extrair `getExpensesByCategory()` do `DashboardService`.
+- O que foi feito: criei `DashboardCategoryExpenseService` e movi para ele a montagem das despesas por categoria.
+- O que foi feito: removi `DashboardService` e liguei `DashboardController` e `ExportService` diretamente aos serviços específicos.
+- O que foi feito: adicionei `DashboardCategoryExpenseServiceTest` cobrindo o agrupamento básico por categoria.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: a próxima limpeza natural do dashboard é opcional; a arquitetura funcional já está dividida entre serviços específicos.
+
+### 2026-06-15 - conta fixa comprovantes
+
+- Objetivo: reduzir o acoplamento do `ContaFixaService` sem mexer nos contratos dos controllers.
+- O que foi feito: criei `ContaFixaComprovanteService` e movi para ele as operações de upload, listagem, download e remoção de comprovantes.
+- O que foi feito: `ContaFixaService` agora só delega as operações de comprovantes para o serviço novo.
+- O que foi feito: adicionei `ContaFixaComprovanteServiceTest` cobrindo os fluxos de comprovante e a validação de conta fixa inexistente.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: o próximo recorte natural em `ContaFixaService` é separar exportação/relatórios, se ainda for necessário.
+
+### 2026-06-15 - relatório mensal comparativo
+
+- Objetivo: reduzir o tamanho do `RelatorioMensalService` sem mudar os endpoints.
+- O que foi feito: criei `ComparativoMensalService` e movi para ele toda a lógica de comparação entre dois relatórios mensais.
+- O que foi feito: `RelatorioMensalService` agora gera o relatório base e delega o comparativo para o serviço novo.
+- O que foi feito: adicionei `ComparativoMensalServiceTest` cobrindo resumo, variação e status geral.
+- Testes executados: pendente nesta sessão.
+- Próximo passo: validar a suíte e, se passar, commitar esta fatia antes de atacar o próximo serviço grande.
+
+### 2026-06-15 - tenant export
+
+- Objetivo: reduzir o acoplamento do `TenantService` extraindo a exportação de dados do tenant.
+- O que foi feito: criei `TenantExportService` e movi para ele `exportarDadosTenant(...)`.
+- O que foi feito: `TenantService` agora delega a exportação para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.2` no `pom.xml`.
+- O que foi feito: adicionei `TenantExportServiceTest` cobrindo o payload exportado.
+- O que foi feito: substituí `Map` por `TenantExportDTO` e `UsuarioExportDTO` para tipar a exportação.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar a fatia e continuar quebrando `TenantService` nas responsabilidades restantes.
+
+### 2026-06-15 - tenant stats
+
+- Objetivo: extrair `getStats()` do `TenantService`.
+- O que foi feito: criei `TenantStatsService` e movi para ele o cálculo das estatísticas dos tenants.
+- O que foi feito: `TenantContext` ganhou helpers `withTenant(...)` e `runWithTenant(...)` para encapsular troca de schema.
+- O que foi feito: `TenantService` agora delega estatísticas para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.3` no `pom.xml`.
+- O que foi feito: adicionei `TenantStatsServiceTest` cobrindo o cálculo e a restauração do tenant original.
+- Testes executados: pendentes nesta sessão.
+- Próximo passo: validar a suíte e commitar a fatia antes de continuar com `TenantService`.
+
+### 2026-06-15 - tenant user admin
+
+- Objetivo: extrair os fluxos de administração de usuários do `TenantService`.
+- O que foi feito: criei `TenantUserService` e movi para ele `toggleUsuarioStatus(...)`, `enviarResetSenhaUsuario(...)`, `resetarTodasSenhas(...)`, `desativarTodosUsuarios(...)` e `ativarTodosUsuarios(...)`.
+- O que foi feito: `TenantService` agora delega esses fluxos para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.4` no `pom.xml`.
+- O que foi feito: adicionei `TenantUserServiceTest` cobrindo toggle, reset e desativação de usuários.
+- Testes executados: pendentes nesta sessão.
+- Próximo passo: validar a suíte e commitar a fatia antes de seguir com `TenantService`.
+
+### 2026-06-15 - tenant schema users
+
+- Objetivo: extrair `getUsuariosByTenant(...)` do `TenantService`.
+- O que foi feito: criei `TenantSchemaUserService` e movi para ele a consulta JDBC dos usuários por schema.
+- O que foi feito: `TenantService` agora delega `getUsuariosByTenant(...)` para o serviço novo e mantém apenas as checagens de token/lembrete.
+- O que foi feito: atualizei a versão do artefato para `1.21.5` no `pom.xml`.
+- O que foi feito: adicionei `TenantSchemaUserServiceTest` cobrindo a leitura do schema com `Connection`, `Statement` e `ResultSet` mockados.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar a fatia e, se continuar na mesma frente, revisar o que ainda resta em `TenantService` para ver se faz sentido extrair `schemaExists(...)` ou parar aqui.
+
+### 2026-06-15 - tenant schema guard
+
+- Objetivo: eliminar o último acesso direto a `DataSource` do `TenantService`.
+- O que foi feito: movi a verificação de existência de usuários para `TenantSchemaUserService.hasUsuarios(...)`.
+- O que foi feito: `TenantService` ficou sem JDBC e passou a só orquestrar os casos de uso.
+- O que foi feito: adicionei cobertura em `TenantSchemaUserServiceTest` para a verificação de schema/usuários.
+- O que foi feito: atualizei a versão do artefato para `1.21.6` no `pom.xml`.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar essa consolidação e só mexer de novo em `TenantService` se surgir uma responsabilidade claramente separável.

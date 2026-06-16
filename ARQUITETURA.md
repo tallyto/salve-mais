@@ -6,7 +6,7 @@
 
 ## Visão geral
 
-Salve Mais é um gestor financeiro pessoal **multi-tenant** (cada empresa/usuário-raiz
+Salve Mais é um plataforma financeira pessoal **multi-tenant** (cada empresa/usuário-raiz
 é um "tenant" com seu próprio schema de banco). Stack: **Spring Boot 3 + Java 21 +
 PostgreSQL + Flyway + Hibernate multi-tenant (schema-per-tenant) + JWT + Stripe**.
 
@@ -31,7 +31,7 @@ subida da aplicação, evitando o fluxo completo de cadastro/confirmação por e
 ## Estrutura de pacotes
 
 ```
-com.tallyto.gestorfinanceiro
+br.com.salvemais
 ├── api/
 │   ├── controllers/     — REST controllers (camada de entrada HTTP)
 │   ├── dto/             — Data Transfer Objects expostos pela API

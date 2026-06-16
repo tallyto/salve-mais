@@ -6,15 +6,9 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Current File",
+            "name": "Salve Mais (DEV)",
             "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "GestorFinanceiroApplication",
-            "request": "launch",
-            "mainClass": "com.tallyto.gestorfinanceiro.GestorFinanceiroApplication",
+            "mainClass": "br.com.salvemais.SalveMaisApplication",
             "projectName": "gestor-financeiro",
             "envFile": "${workspaceFolder}/.env",
             "args": "--spring.profiles.active=dev"

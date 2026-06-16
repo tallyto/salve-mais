@@ -1,0 +1,420 @@
+package br.com.salvemais.application.services;
+
+import br.com.salvemais.web.api.dto.*;
+import br.com.salvemais.infrastructure.context.TenantContext;
+import br.com.salvemais.domain.entities.Tenant;
+import br.com.salvemais.domain.enums.SubscriptionStatus;
+import br.com.salvemais.domain.exceptions.BadRequestException;
+import br.com.salvemais.domain.exceptions.ResourceNotFoundException;
+import br.com.salvemais.infrastructure.repositories.TenantRepository;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import br.com.salvemais.util.Utils;
+
+@Service
+public class TenantService {
+
+    @Autowired
+    private TenantRepository tenantRepository;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    @Autowired
+    private br.com.salvemais.infrastructure.repositories.UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private TenantExportService tenantExportService;
+
+    @Autowired
+    private TenantStatsService tenantStatsService;
+
+    @Autowired
+    private TenantUserService tenantUserService;
+
+    @Autowired
+    private TenantSchemaUserService tenantSchemaUserService;
+    
+    @Value("${app.confirmation.url}")
+    private String confirmationUrl;
+
+    public Tenant cadastrarTenant(TenantCadastroDTO dto) {
+        // Validar se o domínio já existe
+        if (tenantRepository.findByDomain(dto.domain()).isPresent()) {
+            throw new BadRequestException("Domínio já está em uso");
+        }
+        
+        // Validar se o email já existe
+        if (tenantRepository.findByEmail(dto.email()).isPresent()) {
+            throw new BadRequestException("Email já está em uso");
+        }
+        
+        // Criar o tenant
+        Tenant tenant = new Tenant();
+        tenant.setDomain(dto.domain());
+        tenant.setName(dto.name());
+        tenant.setEmail(dto.email());
+        tenant.setActive(false);
+        tenant.setSubscriptionStatus(SubscriptionStatus.TRIAL);
+        tenant.setTrialEndDate(LocalDateTime.now().plusDays(14));
+
+        // Gerar token de confirmação
+        String token = UUID.randomUUID().toString();
+        tenant.setConfirmationToken(token);
+        
+        // Salvar o tenant
+        tenant = tenantRepository.save(tenant);
+        
+        // Enviar email de boas-vindas com link de ativação
+        String link = confirmationUrl + "?token=" + token;
+        emailService.enviarEmailHtml(
+            tenant.getEmail(), 
+            "Bem-vindo ao Salve Mais - Ative sua Conta", 
+            "confirmacao-tenant.html",
+            tenant.getName(),
+            link
+        );
+        
+        return tenant;
+    }
+    
+    public boolean verificarToken(String token) {
+        return tenantRepository.findByConfirmationToken(token).isPresent();
+    }
+    
+    public Tenant confirmarTenant(String token) {
+        Tenant tenant = tenantRepository.findByConfirmationToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou expirado"));
+        
+        tenant.setActive(true);
+        tenant.setConfirmationToken(null); // Invalidar o token após o uso
+        
+        // Gerar token para criação de usuário (válido por 24 horas)
+        String createUserToken = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(createUserToken);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        
+        tenant = tenantRepository.save(tenant);
+        
+        // Enviar email de lembrete para criar o primeiro usuário
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + createUserToken;
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
+        
+        return tenant;
+    }
+    
+    public boolean verificarDominioDisponivel(String dominio) {
+        return tenantRepository.findByDomain(dominio).isEmpty();
+    }
+    
+    // Novos métodos para substituir o acesso direto ao repository
+    
+    public List<Tenant> findAll() {
+        return tenantRepository.findAll();
+    }
+    
+    public Tenant findById(UUID id) {
+        return tenantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found with id " + id));
+    }
+    
+    public Tenant save(Tenant tenant) {
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant update(UUID id, TenantDTO tenantDTO) {
+        Tenant tenant = findById(id);
+        BeanUtils.copyProperties(tenantDTO, tenant, Utils.getNullPropertyNames(tenantDTO));
+        return tenantRepository.save(tenant);
+    }
+    
+    public void delete(UUID id) {
+        Tenant tenant = findById(id);
+        tenantRepository.delete(tenant);
+    }
+    
+    // Métodos para customização do tenant
+    
+    public Tenant updateBasicInfo(UUID id, TenantBasicInfoDTO basicInfoDTO) {
+        Tenant tenant = findById(id);
+        
+        if (basicInfoDTO.getName() != null) {
+            tenant.setName(basicInfoDTO.getName());
+        }
+        if (basicInfoDTO.getEmail() != null) {
+            tenant.setEmail(basicInfoDTO.getEmail());
+        }
+        if (basicInfoDTO.getPhoneNumber() != null) {
+            tenant.setPhoneNumber(basicInfoDTO.getPhoneNumber());
+        }
+        if (basicInfoDTO.getAddress() != null) {
+            tenant.setAddress(basicInfoDTO.getAddress());
+        }
+        if (basicInfoDTO.getDisplayName() != null) {
+            tenant.setDisplayName(basicInfoDTO.getDisplayName());
+        }
+        if (basicInfoDTO.getLogoUrl() != null) {
+            tenant.setLogoUrl(basicInfoDTO.getLogoUrl());
+        }
+        if (basicInfoDTO.getFaviconUrl() != null) {
+            tenant.setFaviconUrl(basicInfoDTO.getFaviconUrl());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateSubscription(UUID id, TenantSubscriptionDTO subscriptionDTO) {
+        Tenant tenant = findById(id);
+        
+        if (subscriptionDTO.getSubscriptionPlan() != null) {
+            tenant.setSubscriptionPlan(subscriptionDTO.getSubscriptionPlan());
+        }
+        if (subscriptionDTO.getMaxUsers() != null) {
+            tenant.setMaxUsers(subscriptionDTO.getMaxUsers());
+        }
+        if (subscriptionDTO.getMaxStorageGb() != null) {
+            tenant.setMaxStorageGb(subscriptionDTO.getMaxStorageGb());
+        }
+        if (subscriptionDTO.getTrialEndDate() != null) {
+            tenant.setTrialEndDate(subscriptionDTO.getTrialEndDate());
+        }
+        if (subscriptionDTO.getSubscriptionStartDate() != null) {
+            tenant.setSubscriptionStartDate(subscriptionDTO.getSubscriptionStartDate());
+        }
+        if (subscriptionDTO.getSubscriptionEndDate() != null) {
+            tenant.setSubscriptionEndDate(subscriptionDTO.getSubscriptionEndDate());
+        }
+        if (subscriptionDTO.getEnabledFeatures() != null) {
+            tenant.setEnabledFeatures(subscriptionDTO.getEnabledFeatures());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateSmtpConfig(UUID id, TenantSmtpConfigDTO smtpConfigDTO) {
+        Tenant tenant = findById(id);
+        
+        tenant.setCustomSmtpHost(smtpConfigDTO.getHost());
+        tenant.setCustomSmtpPort(smtpConfigDTO.getPort());
+        tenant.setCustomSmtpUser(smtpConfigDTO.getUser());
+        tenant.setCustomSmtpPassword(smtpConfigDTO.getPassword());
+        tenant.setCustomSmtpFromEmail(smtpConfigDTO.getFromEmail());
+        tenant.setCustomSmtpFromName(smtpConfigDTO.getFromName());
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant updateRegionalSettings(UUID id, TenantRegionalSettingsDTO regionalSettingsDTO) {
+        Tenant tenant = findById(id);
+        
+        if (regionalSettingsDTO.getTimezone() != null) {
+            tenant.setTimezone(regionalSettingsDTO.getTimezone());
+        }
+        if (regionalSettingsDTO.getLocale() != null) {
+            tenant.setLocale(regionalSettingsDTO.getLocale());
+        }
+        if (regionalSettingsDTO.getCurrencyCode() != null) {
+            tenant.setCurrencyCode(regionalSettingsDTO.getCurrencyCode());
+        }
+        if (regionalSettingsDTO.getDateFormat() != null) {
+            tenant.setDateFormat(regionalSettingsDTO.getDateFormat());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+    
+    public Tenant findByDomain(String domain) {
+        return tenantRepository.findByDomain(domain)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found with domain " + domain));
+    }
+
+    public Tenant updateTenant(UUID id, TenantUpdateDTO updateDTO) {
+        Tenant tenant = findById(id);
+        
+        if (updateDTO.getActive() != null) {
+            tenant.setActive(updateDTO.getActive());
+        }
+        if (updateDTO.getName() != null) {
+            tenant.setName(updateDTO.getName());
+        }
+        if (updateDTO.getEmail() != null) {
+            tenant.setEmail(updateDTO.getEmail());
+        }
+        if (updateDTO.getPhoneNumber() != null) {
+            tenant.setPhoneNumber(updateDTO.getPhoneNumber());
+        }
+        if (updateDTO.getAddress() != null) {
+            tenant.setAddress(updateDTO.getAddress());
+        }
+        
+        return tenantRepository.save(tenant);
+    }
+
+    public TenantStatsDTO getStats() {
+        return tenantStatsService.getStats();
+    }
+
+    /**
+     * Busca todos os usuários de um tenant específico.
+     * 
+     * IMPORTANTE: Este método utiliza troca de schema para buscar usuários.
+     * Cada tenant tem seu próprio schema de banco de dados (schema-per-tenant).
+     * 
+     * Fluxo:
+     * 1. Busca o tenant no schema público
+     * 2. Salva o contexto atual do tenant
+     * 3. Troca temporariamente para o schema do tenant (usando TenantContext)
+     * 4. Busca todos os usuários naquele schema
+     * 5. Restaura o contexto original (CRÍTICO: sempre no finally)
+     * 
+     * @param tenantId ID do tenant
+     * @return Lista de DTOs com informações dos usuários
+     * @throws ResourceNotFoundException se o tenant não for encontrado
+     */
+    public List<UsuarioTenantDTO> getUsuariosByTenant(UUID tenantId) {
+        return tenantSchemaUserService.getUsuariosByTenant(tenantId);
+    }
+    
+    public void enviarLembreteCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Verificar se o tenant está ativo
+        if (!tenant.getActive()) {
+            throw new BadRequestException("O tenant precisa estar ativo para receber o lembrete");
+        }
+        
+        // Verificar se o tenant já tem usuários (somente se o schema existir)
+        if (tenantSchemaUserService.hasUsuarios(tenantId)) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        }
+        
+        // Gerar token para criação de usuário (válido por 24 horas)
+        String token = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(token);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        tenantRepository.save(tenant);
+        
+        // Construir link com token
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + token;
+        
+        // Enviar email de lembrete
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
+    }
+    
+    public Tenant verificarTokenCriarUsuario(String token) {
+        Tenant tenant = tenantRepository.findByCreateUserToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Token inválido ou expirado"));
+        
+        // Verificar se o token expirou (válido por 24 horas)
+        if (tenant.getCreateUserTokenExpiry() == null || 
+            tenant.getCreateUserTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Token expirado. Solicite um novo link através do suporte.");
+        }
+        
+        // Verificar se já existe usuário (somente se o schema existir)
+        if (tenantSchemaUserService.hasUsuarios(tenant.getId())) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        }
+        
+        return tenant;
+    }
+    
+    public void invalidarTokenCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        tenant.setCreateUserToken(null);
+        tenant.setCreateUserTokenExpiry(null);
+        tenantRepository.save(tenant);
+    }
+    
+    public void reenviarTokenCriarUsuario(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Verificar se o tenant está ativo
+        if (!tenant.getActive()) {
+            throw new BadRequestException("O tenant precisa estar ativo para receber o lembrete");
+        }
+        
+        // Verificar se o tenant já tem usuários (somente se o schema existir)
+        if (tenantSchemaUserService.hasUsuarios(tenantId)) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
+        }
+        
+        // Gerar novo token (válido por 24 horas)
+        String token = UUID.randomUUID().toString();
+        tenant.setCreateUserToken(token);
+        tenant.setCreateUserTokenExpiry(LocalDateTime.now().plusHours(24));
+        tenantRepository.save(tenant);
+        
+        // Construir link com token
+        String createUserLink = "https://www.salvemais.com.br/#/criar-usuario?token=" + token;
+        
+        // Enviar email de lembrete
+        emailService.enviarEmailLembreteCriarUsuario(
+            tenant.getEmail(),
+            tenant.getName(),
+            tenant.getDomain(),
+            createUserLink
+        );
+    }
+
+    public void toggleTenantStatus(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        tenant.setActive(!tenant.getActive());
+        tenantRepository.save(tenant);
+    }
+
+    public void toggleUsuarioStatus(UUID tenantId, Long usuarioId) {
+        tenantUserService.toggleUsuarioStatus(tenantId, usuarioId);
+    }
+
+    public void enviarResetSenhaUsuario(UUID tenantId, Long usuarioId) {
+        tenantUserService.enviarResetSenhaUsuario(tenantId, usuarioId);
+    }
+
+    public void enviarEmailBoasVindas(UUID tenantId) {
+        Tenant tenant = findById(tenantId);
+        
+        // Reutilizar o template de confirmação de tenant
+        String link = "https://www.salvemais.com.br";
+        emailService.enviarEmailHtml(
+            tenant.getEmail(),
+            "Bem-vindo ao Salve Mais!",
+            "confirmacao-tenant.html",
+            tenant.getName(),
+            link
+        );
+    }
+
+    public void resetarTodasSenhas(UUID tenantId) {
+        tenantUserService.resetarTodasSenhas(tenantId);
+    }
+
+    public void desativarTodosUsuarios(UUID tenantId) {
+        tenantUserService.desativarTodosUsuarios(tenantId);
+    }
+
+    public void ativarTodosUsuarios(UUID tenantId) {
+        tenantUserService.ativarTodosUsuarios(tenantId);
+    }
+
+    public TenantExportDTO exportarDadosTenant(UUID tenantId) {
+        return tenantExportService.exportarDadosTenant(tenantId);
+    }
+}

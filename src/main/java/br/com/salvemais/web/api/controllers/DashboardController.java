@@ -1,0 +1,186 @@
+package br.com.salvemais.web.api.controllers;
+
+import br.com.salvemais.web.api.dto.BudgetRuleDTO;
+import br.com.salvemais.web.api.dto.CategoryExpenseDTO;
+import br.com.salvemais.web.api.dto.DashboardSummaryDTO;
+import br.com.salvemais.web.api.dto.MonthlyExpenseDTO;
+import br.com.salvemais.web.api.dto.VariationDataDTO;
+import br.com.salvemais.application.services.DashboardCategoryExpenseService;
+import br.com.salvemais.application.services.DashboardOverviewService;
+import br.com.salvemais.application.services.DashboardTrendService;
+import br.com.salvemais.application.services.ExportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Tag(name = "Dashboard", description = "Indicadores, tendências e exportações do dashboard")
+@RestController
+@RequestMapping("/api/dashboard")
+public class DashboardController {
+
+    private final DashboardOverviewService dashboardOverviewService;
+    private final DashboardCategoryExpenseService dashboardCategoryExpenseService;
+    private final DashboardTrendService dashboardTrendService;
+    private final ExportService exportService;
+
+    public DashboardController(DashboardOverviewService dashboardOverviewService,
+                               DashboardCategoryExpenseService dashboardCategoryExpenseService,
+                               DashboardTrendService dashboardTrendService,
+                               ExportService exportService) {
+        this.dashboardOverviewService = dashboardOverviewService;
+        this.dashboardCategoryExpenseService = dashboardCategoryExpenseService;
+        this.dashboardTrendService = dashboardTrendService;
+        this.exportService = exportService;
+    }
+
+    /**
+     * Endpoint para obter resumo financeiro para o dashboard
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
+     * @return Resumo com saldos, receitas e despesas
+     */
+    @GetMapping("/summary")
+    @Operation(summary = "Obter resumo do dashboard")
+    public ResponseEntity<DashboardSummaryDTO> getSummary(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardOverviewService.getSummary(mes, ano));
+    }
+
+    /**
+     * Endpoint para obter despesas por categoria (para gráfico de pizza)
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
+     * @return Lista de categorias com valores e percentuais
+     */
+    @GetMapping("/expenses-by-category")
+    @Operation(summary = "Obter despesas por categoria")
+    public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardCategoryExpenseService.getExpensesByCategory(mes, ano));
+    }
+    
+    /**
+     * Endpoint para obter a análise da regra 50/30/20
+     * @return Dados da regra 50/30/20 com valores ideais e reais
+     */
+    @GetMapping("/budget-rule")
+    @Operation(summary = "Obter regra 50/30/20")
+    public ResponseEntity<BudgetRuleDTO> getBudgetRule() {
+        return ResponseEntity.ok(dashboardOverviewService.getBudgetRule());
+    }
+
+    /**
+     * Endpoint para obter tendência de gastos e receitas por mês
+     * @param months Número de meses para trás para buscar (opcional, padrão: 6)
+     * @return Lista com valores por mês
+     */
+    @GetMapping("/monthly-trend")
+    @Operation(summary = "Obter tendência mensal")
+    public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrend(
+            @RequestParam(value = "months", defaultValue = "6") int months) {
+        return ResponseEntity.ok(dashboardTrendService.getMonthlyExpenseTrend(months));
+    }
+
+    /**
+     * Endpoint para obter tendência mensal por ano específico
+     * @param year Ano para buscar os dados
+     * @return Lista com valores mensais do ano
+     */
+    @GetMapping("/monthly-trend/year/{year}")
+    @Operation(summary = "Obter tendência mensal por ano")
+    public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrendByYear(@PathVariable int year) {
+        return ResponseEntity.ok(dashboardTrendService.getMonthlyExpenseTrendByYear(year));
+    }
+
+    /**
+     * Endpoint para obter dados de variação mensal
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
+     * @return Lista com variações comparando mês atual com anterior
+     */
+    @GetMapping("/variations")
+    @Operation(summary = "Obter variações mensais")
+    public ResponseEntity<List<VariationDataDTO>> getVariationData(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        return ResponseEntity.ok(dashboardTrendService.getVariationData(mes, ano));
+    }
+
+    /**
+     * Endpoint de teste para verificar se o ExportService está funcionando
+     * @return Resposta simples para teste
+     */
+    @GetMapping("/export/test")
+    @Operation(summary = "Testar exportação do dashboard")
+    public ResponseEntity<String> testExport() {
+        return ResponseEntity.ok("ExportService está funcionando! Endpoint disponível.");
+    }
+
+    /**
+     * Endpoint para exportar dados do dashboard em formato Excel
+     * @param mes Mês para filtrar os dados (opcional)
+     * @param ano Ano para filtrar os dados (opcional)
+     * @return Arquivo Excel com dados do dashboard
+     */
+    @GetMapping("/export/excel")
+    @Operation(summary = "Exportar dashboard para Excel")
+    public ResponseEntity<byte[]> exportDashboardToExcel(
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
+        
+        try {
+            byte[] excelData = exportService.generateDashboardExcel(mes, ano);
+            
+            // Definir nome do arquivo baseado no período
+            String fileName = "dashboard-financeiro";
+            if (mes != null && ano != null) {
+                String monthName = getMonthName(mes);
+                fileName += "-" + monthName.toLowerCase() + "-" + ano;
+            } else if (ano != null) {
+                fileName += "-" + ano;
+            } else {
+                LocalDate now = LocalDate.now();
+                String monthName = getMonthName(now.getMonthValue());
+                fileName += "-" + monthName.toLowerCase() + "-" + now.getYear();
+            }
+            fileName += ".xlsx";
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", fileName);
+            headers.setContentLength(excelData.length);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+                    
+        } catch (Exception e) {
+            // Log do erro para debug
+            System.err.println("Erro ao gerar Excel: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Retorna erro HTTP 500
+            return ResponseEntity.internalServerError()
+                    .body(("Erro ao gerar arquivo Excel: " + e.getMessage()).getBytes());
+        }
+    }
+
+    /**
+     * Método auxiliar para obter nome do mês
+     */
+    private String getMonthName(int month) {
+        String[] months = {
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        };
+        return months[month - 1];
+    }
+}

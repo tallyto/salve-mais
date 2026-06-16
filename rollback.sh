@@ -46,7 +46,7 @@ if [ ! -f "$BACKUP_VERSION_FILE" ]; then
 fi
 
 VERSION=$(cat "$BACKUP_VERSION_FILE")
-BACKUP_IMAGE="gestor-financeiro:${BACKUP_NAME}"
+BACKUP_IMAGE="salve-mais:${BACKUP_NAME}"
 
 # Verifica se a imagem do backup existe
 if ! docker image inspect "$BACKUP_IMAGE" >/dev/null 2>&1; then
@@ -67,28 +67,28 @@ fi
 
 # Cria backup da versão atual antes do rollback
 echo "Criando backup de segurança da versão atual..."
-CURRENT_IMAGE=$(docker ps --format "table {{.Image}}" | grep "gestor-financeiro" | head -1 || echo "")
+CURRENT_IMAGE=$(docker ps --format "table {{.Image}}" | grep "salve-mais" | head -1 || echo "")
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 if [ -n "$CURRENT_IMAGE" ]; then
-    CURRENT_VERSION=$(awk '/<artifactId>gestor-financeiro<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
-    docker tag "$CURRENT_IMAGE" "gestor-financeiro:pre_rollback_${CURRENT_VERSION}_${TIMESTAMP}" || true
+    CURRENT_VERSION=$(awk '/<artifactId>salve-mais<\/artifactId>/{getline; print}' pom.xml | grep -oP '(?<=<version>)[^<]+')
+    docker tag "$CURRENT_IMAGE" "salve-mais:pre_rollback_${CURRENT_VERSION}_${TIMESTAMP}" || true
 fi
 
 echo "Parando containers atuais..."
-docker stop $(docker ps -q --filter "name=gestor-financeiro") 2>/dev/null || true
-docker rm $(docker ps -aq --filter "name=gestor-financeiro") 2>/dev/null || true
+docker stop $(docker ps -q --filter "name=salve-mais") 2>/dev/null || true
+docker rm $(docker ps -aq --filter "name=salve-mais") 2>/dev/null || true
 
 echo "Restaurando imagem do backup..."
-docker tag "$BACKUP_IMAGE" "gestor-financeiro:latest"
+docker tag "$BACKUP_IMAGE" "salve-mais:latest"
 
 echo "Subindo container com a versão do backup..."
 docker run -d \
-    --name gestor-financeiro-app \
+    --name salve-mais-app \
     --restart unless-stopped \
     -p 3001:3001 \
     --env-file .env \
     -e SPRING_PROFILES_ACTIVE=prod \
-    "gestor-financeiro:latest"
+    "salve-mais:latest"
 
 if [ $? -ne 0 ]; then
     echo "Erro: Falha ao subir container do backup!"
