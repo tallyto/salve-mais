@@ -38,6 +38,9 @@ public class TenantService {
 
     @Autowired
     private TenantExportService tenantExportService;
+
+    @Autowired
+    private TenantStatsService tenantStatsService;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;
@@ -259,78 +262,8 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
-    /**
-     * Calcula estatísticas gerais dos tenants.
-     * 
-     * IMPORTANTE: O cálculo de totalUsers itera por TODOS os schemas.
-     * 
-     * Fluxo:
-     * 1. Busca todos os tenants no schema público
-     * 2. Calcula totais simples (total, ativos, inativos)
-     * 3. Para cada tenant:
-     *    - Troca para o schema do tenant
-     *    - Conta os usuários naquele schema
-     *    - Acumula no total
-     *    - Restaura o contexto (sempre no finally)
-     * 
-     * PERFORMANCE: Com muitos tenants, considere:
-     * - Cache das estatísticas
-     * - Cálculo assíncrono em background
-     * - Atualização periódica ao invés de tempo real
-     * 
-     * @return DTO com estatísticas dos tenants e total de usuários
-     */
-    /**
-     * Calcula estatísticas gerais dos tenants.
-     * 
-     * IMPORTANTE: O cálculo de totalUsers itera por TODOS os schemas.
-     * 
-     * Fluxo:
-     * 1. Busca todos os tenants no schema público
-     * 2. Calcula totais simples (total, ativos, inativos)
-     * 3. Para cada tenant:
-     *    - Troca para o schema do tenant
-     *    - Conta os usuários naquele schema
-     *    - Acumula no total
-     *    - Restaura o contexto (sempre no finally)
-     * 
-     * PERFORMANCE: Com muitos tenants, considere:
-     * - Cache das estatísticas
-     * - Cálculo assíncrono em background
-     * - Atualização periódica ao invés de tempo real
-     * 
-     * @return DTO com estatísticas dos tenants e total de usuários
-     */
     public TenantStatsDTO getStats() {
-        List<Tenant> allTenants = tenantRepository.findAll();
-        
-        long totalTenants = allTenants.size();
-        long activeTenants = allTenants.stream().filter(Tenant::getActive).count();
-        long inactiveTenants = totalTenants - activeTenants;
-        
-        // Contar total de usuários de todos os schemas/tenants
-        String currentTenant = TenantContext.getCurrentTenant();
-        long totalUsers = 0;
-        
-        try {
-            for (Tenant tenant : allTenants) {
-                try {
-                    // Trocar para o schema do tenant
-                    TenantContext.setCurrentTenant(tenant.getDomain());
-                    // Contar usuários deste schema
-                    totalUsers += usuarioRepository.count();
-                } catch (Exception e) {
-                    // Se houver erro ao acessar algum schema, apenas loga e continua
-                    // (pode ser que o schema ainda não exista)
-                    continue;
-                }
-            }
-        } finally {
-            // Restaurar o tenant original
-            TenantContext.setCurrentTenant(currentTenant);
-        }
-        
-        return new TenantStatsDTO(totalTenants, activeTenants, inactiveTenants, totalUsers);
+        return tenantStatsService.getStats();
     }
 
     /**

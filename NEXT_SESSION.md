@@ -161,3 +161,14 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - Testes executados: `./mvnw test -q`
 - Resultado: suíte passou.
 - Próximo passo: commitar a fatia e continuar quebrando `TenantService` nas responsabilidades restantes.
+
+### 2026-06-15 - tenant stats
+
+- Objetivo: extrair `getStats()` do `TenantService`.
+- O que foi feito: criei `TenantStatsService` e movi para ele o cálculo das estatísticas dos tenants.
+- O que foi feito: `TenantContext` ganhou helpers `withTenant(...)` e `runWithTenant(...)` para encapsular troca de schema.
+- O que foi feito: `TenantService` agora delega estatísticas para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.3` no `pom.xml`.
+- O que foi feito: adicionei `TenantStatsServiceTest` cobrindo o cálculo e a restauração do tenant original.
+- Testes executados: pendentes nesta sessão.
+- Próximo passo: validar a suíte e commitar a fatia antes de continuar com `TenantService`.
