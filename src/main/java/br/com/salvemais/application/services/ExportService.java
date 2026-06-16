@@ -30,7 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExportService {
 
-    private final DashboardService dashboardService;
+    private final DashboardOverviewService dashboardOverviewService;
+    private final DashboardCategoryExpenseService dashboardCategoryExpenseService;
+    private final DashboardTrendService dashboardTrendService;
     private final ContaService contaService;
     private final RelatorioMensalService relatorioMensalService;
     private final CompraRepository compraRepository;
@@ -53,9 +55,9 @@ public class ExportService {
             CellStyle percentStyle = createPercentStyle(workbook);
             
             // Buscar dados
-            DashboardSummaryDTO summary = dashboardService.getSummary(mes, ano);
-            List<CategoryExpenseDTO> categories = dashboardService.getExpensesByCategory(mes, ano);
-            List<MonthlyExpenseDTO> monthlyTrend = dashboardService.getMonthlyExpenseTrendByYear(
+            DashboardSummaryDTO summary = dashboardOverviewService.getSummary(mes, ano);
+            List<CategoryExpenseDTO> categories = dashboardCategoryExpenseService.getExpensesByCategory(mes, ano);
+            List<MonthlyExpenseDTO> monthlyTrend = dashboardTrendService.getMonthlyExpenseTrendByYear(
                 ano != null ? ano : LocalDate.now().getYear()
             );
             List<Conta> contas = contaService.findAllAccounts(PageRequest.of(0, 100)).getContent();

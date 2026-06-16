@@ -98,3 +98,35 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 4. Bump de versão no `pom.xml` (backend) ou `package.json` (frontend)
 5. Atualizar a tabela de roadmap no `README.md` marcando a fase como concluída
    (e, se aplicável, o checklist no documento de backlog específico)
+
+## Sessão atual
+
+### 2026-06-15 - dashboard trends
+
+- Objetivo: reduzir o tamanho do `DashboardService` sem mudar o contrato do controller.
+- O que foi feito: criei `DashboardTrendService` e movi para ele a lógica de tendência mensal, tendência anual e variações.
+- O que foi feito: `DashboardService` agora delega esses métodos e fica focado em resumo, despesas por categoria e regra 50/30/20.
+- O que foi feito: adicionei `DashboardTrendServiceTest` cobrindo tendência mensal e variações sem reserva de emergência.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: se continuar a limpeza, separar o bloco de resumo/regra 50/30/20 do `DashboardService`.
+
+### 2026-06-15 - dashboard overview
+
+- Objetivo: separar o bloco de resumo e regra 50/30/20 do dashboard.
+- O que foi feito: criei `DashboardOverviewService` e movi para ele `getSummary()` e `getBudgetRule()`.
+- O que foi feito: `DashboardService` virou uma fachada fina que delega para `DashboardTrendService` e `DashboardOverviewService`.
+- O que foi feito: adicionei `DashboardOverviewServiceTest` cobrindo resumo vazio e regra 50/30/20 sem movimento.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: a próxima divisão natural é revisar `DashboardService` e ver se `getExpensesByCategory()` também deve ser extraído.
+
+### 2026-06-15 - dashboard category expenses
+
+- Objetivo: extrair `getExpensesByCategory()` do `DashboardService`.
+- O que foi feito: criei `DashboardCategoryExpenseService` e movi para ele a montagem das despesas por categoria.
+- O que foi feito: removi `DashboardService` e liguei `DashboardController` e `ExportService` diretamente aos serviços específicos.
+- O que foi feito: adicionei `DashboardCategoryExpenseServiceTest` cobrindo o agrupamento básico por categoria.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: a próxima limpeza natural do dashboard é opcional; a arquitetura funcional já está dividida entre serviços específicos.

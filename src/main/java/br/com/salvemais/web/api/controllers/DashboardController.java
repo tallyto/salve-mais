@@ -5,7 +5,9 @@ import br.com.salvemais.web.api.dto.CategoryExpenseDTO;
 import br.com.salvemais.web.api.dto.DashboardSummaryDTO;
 import br.com.salvemais.web.api.dto.MonthlyExpenseDTO;
 import br.com.salvemais.web.api.dto.VariationDataDTO;
-import br.com.salvemais.application.services.DashboardService;
+import br.com.salvemais.application.services.DashboardCategoryExpenseService;
+import br.com.salvemais.application.services.DashboardOverviewService;
+import br.com.salvemais.application.services.DashboardTrendService;
 import br.com.salvemais.application.services.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,11 +24,18 @@ import java.util.List;
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
-    private final DashboardService dashboardService;
+    private final DashboardOverviewService dashboardOverviewService;
+    private final DashboardCategoryExpenseService dashboardCategoryExpenseService;
+    private final DashboardTrendService dashboardTrendService;
     private final ExportService exportService;
 
-    public DashboardController(DashboardService dashboardService, ExportService exportService) {
-        this.dashboardService = dashboardService;
+    public DashboardController(DashboardOverviewService dashboardOverviewService,
+                               DashboardCategoryExpenseService dashboardCategoryExpenseService,
+                               DashboardTrendService dashboardTrendService,
+                               ExportService exportService) {
+        this.dashboardOverviewService = dashboardOverviewService;
+        this.dashboardCategoryExpenseService = dashboardCategoryExpenseService;
+        this.dashboardTrendService = dashboardTrendService;
         this.exportService = exportService;
     }
 
@@ -41,7 +50,7 @@ public class DashboardController {
     public ResponseEntity<DashboardSummaryDTO> getSummary(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
-        return ResponseEntity.ok(dashboardService.getSummary(mes, ano));
+        return ResponseEntity.ok(dashboardOverviewService.getSummary(mes, ano));
     }
 
     /**
@@ -55,7 +64,7 @@ public class DashboardController {
     public ResponseEntity<List<CategoryExpenseDTO>> getExpensesByCategory(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
-        return ResponseEntity.ok(dashboardService.getExpensesByCategory(mes, ano));
+        return ResponseEntity.ok(dashboardCategoryExpenseService.getExpensesByCategory(mes, ano));
     }
     
     /**
@@ -65,7 +74,7 @@ public class DashboardController {
     @GetMapping("/budget-rule")
     @Operation(summary = "Obter regra 50/30/20")
     public ResponseEntity<BudgetRuleDTO> getBudgetRule() {
-        return ResponseEntity.ok(dashboardService.getBudgetRule());
+        return ResponseEntity.ok(dashboardOverviewService.getBudgetRule());
     }
 
     /**
@@ -77,7 +86,7 @@ public class DashboardController {
     @Operation(summary = "Obter tendência mensal")
     public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrend(
             @RequestParam(value = "months", defaultValue = "6") int months) {
-        return ResponseEntity.ok(dashboardService.getMonthlyExpenseTrend(months));
+        return ResponseEntity.ok(dashboardTrendService.getMonthlyExpenseTrend(months));
     }
 
     /**
@@ -88,7 +97,7 @@ public class DashboardController {
     @GetMapping("/monthly-trend/year/{year}")
     @Operation(summary = "Obter tendência mensal por ano")
     public ResponseEntity<List<MonthlyExpenseDTO>> getMonthlyTrendByYear(@PathVariable int year) {
-        return ResponseEntity.ok(dashboardService.getMonthlyExpenseTrendByYear(year));
+        return ResponseEntity.ok(dashboardTrendService.getMonthlyExpenseTrendByYear(year));
     }
 
     /**
@@ -102,7 +111,7 @@ public class DashboardController {
     public ResponseEntity<List<VariationDataDTO>> getVariationData(
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
-        return ResponseEntity.ok(dashboardService.getVariationData(mes, ano));
+        return ResponseEntity.ok(dashboardTrendService.getVariationData(mes, ano));
     }
 
     /**

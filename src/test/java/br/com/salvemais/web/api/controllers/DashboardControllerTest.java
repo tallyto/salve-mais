@@ -21,7 +21,9 @@ import br.com.salvemais.web.api.dto.CategoryExpenseDTO;
 import br.com.salvemais.web.api.dto.DashboardSummaryDTO;
 import br.com.salvemais.web.api.dto.MonthlyExpenseDTO;
 import br.com.salvemais.web.api.dto.VariationDataDTO;
-import br.com.salvemais.application.services.DashboardService;
+import br.com.salvemais.application.services.DashboardCategoryExpenseService;
+import br.com.salvemais.application.services.DashboardOverviewService;
+import br.com.salvemais.application.services.DashboardTrendService;
 import br.com.salvemais.application.services.ExportService;
 import br.com.salvemais.testsupport.ControllerSliceTest;
 
@@ -32,7 +34,13 @@ class DashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private DashboardService dashboardService;
+    private DashboardOverviewService dashboardOverviewService;
+
+    @MockBean
+    private DashboardCategoryExpenseService dashboardCategoryExpenseService;
+
+    @MockBean
+    private DashboardTrendService dashboardTrendService;
 
     @MockBean
     private ExportService exportService;
@@ -54,7 +62,7 @@ class DashboardControllerTest {
                 new BigDecimal("10.0"),
                 6
         );
-        Mockito.when(dashboardService.getSummary(Mockito.isNull(), Mockito.isNull())).thenReturn(dto);
+        Mockito.when(dashboardOverviewService.getSummary(Mockito.isNull(), Mockito.isNull())).thenReturn(dto);
 
         mockMvc.perform(get("/api/dashboard/summary"))
                 .andExpect(status().isOk())
@@ -70,7 +78,7 @@ class DashboardControllerTest {
                 new CategoryExpenseDTO(1L, "Alimentação", new BigDecimal("200.00"), 40.0),
                 new CategoryExpenseDTO(2L, "Transporte", new BigDecimal("300.00"), 60.0)
         );
-        Mockito.when(dashboardService.getExpensesByCategory(Mockito.isNull(), Mockito.isNull())).thenReturn(list);
+        Mockito.when(dashboardCategoryExpenseService.getExpensesByCategory(Mockito.isNull(), Mockito.isNull())).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/expenses-by-category"))
                 .andExpect(status().isOk())
@@ -89,7 +97,7 @@ class DashboardControllerTest {
                 new BigDecimal("-50.00"), new BigDecimal("-50.00"), new BigDecimal("-50.00"),
                 "OK", "OK", "OK"
         );
-        Mockito.when(dashboardService.getBudgetRule()).thenReturn(dto);
+        Mockito.when(dashboardOverviewService.getBudgetRule()).thenReturn(dto);
 
         mockMvc.perform(get("/api/dashboard/budget-rule"))
                 .andExpect(status().isOk())
@@ -105,7 +113,7 @@ class DashboardControllerTest {
                 new MonthlyExpenseDTO("2025-08", LocalDate.of(2025,8,1), new BigDecimal("100.00"), new BigDecimal("200.00")),
                 new MonthlyExpenseDTO("2025-09", LocalDate.of(2025,9,1), new BigDecimal("150.00"), new BigDecimal("250.00"))
         );
-        Mockito.when(dashboardService.getMonthlyExpenseTrend(6)).thenReturn(list);
+        Mockito.when(dashboardTrendService.getMonthlyExpenseTrend(6)).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/monthly-trend").param("months", "6"))
                 .andExpect(status().isOk())
@@ -119,7 +127,7 @@ class DashboardControllerTest {
         List<MonthlyExpenseDTO> list = List.of(
                 new MonthlyExpenseDTO("2024-01", LocalDate.of(2024,1,1), new BigDecimal("100.00"), new BigDecimal("200.00"))
         );
-        Mockito.when(dashboardService.getMonthlyExpenseTrendByYear(2024)).thenReturn(list);
+        Mockito.when(dashboardTrendService.getMonthlyExpenseTrendByYear(2024)).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/monthly-trend/year/{year}", 2024))
                 .andExpect(status().isOk())
@@ -133,7 +141,7 @@ class DashboardControllerTest {
         List<VariationDataDTO> list = List.of(
                 new VariationDataDTO("despesas", new BigDecimal("300.00"), new BigDecimal("200.00"), new BigDecimal("100.00"), new BigDecimal("50.00"), "UP", "arrow_upward")
         );
-        Mockito.when(dashboardService.getVariationData(Mockito.isNull(), Mockito.isNull())).thenReturn(list);
+        Mockito.when(dashboardTrendService.getVariationData(Mockito.isNull(), Mockito.isNull())).thenReturn(list);
 
         mockMvc.perform(get("/api/dashboard/variations"))
                 .andExpect(status().isOk())
