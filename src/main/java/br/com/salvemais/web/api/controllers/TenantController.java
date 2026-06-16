@@ -268,8 +268,8 @@ public class TenantController {
 
     @GetMapping("/{id}/exportar")
     @Operation(summary = "Exportar todos os dados do tenant")
-    public ResponseEntity<Map<String, Object>> exportarDados(@PathVariable UUID id) {
-        Map<String, Object> dados = tenantService.exportarDadosTenant(id);
+    public ResponseEntity<TenantExportDTO> exportarDados(@PathVariable UUID id) {
+        TenantExportDTO dados = tenantService.exportarDadosTenant(id);
         return ResponseEntity.ok(dados);
     }
 }

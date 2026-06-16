@@ -149,3 +149,15 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - O que foi feito: adicionei `ComparativoMensalServiceTest` cobrindo resumo, variação e status geral.
 - Testes executados: pendente nesta sessão.
 - Próximo passo: validar a suíte e, se passar, commitar esta fatia antes de atacar o próximo serviço grande.
+
+### 2026-06-15 - tenant export
+
+- Objetivo: reduzir o acoplamento do `TenantService` extraindo a exportação de dados do tenant.
+- O que foi feito: criei `TenantExportService` e movi para ele `exportarDadosTenant(...)`.
+- O que foi feito: `TenantService` agora delega a exportação para o serviço novo.
+- O que foi feito: atualizei a versão do artefato para `1.21.2` no `pom.xml`.
+- O que foi feito: adicionei `TenantExportServiceTest` cobrindo o payload exportado.
+- O que foi feito: substituí `Map` por `TenantExportDTO` e `UsuarioExportDTO` para tipar a exportação.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar a fatia e continuar quebrando `TenantService` nas responsabilidades restantes.
