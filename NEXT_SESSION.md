@@ -140,3 +140,12 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - Testes executados: `./mvnw test -q`
 - Resultado: suíte passou.
 - Próximo passo: o próximo recorte natural em `ContaFixaService` é separar exportação/relatórios, se ainda for necessário.
+
+### 2026-06-15 - relatório mensal comparativo
+
+- Objetivo: reduzir o tamanho do `RelatorioMensalService` sem mudar os endpoints.
+- O que foi feito: criei `ComparativoMensalService` e movi para ele toda a lógica de comparação entre dois relatórios mensais.
+- O que foi feito: `RelatorioMensalService` agora gera o relatório base e delega o comparativo para o serviço novo.
+- O que foi feito: adicionei `ComparativoMensalServiceTest` cobrindo resumo, variação e status geral.
+- Testes executados: pendente nesta sessão.
+- Próximo passo: validar a suíte e, se passar, commitar esta fatia antes de atacar o próximo serviço grande.
