@@ -3,7 +3,6 @@ package br.com.salvemais.application.services;
 import br.com.salvemais.web.api.dto.*;
 import br.com.salvemais.infrastructure.context.TenantContext;
 import br.com.salvemais.domain.entities.Tenant;
-import br.com.salvemais.domain.entities.Usuario;
 import br.com.salvemais.domain.enums.SubscriptionStatus;
 import br.com.salvemais.domain.exceptions.BadRequestException;
 import br.com.salvemais.domain.exceptions.ResourceNotFoundException;
@@ -34,9 +33,6 @@ public class TenantService {
     private br.com.salvemais.infrastructure.repositories.UsuarioRepository usuarioRepository;
     
     @Autowired
-    private DataSource dataSource;
-
-    @Autowired
     private TenantExportService tenantExportService;
 
     @Autowired
@@ -44,6 +40,12 @@ public class TenantService {
 
     @Autowired
     private TenantUserService tenantUserService;
+
+    @Autowired
+    private TenantSchemaUserService tenantSchemaUserService;
+
+    @Autowired
+    private DataSource dataSource;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;

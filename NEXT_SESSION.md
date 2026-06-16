@@ -182,3 +182,14 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - O que foi feito: adicionei `TenantUserServiceTest` cobrindo toggle, reset e desativação de usuários.
 - Testes executados: pendentes nesta sessão.
 - Próximo passo: validar a suíte e commitar a fatia antes de seguir com `TenantService`.
+
+### 2026-06-15 - tenant schema users
+
+- Objetivo: extrair `getUsuariosByTenant(...)` do `TenantService`.
+- O que foi feito: criei `TenantSchemaUserService` e movi para ele a consulta JDBC dos usuários por schema.
+- O que foi feito: `TenantService` agora delega `getUsuariosByTenant(...)` para o serviço novo e mantém apenas as checagens de token/lembrete.
+- O que foi feito: atualizei a versão do artefato para `1.21.5` no `pom.xml`.
+- O que foi feito: adicionei `TenantSchemaUserServiceTest` cobrindo a leitura do schema com `Connection`, `Statement` e `ResultSet` mockados.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar a fatia e, se continuar na mesma frente, revisar o que ainda resta em `TenantService` para ver se faz sentido extrair `schemaExists(...)` ou parar aqui.
