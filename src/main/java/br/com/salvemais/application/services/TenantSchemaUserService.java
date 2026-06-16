@@ -68,6 +68,46 @@ public class TenantSchemaUserService {
         }
     }
 
+    public boolean hasUsuarios(UUID tenantId) {
+        Tenant tenant = findTenant(tenantId);
+        String schema = tenant.getDomain();
+
+        if (!schemaExists(schema)) {
+            return false;
+        }
+
+        try (Connection connection = dataSource.getConnection();
+             var statement = connection.createStatement();
+             var resultSet = statement.executeQuery(
+                     "SELECT EXISTS(SELECT 1 FROM \"%s\".usuario)".formatted(schema))) {
+
+            return resultSet.next() && resultSet.getBoolean(1);
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(
+                    String.format("Erro ao verificar usuários do tenant '%s' (schema: %s): %s",
+                            tenant.getName(), schema, e.getMessage()),
+                    e
+            );
+        }
+    }
+
+    private boolean schemaExists(String schemaName) {
+        try (Connection connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(
+                     "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = ?)")) {
+
+            statement.setString(1, schemaName);
+            try (var resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+            }
+            return false;
+        } catch (java.sql.SQLException e) {
+            return false;
+        }
+    }
+
     private Tenant findTenant(UUID tenantId) {
         return tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tenant not found with id " + tenantId));

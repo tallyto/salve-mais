@@ -193,3 +193,14 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - Testes executados: `./mvnw test -q`
 - Resultado: suíte passou.
 - Próximo passo: commitar a fatia e, se continuar na mesma frente, revisar o que ainda resta em `TenantService` para ver se faz sentido extrair `schemaExists(...)` ou parar aqui.
+
+### 2026-06-15 - tenant schema guard
+
+- Objetivo: eliminar o último acesso direto a `DataSource` do `TenantService`.
+- O que foi feito: movi a verificação de existência de usuários para `TenantSchemaUserService.hasUsuarios(...)`.
+- O que foi feito: `TenantService` ficou sem JDBC e passou a só orquestrar os casos de uso.
+- O que foi feito: adicionei cobertura em `TenantSchemaUserServiceTest` para a verificação de schema/usuários.
+- O que foi feito: atualizei a versão do artefato para `1.21.6` no `pom.xml`.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: commitar essa consolidação e só mexer de novo em `TenantService` se surgir uma responsabilidade claramente separável.

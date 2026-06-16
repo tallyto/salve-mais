@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -39,7 +40,13 @@ class TenantSchemaUserServiceTest {
     private Statement statement;
 
     @Mock
+    private PreparedStatement preparedStatement;
+
+    @Mock
     private ResultSet resultSet;
+
+    @Mock
+    private ResultSet usuariosResultSet;
 
     @InjectMocks
     private TenantSchemaUserService tenantSchemaUserService;
@@ -79,5 +86,32 @@ class TenantSchemaUserServiceTest {
         verify(connection).close();
         verify(statement).close();
         verify(resultSet).close();
+    }
+
+    @Test
+    void deveVerificarSeExisteUsuarioNoSchema() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        Tenant tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setName("Salve Mais");
+        tenant.setDomain("tenant_schema");
+
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
+        when(dataSource.getConnection()).thenReturn(connection);
+        when(connection.prepareStatement(contains("information_schema.schemata"))).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getBoolean(1)).thenReturn(true);
+        when(connection.createStatement()).thenReturn(statement);
+        when(statement.executeQuery(contains("FROM \"tenant_schema\".usuario"))).thenReturn(usuariosResultSet);
+        when(usuariosResultSet.next()).thenReturn(true);
+        when(usuariosResultSet.getBoolean(1)).thenReturn(true);
+
+        boolean possuiUsuarios = tenantSchemaUserService.hasUsuarios(tenantId);
+
+        assertEquals(true, possuiUsuarios);
+        verify(preparedStatement).setString(1, "tenant_schema");
+        verify(preparedStatement).close();
+        verify(statement).executeQuery(contains("FROM \"tenant_schema\".usuario"));
     }
 }

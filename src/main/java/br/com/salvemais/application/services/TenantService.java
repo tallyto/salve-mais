@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -43,9 +41,6 @@ public class TenantService {
 
     @Autowired
     private TenantSchemaUserService tenantSchemaUserService;
-
-    @Autowired
-    private DataSource dataSource;
     
     @Value("${app.confirmation.url}")
     private String confirmationUrl;
@@ -289,67 +284,7 @@ public class TenantService {
      * @throws ResourceNotFoundException se o tenant não for encontrado
      */
     public List<UsuarioTenantDTO> getUsuariosByTenant(UUID tenantId) {
-        Tenant tenant = findById(tenantId);
-        String schema = tenant.getDomain();
-        
-        List<UsuarioTenantDTO> usuarios = new java.util.ArrayList<>();
-        
-        try (Connection connection = dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            
-            String query = "SELECT id, email, nome, criado_em, ultimo_acesso FROM \"%s\".usuario ORDER BY criado_em DESC".formatted(
-                    schema
-            );
-            
-            try (var resultSet = statement.executeQuery(query)) {
-                while (resultSet.next()) {
-                    Long usuarioId = resultSet.getLong("id");
-                    String email = resultSet.getString("email");
-                    String nome = resultSet.getString("nome");
-                    java.time.LocalDateTime criadoEm = resultSet.getTimestamp("criado_em") != null 
-                        ? resultSet.getTimestamp("criado_em").toLocalDateTime() 
-                        : null;
-                    java.time.LocalDateTime ultimoAcesso = resultSet.getTimestamp("ultimo_acesso") != null 
-                        ? resultSet.getTimestamp("ultimo_acesso").toLocalDateTime() 
-                        : null;
-                    
-                    usuarios.add(new UsuarioTenantDTO(
-                        usuarioId,
-                        email,
-                        nome,
-                        tenant.getId(),
-                        criadoEm,
-                        ultimoAcesso
-                    ));
-                }
-            }
-            
-            return usuarios;
-            
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException(
-                String.format("Erro ao buscar usuários do tenant '%s' (schema: %s): %s", 
-                    tenant.getName(), schema, e.getMessage()),
-                e
-            );
-        }
-    }
-    
-    private boolean schemaExists(String schemaName) {
-        try (Connection connection = dataSource.getConnection();
-             var statement = connection.prepareStatement(
-                 "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = ?)")) {
-            
-            statement.setString(1, schemaName);
-            try (var resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getBoolean(1);
-                }
-            }
-            return false;
-        } catch (java.sql.SQLException e) {
-            return false;
-        }
+        return tenantSchemaUserService.getUsuariosByTenant(tenantId);
     }
     
     public void enviarLembreteCriarUsuario(UUID tenantId) {
@@ -361,11 +296,8 @@ public class TenantService {
         }
         
         // Verificar se o tenant já tem usuários (somente se o schema existir)
-        if (schemaExists(tenant.getDomain())) {
-            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
-            if (!usuarios.isEmpty()) {
-                throw new BadRequestException("Este tenant já possui usuários cadastrados");
-            }
+        if (tenantSchemaUserService.hasUsuarios(tenantId)) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
         }
         
         // Gerar token para criação de usuário (válido por 24 horas)
@@ -397,11 +329,8 @@ public class TenantService {
         }
         
         // Verificar se já existe usuário (somente se o schema existir)
-        if (schemaExists(tenant.getDomain())) {
-            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenant.getId());
-            if (!usuarios.isEmpty()) {
-                throw new BadRequestException("Este tenant já possui usuários cadastrados");
-            }
+        if (tenantSchemaUserService.hasUsuarios(tenant.getId())) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
         }
         
         return tenant;
@@ -423,11 +352,8 @@ public class TenantService {
         }
         
         // Verificar se o tenant já tem usuários (somente se o schema existir)
-        if (schemaExists(tenant.getDomain())) {
-            List<UsuarioTenantDTO> usuarios = getUsuariosByTenant(tenantId);
-            if (!usuarios.isEmpty()) {
-                throw new BadRequestException("Este tenant já possui usuários cadastrados");
-            }
+        if (tenantSchemaUserService.hasUsuarios(tenantId)) {
+            throw new BadRequestException("Este tenant já possui usuários cadastrados");
         }
         
         // Gerar novo token (válido por 24 horas)
