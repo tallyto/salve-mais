@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class ContaFixaService {
     private CategoriaService categoriaService;
     
     @Autowired
-    private AnexoServiceInterface anexoService;
+    private ContaFixaComprovanteService contaFixaComprovanteService;
     
     @Autowired
     private TransacaoService transacaoService;
@@ -181,36 +180,6 @@ public class ContaFixaService {
     }
     
     /**
-     * Adiciona um comprovante à conta fixa
-     * @param contaFixaId ID da conta fixa
-     * @param arquivo Arquivo do comprovante
-     * @return Objeto Anexo criado
-     * @throws IOException em caso de erro ao processar o arquivo
-     */
-    public Anexo adicionarComprovante(Long contaFixaId, MultipartFile arquivo) throws IOException {
-        ContaFixa contaFixa = buscarContaFixaPorId(contaFixaId);
-        if (contaFixa == null) {
-            throw new IllegalArgumentException("Conta fixa não encontrada");
-        }
-        
-        return anexoService.uploadAnexo(arquivo, contaFixa);
-    }
-    
-    /**
-     * Lista todos os comprovantes de uma conta fixa
-     * @param contaFixaId ID da conta fixa
-     * @return Lista de anexos
-     */
-    public List<Anexo> listarComprovantes(Long contaFixaId) {
-        ContaFixa contaFixa = buscarContaFixaPorId(contaFixaId);
-        if (contaFixa == null) {
-            throw new IllegalArgumentException("Conta fixa não encontrada");
-        }
-        
-        return anexoService.listarAnexosPorContaFixa(contaFixaId);
-    }
-    
-    /**
      * Marca uma conta fixa como paga e cria a transação correspondente
      * @param contaFixaId ID da conta fixa a ser paga
      * @param observacoes Observações opcionais sobre o pagamento
@@ -270,16 +239,20 @@ public class ContaFixaService {
      * @param anexoId ID do anexo
      * @return URL assinada para download
      */
-    public String gerarUrlDownloadComprovante(Long anexoId) {
-        return anexoService.gerarUrlDownload(anexoId);
+    public Anexo adicionarComprovante(Long contaFixaId, org.springframework.web.multipart.MultipartFile arquivo) throws IOException {
+        return contaFixaComprovanteService.adicionarComprovante(contaFixaId, arquivo);
     }
-    
-    /**
-     * Remove um comprovante
-     * @param anexoId ID do anexo
-     */
+
+    public List<Anexo> listarComprovantes(Long contaFixaId) {
+        return contaFixaComprovanteService.listarComprovantes(contaFixaId);
+    }
+
+    public String gerarUrlDownloadComprovante(Long anexoId) {
+        return contaFixaComprovanteService.gerarUrlDownloadComprovante(anexoId);
+    }
+
     public void removerComprovante(Long anexoId) {
-        anexoService.excluirAnexo(anexoId);
+        contaFixaComprovanteService.removerComprovante(anexoId);
     }
     
     /**

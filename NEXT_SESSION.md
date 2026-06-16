@@ -130,3 +130,13 @@ UPDATE public.planos SET stripe_price_id = 'price_zzz' WHERE tipo = 'ENTERPRISE'
 - Testes executados: `./mvnw test -q`
 - Resultado: suíte passou.
 - Próximo passo: a próxima limpeza natural do dashboard é opcional; a arquitetura funcional já está dividida entre serviços específicos.
+
+### 2026-06-15 - conta fixa comprovantes
+
+- Objetivo: reduzir o acoplamento do `ContaFixaService` sem mexer nos contratos dos controllers.
+- O que foi feito: criei `ContaFixaComprovanteService` e movi para ele as operações de upload, listagem, download e remoção de comprovantes.
+- O que foi feito: `ContaFixaService` agora só delega as operações de comprovantes para o serviço novo.
+- O que foi feito: adicionei `ContaFixaComprovanteServiceTest` cobrindo os fluxos de comprovante e a validação de conta fixa inexistente.
+- Testes executados: `./mvnw test -q`
+- Resultado: suíte passou.
+- Próximo passo: o próximo recorte natural em `ContaFixaService` é separar exportação/relatórios, se ainda for necessário.
