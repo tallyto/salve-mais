@@ -8,9 +8,9 @@ public class TestSecurityMocks {
 
     // Mock de JwtService para evitar dependência de tokens reais nos testes MVC.
     @MockBean
-    private com.tallyto.gestorfinanceiro.core.application.services.JwtService jwtService;
+    private com.tallyto.gestorfinanceiro.application.services.JwtService jwtService;
 
     // Mock de UsuarioDetailsService para não carregar usuários reais.
     @MockBean
-    private com.tallyto.gestorfinanceiro.core.application.services.UsuarioDetailsService usuarioDetailsService;
+    private com.tallyto.gestorfinanceiro.application.services.UsuarioDetailsService usuarioDetailsService;
 }

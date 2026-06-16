@@ -1,7 +1,8 @@
 package com.tallyto.gestorfinanceiro.testsupport;
 
-import com.tallyto.gestorfinanceiro.config.JwtAuthenticationFilter;
-import com.tallyto.gestorfinanceiro.config.TenantFilter;
+import com.tallyto.gestorfinanceiro.infrastructure.config.JwtAuthenticationFilter;
+import com.tallyto.gestorfinanceiro.infrastructure.config.SubscriptionGuardFilter;
+import com.tallyto.gestorfinanceiro.infrastructure.config.TenantFilter;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -25,7 +26,8 @@ import java.lang.annotation.*;
         controllers = {},
         excludeFilters = {
                 @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TenantFilter.class),
-                @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthenticationFilter.class)
+                @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthenticationFilter.class),
+                @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SubscriptionGuardFilter.class)
         }
 )
 @AutoConfigureMockMvc(addFilters = false)
